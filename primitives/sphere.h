@@ -8,11 +8,12 @@
 #include "../shaders/shader.h"
 #include <vector>
 #include <cmath>
+#include "primitives.h"
 
-class Sphere {
+class Sphere : public Primitives {
 public:
-    Sphere(unsigned int sectors = 36, unsigned int stacks = 18);
-    void draw(Shader& shader, glm::vec3 spherePositions);
+    Sphere();
+    void draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) override;
 
 private:
     unsigned int VAO, VBO, EBO;
@@ -21,8 +22,14 @@ private:
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
 
-    void setupSphere(unsigned int sectors, unsigned int stacks);
+    unsigned int stacks;
+    unsigned int sectors;
+
+    void setup() override;
     void generateSphereVertices(unsigned int sectors, unsigned int stacks);
+
+    std::string getInfo() const override;
+
 };
 
 #endif // SPHERE_H

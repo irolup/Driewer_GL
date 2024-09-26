@@ -48,7 +48,7 @@ float cube_vertices[] = {
 
 
 Cube::Cube() {
-    setupCube();
+    setup();
 
     material.ambient = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     material.diffuse = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
@@ -57,7 +57,7 @@ Cube::Cube() {
     material.shininess = 32.0f; // Example shininess value
 }
 
-void Cube::setupCube() {
+void Cube::setup() {
 
 
     glGenVertexArrays(1, &VAO);
@@ -128,7 +128,7 @@ void Cube::setupCube() {
 }
 
 //vector of texture
-void Cube::draw(Shader& shader, glm::vec3 cubePositions, glm::vec3 cameraPos) {
+void Cube::draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) {
     shader.Use();
     shader.SetInteger("texture1", 0);
     shader.SetInteger("texture2", 1);
@@ -154,7 +154,7 @@ void Cube::draw(Shader& shader, glm::vec3 cubePositions, glm::vec3 cameraPos) {
 
     glm::mat4 model = glm::mat4(1.0f);
     
-    model = glm::translate(model, cubePositions);
+    model = glm::translate(model, position);
     float angle = 20.0f * 1;
     model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
     shader.SetMatrix4("model", model);
@@ -163,3 +163,6 @@ void Cube::draw(Shader& shader, glm::vec3 cubePositions, glm::vec3 cameraPos) {
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
+std::string Cube::getInfo() const {
+    return "Cube";
+}

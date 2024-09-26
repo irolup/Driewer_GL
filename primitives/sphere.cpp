@@ -1,8 +1,12 @@
 #include "sphere.h"
 
-Sphere::Sphere(unsigned int sectors, unsigned int stacks) {
+Sphere::Sphere() {
+    //default stack and sector
+    stacks = 18;
+    sectors = 36;
+
     generateSphereVertices(sectors, stacks);
-    setupSphere(sectors, stacks);
+    setup();
 }
 
 void Sphere::generateSphereVertices(unsigned int sectors, unsigned int stacks) {
@@ -52,7 +56,7 @@ void Sphere::generateSphereVertices(unsigned int sectors, unsigned int stacks) {
     }
 }
 
-void Sphere::setupSphere(unsigned int sectors, unsigned int stacks) {
+void Sphere::setup() {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -110,7 +114,7 @@ void Sphere::setupSphere(unsigned int sectors, unsigned int stacks) {
     textures.push_back(texture2);
 }
 
-void Sphere::draw(Shader& shader, glm::vec3 spherePositions) {
+void Sphere::draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) {
     shader.Use();
     shader.SetInteger("texture1", 0);
     shader.SetInteger("texture2", 1);
@@ -121,9 +125,24 @@ void Sphere::draw(Shader& shader, glm::vec3 spherePositions) {
     }
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, spherePositions);
+    model = glm::translate(model, position);
     shader.SetMatrix4("model", model);
+    //Materials
+    shader.SetVector4f("material.ambient", material.ambient);
+    shader.SetVector4f("material.diffuse", material.diffuse);
+    shader.SetVector4f("material.specular", material.specular);
+    shader.SetVector4f("material.emission", material.emission);
+    shader.SetFloat("material.shininess", material.shininess);
+
+    //light pos
+    shader.SetVector3f("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
+    shader.SetVector3f("viewPos", cameraPos);
+    shader.SetVector4f("lightColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
+}
+
+std::string Sphere::getInfo() const {
+    return "Sphere";
 }

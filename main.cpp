@@ -72,13 +72,19 @@ int main()
 
 
     // Create a Cube object
-    Cube cube;
+    std::vector<Primitives*> primitives;
 
-    //Sphere object
-    Sphere sphere;
+    //Cube object
+    Cube* cube = new Cube();
+    Plane* plane = new Plane();
+    Sphere* sphere = new Sphere();
 
-    //Plane object
-    Plane plane;
+    primitives.push_back(cube);
+    primitives.push_back(plane);
+    primitives.push_back(sphere);
+
+
+
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
@@ -95,13 +101,19 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
         ourShader.SetMatrix4("view", view);
 
-        cube.draw(ourShader, glm::vec3(0.0f, 0.0f, 0.0f), camera.Position);
-
-        //sphere.draw(ourShader, glm::vec3(2.0f, 1.0f, 3.0f));
-
-        plane.draw(ourShader, glm::vec3(0.0f, 0.0f, 0.0f), camera.Position);
-
-        //std::cout << "camera pos: " << camera.Position.x << " " << camera.Position.y << " " << camera.Position.z << std::endl;
+        //Draw primitives
+        for (int i = 0; i < primitives.size(); i++) {
+            glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f); // Change the offsets as needed
+            //if the primitives is plane (with get info) place at 0,0,0
+            if (primitives[i]->getInfo() == "Plane") {
+                position = glm::vec3(0.0f, 0.0f, 0.0f);
+            } else if (primitives[i]->getInfo() == "Sphere") {
+                position = glm::vec3(0.5f * i, 0.0f, 0.5f * i);
+            } else if (primitives[i]->getInfo() == "Cube") {
+                position = glm::vec3(-0.5f * i, 0.0f, -0.5f * i);
+            }
+            primitives[i]->draw(ourShader, position, camera.Position);
+        }
 
         // Swap buffers and poll IO events
         glfwSwapBuffers(window);

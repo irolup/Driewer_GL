@@ -8,28 +8,22 @@
 #include "../shaders/shader.h"
 //vector for texture
 #include <vector>
+#include "primitives.h"
 
-class Cube {
+class Cube : public Primitives {
 public:
     Cube();
-    void draw(Shader& shader, glm::vec3 cubePositions, glm::vec3 cameraPos);
+    void draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) override;
 
-    //Material properties
-        struct Material {
-        glm::vec4 ambient;
-        glm::vec4 diffuse;
-        glm::vec4 specular;
-        glm::vec4 emission;
-        float shininess;
-    } material;
-    
 private:
     unsigned int VAO, VBO;
     //texture
     unsigned int texture1, texture2;
     std::vector<unsigned int> textures;
 
-    void setupCube();
+    void setup() override;
+
+    std::string getInfo() const override;
 };
 
 #endif // CUBE_H

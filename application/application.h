@@ -14,6 +14,7 @@
 #include "../primitives/cube.h"
 #include "../primitives/sphere.h"
 #include "../primitives/plane.h"
+#include "../collision/collision.h"
 
 // Represents the current state of the game
 enum GameState {
@@ -21,15 +22,6 @@ enum GameState {
     GAME_MENU,
     GAME_WIN
 };
-
-enum Direction_Collision {
-	DIR_UP,
-	DIR_RIGHT,
-	DIR_DOWN,
-	DIR_LEFT
-};
-// Defines a Collision typedef that represents collision data
-typedef std::tuple<bool, Direction_Collision, glm::vec2> Collision; // <collision?, what direction?, difference vector center - closest point>
 
 // Game holds all game-related state and functionality.
 // Combines all game-related data into a single class for
@@ -47,6 +39,7 @@ public:
     Plane* plane;
     Sphere* sphere;
     std::vector<Primitives*> primitives;
+    Collision collision;
 
     bool                    Keys[1024];
     bool                    KeysProcessed[1024];
@@ -69,7 +62,6 @@ public:
     void Render();
 
     //Collision detection
-    void DoCollisions();
     
     private:
 

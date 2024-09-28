@@ -26,21 +26,32 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/camera.vs", "shaders/camera.fs", nullptr, "shader");
     shader = ResourceManager::GetShader("shader");
 
-    myCamera = new Camera(glm::vec3(0.0f, 0.0f, 0.0f));
+    myCamera = new Camera(glm::vec3(0.0f, 1.0f, 2.0f));
 
     //Cube object
     cube = new Cube();
+    cube->collisionEnabled = true;
+    cube->isStatic = false;
+    cube->setPosition(glm::vec3(0.0f, 5.0f, 0.0f));
+
     plane = new Plane();
-    sphere = new Sphere();
+    plane->collisionEnabled = true;
+    plane->isStatic = true;
+    plane->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+
+    //sphere = new Sphere();
+    //sphere->collisionEnabled = true;
+    //sphere->isStatic = false;
+    //sphere->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
 
     primitives.push_back(cube);
     primitives.push_back(plane);
-    primitives.push_back(sphere);
+    //primitives.push_back(sphere);
 }
 
 void Game::Update(float dt)
 {
-    
+    collision.update(primitives);
 }
 
 void Game::Render()
@@ -52,16 +63,16 @@ void Game::Render()
     shader.SetMatrix4("view", view);
     //Draw primitives
     for (int i = 0; i < primitives.size(); i++) {
-        glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f); // Change the offsets as needed
-        //if the primitives is plane (with get info) place at 0,0,0
-        if (primitives[i]->getInfo() == "Plane") {
-            position = glm::vec3(0.0f, 0.0f, 0.0f);
-        } else if (primitives[i]->getInfo() == "Sphere") {
-            position = glm::vec3(0.5f * i, 0.0f, 0.5f * i);
-        } else if (primitives[i]->getInfo() == "Cube") {
-            position = glm::vec3(-0.5f * i, 0.0f, -0.5f * i);
-        }
-        primitives[i]->draw(shader, position, myCamera->Position);
+        //glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f); // Change the offsets as needed
+        ////if the primitives is plane (with get info) place at 0,0,0
+        //if (primitives[i]->getInfo() == "Plane") {
+        //    position = glm::vec3(0.0f, 0.0f, 0.0f);
+        //} else if (primitives[i]->getInfo() == "Sphere") {
+        //    position = glm::vec3(0.5f * i, 0.0f, 0.5f * i);
+        //} else if (primitives[i]->getInfo() == "Cube") {
+        //    position = glm::vec3(-0.5f * i, 0.0f, -0.5f * i);
+        //}
+        primitives[i]->draw(shader, primitives[i]->position, myCamera->Position);
     }
 }
 
@@ -102,6 +113,37 @@ void Game::ProcessInput(float dt)
             glDisable(GL_CULL_FACE);
             std::cout << "Face culling is disabled" << std::endl;
         }
+        //key c to make all primitives static
+        if (this->Keys[GLFW_KEY_C]){
+            for (int i = 0; i < primitives.size(); i++) {
+                primitives[i]->isStatic = true;
+            }
+            std::cout << "All primitives are static" << std::endl;
+        }
+        //key x to make all primitives dynamic (not the plane)
+        if (this->Keys[GLFW_KEY_X]){
+            for (int i = 0; i < primitives.size(); i++) {
+                if (primitives[i]->getInfo() != "Plane") {
+                    primitives[i]->isStatic = false;
+                } else {
+                    primitives[i]->isStatic = true;
+                }
+            }
+            std::cout << "All primitives are dynamic" << std::endl;
+        }
+        //key z to replace the primitives to their original position
+        if (this->Keys[GLFW_KEY_Z]){
+            for (int i = 0; i < primitives.size(); i++) {
+                if (primitives[i]->getInfo() == "Plane") {
+                    primitives[i]->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+                } else if (primitives[i]->getInfo() == "Sphere") {
+                    primitives[i]->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
+                } else if (primitives[i]->getInfo() == "Cube") {
+                    primitives[i]->setPosition(glm::vec3(0.0f, 3.0f, 0.0f));
+                }
+            }
+            std::cout << "All primitives are back to their original position" << std::endl;
+        }
 
     }
     if (this->State == GAME_WIN)
@@ -138,26 +180,3 @@ void Game::MouseCallback(GLFWwindow* window, double xpos, double ypos)
     // Pass the offsets to the camera (be sure this method handles both offsets)
     myCamera->ProcessMouseMovement(xoffset, yoffset);
 }
-
-//collision detection
-void Game::DoCollisions()
-{
-    //for (Primitives* primitive : primitives) {
-    //    if (primitive->getInfo() == "Cube") {
-    //        if (cube->checkCollision(*primitive)) {
-    //            std::cout << "Cube collided with cube" << std::endl;
-    //        }
-    //    }
-    //    if (primitive->getInfo() == "Sphere") {
-    //        if (sphere->checkCollision(*primitive)) {
-    //            std::cout << "Sphere collided with sphere" << std::endl;
-    //        }
-    //    }
-    //    if (primitive->getInfo() == "Plane") {
-    //        if (plane->checkCollision(*primitive)) {
-    //            std::cout << "Plane collided with plane" << std::endl;
-    //        }
-    //    }
-    //}
-}
-

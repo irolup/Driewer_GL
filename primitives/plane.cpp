@@ -75,6 +75,8 @@ void Plane::setup() {
     //add textures to vector
     textures.push_back(texture1);
     textures.push_back(texture2);
+
+    updateHitbox();
 }
 
 void Plane::draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) {

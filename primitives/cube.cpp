@@ -125,6 +125,8 @@ void Cube::setup() {
     //add to vec
     textures.push_back(texture1);
     textures.push_back(texture2);
+
+    updateHitbox();
 }
 
 //vector of texture

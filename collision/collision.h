@@ -24,6 +24,12 @@ public:
 
     // Update method to apply gravity and resolve collisions between all primitives
     void update(std::vector<Primitives*>& primitives);
+
+private:
+
+    glm::vec3 calculateNormal(Primitives* a, Primitives* b);
+    void slideAlongSurface(Primitives* moving, glm::vec3 normal);
+
 };
 
 #endif // COLLISION_H

@@ -158,7 +158,7 @@ void Cube::draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) {
     
     model = glm::translate(model, position);
     float angle = 20.0f * 1;
-    model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+    //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
     shader.SetMatrix4("model", model);
 
     glBindVertexArray(VAO);

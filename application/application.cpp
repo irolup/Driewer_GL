@@ -83,8 +83,6 @@ void Game::ProcessInput(float dt)
         float cameraSpeed = 5.f * dt;
         if (this->Keys[GLFW_KEY_W] ){
             myCamera->ProcessKeyboard(Camera_Movement::FORWARD, cameraSpeed);
-            //log to test the movement
-            std::cout << "Camera position: " << myCamera->Position.x << " " << myCamera->Position.y << " " << myCamera->Position.z << std::endl;
         }
         if (this->Keys[GLFW_KEY_S]){
             myCamera->ProcessKeyboard(Camera_Movement::BACKWARD, cameraSpeed);

@@ -114,7 +114,7 @@ void Sphere::setup() {
     textures.push_back(texture2);
 }
 
-void Sphere::draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) {
+void Sphere::draw(Shader& shader, glm::vec3 position, Camera& camera) {
     shader.Use();
     shader.SetInteger("texture1", 0);
     shader.SetInteger("texture2", 1);
@@ -136,8 +136,25 @@ void Sphere::draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) {
 
     //light pos
     shader.SetVector3f("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
-    shader.SetVector3f("viewPos", cameraPos);
+    shader.SetVector3f("viewPos", camera.Position);
     shader.SetVector4f("lightColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
+}
+
+//draw hitbox
+void Sphere::drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) {
+    shader.Use();
+    glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);
+    shader.SetMatrix4("projection", projection);
+    glm::mat4 view = camera.GetViewMatrix();
+    shader.SetMatrix4("view", view);
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, position);
+    model = glm::scale(model, scale);
+    shader.SetMatrix4("model", model);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);

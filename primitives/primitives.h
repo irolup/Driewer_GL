@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include "../shaders/shader.h"
+#include "../camera/camera.h"
 
 class Primitives {
 public:
@@ -68,7 +69,10 @@ public:
     virtual void setup() = 0;
 
     // Pure virtual function for drawing
-    virtual void draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) = 0;
+    virtual void draw(Shader& shader, glm::vec3 position, Camera& camera) = 0;
+
+    // Pure virtual function for drawing the hitbox
+    virtual void drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) = 0;
 
     // Get information about the primitive
     virtual std::string getInfo() const = 0;

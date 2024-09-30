@@ -79,8 +79,12 @@ void Plane::setup() {
     updateHitbox();
 }
 
-void Plane::draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) {
+void Plane::draw(Shader& shader, glm::vec3 position, Camera& camera) {
     shader.Use();
+    glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);
+    shader.SetMatrix4("projection", projection);
+    glm::mat4 view = camera.GetViewMatrix();
+    shader.SetMatrix4("view", view);
     shader.SetInteger("texture1", 0);
     shader.SetInteger("texture2", 1);
 
@@ -104,8 +108,24 @@ void Plane::draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) {
 
     //light pos
     shader.SetVector3f("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
-    shader.SetVector3f("viewPos", cameraPos);
+    shader.SetVector3f("viewPos", camera.Position);
     shader.SetVector4f("lightColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void Plane::drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) {
+    shader.Use();
+    glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);
+    shader.SetMatrix4("projection", projection);
+    glm::mat4 view = camera.GetViewMatrix();
+    shader.SetMatrix4("view", view);
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, position);
+    model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+    shader.SetMatrix4("model", model);
 
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);

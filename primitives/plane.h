@@ -12,7 +12,8 @@
 class Plane : public Primitives {
 public:
     Plane();
-    void draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) override;
+    void draw(Shader& shader, glm::vec3 position, Camera& camera) override;
+    void drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) override;
     
 private:
     unsigned int VAO, VBO;

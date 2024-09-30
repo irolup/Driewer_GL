@@ -26,6 +26,9 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/camera.vs", "shaders/camera.fs", nullptr, "shader");
     shader = ResourceManager::GetShader("shader");
 
+    ResourceManager::LoadShader("shaders/hitbox.vs", "shaders/hitbox.fs", nullptr, "hitbox");
+    hitboxShader = ResourceManager::GetShader("hitbox");
+
     myCamera = new Camera(glm::vec3(0.0f, 1.0f, 2.0f));
 
     //Cube object
@@ -56,11 +59,11 @@ void Game::Update(float dt)
 
 void Game::Render()
 {
-    shader.Use();
-    glm::mat4 projection = glm::perspective(glm::radians(myCamera->Zoom), (float)Width / (float)Height, 0.1f, 100.0f);
-    shader.SetMatrix4("projection", projection);
-    glm::mat4 view = myCamera->GetViewMatrix();
-    shader.SetMatrix4("view", view);
+    //shader.Use();
+    //glm::mat4 projection = glm::perspective(glm::radians(myCamera->Zoom), (float)Width / (float)Height, 0.1f, 100.0f);
+    //shader.SetMatrix4("projection", projection);
+    //glm::mat4 view = myCamera->GetViewMatrix();
+    //shader.SetMatrix4("view", view);
     //Draw primitives
     for (int i = 0; i < primitives.size(); i++) {
         //glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f); // Change the offsets as needed
@@ -72,7 +75,10 @@ void Game::Render()
         //} else if (primitives[i]->getInfo() == "Cube") {
         //    position = glm::vec3(-0.5f * i, 0.0f, -0.5f * i);
         //}
-        primitives[i]->draw(shader, primitives[i]->position, myCamera->Position);
+        primitives[i]->draw(shader, primitives[i]->position, *myCamera);
+        if (primitives[i]->collisionEnabled) {
+            primitives[i]->drawHitbox(hitboxShader, primitives[i]->position, *myCamera);
+        }
     }
 }
 

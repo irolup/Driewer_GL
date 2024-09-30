@@ -1,8 +1,13 @@
 #include "camera.h"
 
 // Constructor with default values
-Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
-    : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch, int width, int height)
+    : Front(glm::vec3(0.0f, 0.0f, -1.0f)), 
+      MovementSpeed(SPEED), 
+      MouseSensitivity(SENSITIVITY), 
+      Zoom(ZOOM), 
+      Width(width), 
+      Height(height)
 {
     Position = position;
     WorldUp = up;
@@ -12,8 +17,13 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
 }
 
 // Constructor with scalar values
-Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch)
-    : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch, int width, int height)
+    : Front(glm::vec3(0.0f, 0.0f, -1.0f)), 
+      MovementSpeed(SPEED), 
+      MouseSensitivity(SENSITIVITY), 
+      Zoom(ZOOM), 
+      Width(width), 
+      Height(height)
 {
     Position = glm::vec3(posX, posY, posZ);
     WorldUp = glm::vec3(upX, upY, upZ);
@@ -26,6 +36,13 @@ Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float u
 glm::mat4 Camera::GetViewMatrix()
 {
     return glm::lookAt(Position, Position + Front, Up);
+}
+
+// Returns the projection matrix
+glm::mat4 Camera::GetProjectionMatrix(float nearPlane, float farPlane)
+{
+    float aspectRatio = static_cast<float>(Width) / static_cast<float>(Height);
+    return glm::perspective(glm::radians(Zoom), aspectRatio, nearPlane, farPlane);
 }
 
 // Processes keyboard input

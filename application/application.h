@@ -35,6 +35,7 @@ public:
 
     Camera          *myCamera;
     Shader          shader;
+    Shader          hitboxShader;
     Cube* cube;
     Plane* plane;
     Sphere* sphere;

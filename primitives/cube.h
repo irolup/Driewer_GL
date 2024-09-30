@@ -13,13 +13,18 @@
 class Cube : public Primitives {
 public:
     Cube();
-    void draw(Shader& shader, glm::vec3 position, glm::vec3 cameraPos) override;
+    void draw(Shader& shader, glm::vec3 position, Camera& camera) override;
 
 private:
-    unsigned int VAO, VBO;
+    unsigned int VAO, VBO, EBO;
     //texture
     unsigned int texture1, texture2;
     std::vector<unsigned int> textures;
+
+    //hiotbox
+    unsigned int cubeVAO, cubeVBO, cubeEBO;
+
+    void drawHitbox(Shader& shader, glm::vec3 position, Camera& camera);
 
     void setup() override;
 

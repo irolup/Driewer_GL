@@ -20,6 +20,10 @@ const float SPEED       =  2.5f;
 const float SENSITIVITY =  0.1f;
 const float ZOOM        =  45.0f;
 
+// Default camera resolution values
+const int DEFAULT_WIDTH  = 920;
+const int DEFAULT_HEIGHT = 800;
+
 // Camera class
 class Camera {
 public:
@@ -29,6 +33,10 @@ public:
     glm::vec3 Up;
     glm::vec3 Right;
     glm::vec3 WorldUp;
+
+    // Camera resolution with width and height
+    int Width;
+    int Height;
     
     // euler Angles
     float Yaw;
@@ -43,15 +51,22 @@ public:
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), 
            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), 
            float yaw = YAW, 
-           float pitch = PITCH);
+           float pitch = PITCH,
+           int width = DEFAULT_WIDTH, 
+           int height = DEFAULT_HEIGHT);
 
     // Constructor with scalar values
     Camera(float posX, float posY, float posZ, 
            float upX, float upY, float upZ, 
-           float yaw, float pitch);
+           float yaw, float pitch,
+           int width = DEFAULT_WIDTH, 
+           int height = DEFAULT_HEIGHT);
 
     // Returns the view matrix
     glm::mat4 GetViewMatrix();
+
+    // Returns the projection matrix
+    glm::mat4 GetProjectionMatrix(float nearPlane, float farPlane);
 
     // Processes keyboard input
     void ProcessKeyboard(Camera_Movement direction, float deltaTime);

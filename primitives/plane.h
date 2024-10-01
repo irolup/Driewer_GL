@@ -16,8 +16,10 @@ public:
     void drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) override;
     
 private:
-    unsigned int VAO, VBO;
+    unsigned int VAO, VBO, EBO;
     unsigned int texture1, texture2;
+
+    unsigned int hitboxVAO, hitboxVBO, hitboxEBO;
 
     std::vector<unsigned int> textures;
     

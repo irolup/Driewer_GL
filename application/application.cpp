@@ -50,6 +50,8 @@ void Game::Init()
     primitives.push_back(cube);
     primitives.push_back(plane);
     //primitives.push_back(sphere);
+
+    drawHitbox = false;
 }
 
 void Game::Update(float dt)
@@ -75,9 +77,11 @@ void Game::Render()
         //} else if (primitives[i]->getInfo() == "Cube") {
         //    position = glm::vec3(-0.5f * i, 0.0f, -0.5f * i);
         //}
-        primitives[i]->draw(shader, primitives[i]->position, *myCamera);
-        if (primitives[i]->collisionEnabled) {
+        //primitives[i]->draw(shader, primitives[i]->position, *myCamera);
+        if (drawHitbox) {
             primitives[i]->drawHitbox(hitboxShader, primitives[i]->position, *myCamera);
+        } else {
+            primitives[i]->draw(shader, primitives[i]->position, *myCamera);
         }
     }
 }
@@ -147,6 +151,15 @@ void Game::ProcessInput(float dt)
                 }
             }
             std::cout << "All primitives are back to their original position" << std::endl;
+        }
+        //key h to draw hitbox and j to not draw hitbox
+        if (this->Keys[GLFW_KEY_H]){
+            drawHitbox = true;
+            std::cout << "Hitbox is enabled" << std::endl;
+        }
+        if (this->Keys[GLFW_KEY_J]){
+            drawHitbox = false;
+            std::cout << "Hitbox is disabled" << std::endl;
         }
 
     }

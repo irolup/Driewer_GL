@@ -45,24 +45,23 @@ unsigned int cube_indices[] = {
     20, 21, 22, 22, 23, 20   // Top face
 };
 
-//hitbox vertices
+// Hitbox vertices for wireframe rendering
 float hitbox_vertices[] = {
-    // positions
-    -0.5f, -0.5f, -0.5f, // bottom-left
-     0.5f, -0.5f, -0.5f, // bottom-right
-     0.5f,  0.5f, -0.5f, // top-right
-    -0.5f,  0.5f, -0.5f, // top-left
-    // Front face
-    -0.5f, -0.5f,  0.5f, // bottom-left
-     0.5f, -0.5f,  0.5f, // bottom-right
-     0.5f,  0.5f,  0.5f, // top-right
-    -0.5f,  0.5f,  0.5f, // top-left
+    -0.5f, -0.5f, -0.5f, // back-bottom-left
+     0.5f, -0.5f, -0.5f, // back-bottom-right
+     0.5f,  0.5f, -0.5f, // back-top-right
+    -0.5f,  0.5f, -0.5f, // back-top-left
+    -0.5f, -0.5f,  0.5f, // front-bottom-left
+     0.5f, -0.5f,  0.5f, // front-bottom-right
+     0.5f,  0.5f,  0.5f, // front-top-right
+    -0.5f,  0.5f,  0.5f  // front-top-left
 };
 
-//hitbox indices
+// Hitbox indices for drawing lines (edges)
 unsigned int hitbox_indices[] = {
-    0, 1, 2, 2, 3, 0,  // Back face
-    4, 5, 6, 6, 7, 4,  // Front face
+    0, 1, 1, 2, 2, 3, 3, 0,  // Back face edges
+    4, 5, 5, 6, 6, 7, 7, 4,  // Front face edges
+    0, 4, 1, 5, 2, 6, 3, 7   // Connecting edges
 };
 
 Cube::Cube() {
@@ -138,18 +137,18 @@ void Cube::setup() {
     textures.push_back(texture2);
 
     // Hitbox setup
-    glGenVertexArrays(1, &cubeVAO);
-    glGenBuffers(1, &cubeVBO);
-    glGenBuffers(1, &cubeEBO);
+    glGenVertexArrays(1, &hitboxVAO);
+    glGenBuffers(1, &hitboxVBO);
+    glGenBuffers(1, &hitboxEBO);
 
-    glBindVertexArray(cubeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+    glBindVertexArray(hitboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, hitboxVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(hitbox_vertices), hitbox_vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hitboxEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(hitbox_indices), hitbox_indices, GL_STATIC_DRAW);
 
-    // Position attribute
+    // Position attribute for hitbox
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -208,8 +207,8 @@ void Cube::drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) {
     shader.SetMatrix4("model", model);
 
     // Draw hitbox using indices
-    glBindVertexArray(cubeVAO);
-    glDrawElements(GL_LINE_LOOP, 8, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(hitboxVAO);
+    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0); // Draw the hitbox edges
 }
 
 std::string Cube::getInfo() const {

@@ -3,12 +3,31 @@
 // Vertex data for a plane
 float plane_vertices[] = {
     // positions          // texture coords
-    -0.5f, 0.0f, -0.5f,  0.0f, 0.0f,
-     0.5f, 0.0f, -0.5f,  1.0f, 0.0f,
-     0.5f, 0.0f,  0.5f,  1.0f, 1.0f,
-     0.5f, 0.0f,  0.5f,  1.0f, 1.0f,
-    -0.5f, 0.0f,  0.5f,  0.0f, 1.0f,
-    -0.5f, 0.0f, -0.5f,  0.0f, 0.0f
+    -0.5f, 0.0f, -0.5f,  0.0f, 0.0f,  // Bottom-left
+     0.5f, 0.0f, -0.5f,  1.0f, 0.0f,  // Bottom-right
+     0.5f, 0.0f,  0.5f,  1.0f, 1.0f,  // Top-right
+    -0.5f, 0.0f,  0.5f,  0.0f, 1.0f   // Top-left
+};
+
+// Indices for the plane (two triangles)
+unsigned int plane_indices[] = {
+    0, 1, 2,  // First triangle
+    2, 3, 0   // Second triangle
+};
+
+// Hitbox data for the plane (wireframe around the plane)
+float plane_hitbox_vertices[] = {
+    -0.5f, 0.0f, -0.5f,
+     0.5f, 0.0f, -0.5f,
+     0.5f, 0.0f,  0.5f,
+    -0.5f, 0.0f,  0.5f
+};
+
+unsigned int plane_hitbox_indices[] = {
+    0, 1,
+    1, 2,
+    2, 3,
+    3, 0
 };
 
 Plane::Plane() {
@@ -18,10 +37,17 @@ Plane::Plane() {
 void Plane::setup() {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO); // Create Element Buffer Object
 
     glBindVertexArray(VAO);
+
+    // Bind and set vertex buffer data
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(plane_vertices), plane_vertices, GL_STATIC_DRAW);
+
+    // Bind and set element buffer data (indices)
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(plane_indices), plane_indices, GL_STATIC_DRAW);
 
     // Position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -29,6 +55,22 @@ void Plane::setup() {
     // Texture coord attribute
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // Hitbox VAO, VBO, and EBO
+    glGenVertexArrays(1, &hitboxVAO);
+    glGenBuffers(1, &hitboxVBO);
+    glGenBuffers(1, &hitboxEBO);
+
+    glBindVertexArray(hitboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, hitboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(plane_hitbox_vertices), plane_hitbox_vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hitboxEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(plane_hitbox_indices), plane_hitbox_indices, GL_STATIC_DRAW);
+
 
     // Load texture
     glGenTextures(1, &texture1);
@@ -112,7 +154,7 @@ void Plane::draw(Shader& shader, glm::vec3 position, Camera& camera) {
     shader.SetVector4f("lightColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 void Plane::drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) {
@@ -127,8 +169,8 @@ void Plane::drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) {
     model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
     shader.SetMatrix4("model", model);
 
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(hitboxVAO);
+    glDrawElements(GL_LINES, 8, GL_UNSIGNED_INT, 0); // Draw the hitbox edges
 }
 
 std::string Plane::getInfo() const {

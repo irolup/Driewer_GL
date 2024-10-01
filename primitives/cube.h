@@ -22,7 +22,7 @@ private:
     std::vector<unsigned int> textures;
 
     //hiotbox
-    unsigned int cubeVAO, cubeVBO, cubeEBO;
+    unsigned int hitboxVAO, hitboxVBO, hitboxEBO;
 
     void drawHitbox(Shader& shader, glm::vec3 position, Camera& camera);
 

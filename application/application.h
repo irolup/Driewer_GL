@@ -49,6 +49,8 @@ public:
     float lastX = Width / 2.0f;
     float lastY = Height / 2.0f;
 
+    bool drawHitbox = false;
+
     //audio
 
     // constructor/destructor

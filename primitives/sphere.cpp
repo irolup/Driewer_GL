@@ -9,6 +9,8 @@ Sphere::Sphere() {
     setup();
 }
 
+//ADD FUNCTION FOR HITBOX
+
 void Sphere::generateSphereVertices(unsigned int sectors, unsigned int stacks) {
     float x, y, z, xy;
     float nx, ny, nz, lengthInv = 1.0f;
@@ -143,7 +145,7 @@ void Sphere::draw(Shader& shader, glm::vec3 position, Camera& camera) {
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
 }
 
-//draw hitbox
+//draw hitbox TO DO AND AJUST
 void Sphere::drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) {
     shader.Use();
     glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);

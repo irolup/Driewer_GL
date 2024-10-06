@@ -1,68 +1,7 @@
 #include "cube.h"
 
 // Vertex data for a cube with positions and texture coordinates
-float cube_vertices[] = {
-    // positions          // texture coords
-    // Back face
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-    // Front face
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // top-left
-    // Left face
-    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // top-left
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-    // Right face
-     0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
-     0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-    // Bottom face
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-left
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // top-right
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
-    // Top face
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f  // bottom-left
-};
 
-// New index data (remains the same)
-unsigned int cube_indices[] = {
-    0, 1, 2, 2, 3, 0,  // Back face
-    4, 5, 6, 6, 7, 4,  // Front face
-    8, 9, 10, 10, 11, 8,  // Left face
-    12, 13, 14, 14, 15, 12,  // Right face
-    16, 17, 18, 18, 19, 16,  // Bottom face
-    20, 21, 22, 22, 23, 20   // Top face
-};
-
-// Hitbox vertices for wireframe rendering
-float hitbox_vertices[] = {
-    -0.5f, -0.5f, -0.5f, // back-bottom-left
-     0.5f, -0.5f, -0.5f, // back-bottom-right
-     0.5f,  0.5f, -0.5f, // back-top-right
-    -0.5f,  0.5f, -0.5f, // back-top-left
-    -0.5f, -0.5f,  0.5f, // front-bottom-left
-     0.5f, -0.5f,  0.5f, // front-bottom-right
-     0.5f,  0.5f,  0.5f, // front-top-right
-    -0.5f,  0.5f,  0.5f  // front-top-left
-};
-
-// Hitbox indices for drawing lines (edges)
-unsigned int hitbox_indices[] = {
-    0, 1, 1, 2, 2, 3, 3, 0,  // Back face edges
-    4, 5, 5, 6, 6, 7, 7, 4,  // Front face edges
-    0, 4, 1, 5, 2, 6, 3, 7   // Connecting edges
-};
 
 Cube::Cube() {
     setup();
@@ -159,9 +98,9 @@ void Cube::setup() {
 }
 
 // Draw the cube using indices
-void Cube::draw(Shader& shader, glm::vec3 position, Camera& camera) {
+void Cube::draw(Shader& shader, Camera& camera) {
     shader.Use();
-    glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);
+    glm::mat4 projection = camera.GetProjectionMatrix();
     shader.SetMatrix4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     shader.SetMatrix4("view", view);
@@ -188,7 +127,7 @@ void Cube::draw(Shader& shader, glm::vec3 position, Camera& camera) {
 
     // Set the model transformation matrix
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, position);
+    model = glm::translate(model, getPosition());
     shader.SetMatrix4("model", model);
 
     // Draw cube using indices
@@ -196,19 +135,26 @@ void Cube::draw(Shader& shader, glm::vec3 position, Camera& camera) {
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 }
 
-void Cube::drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) {
+void Cube::drawHitbox(Shader& shader, Camera& camera) {
+    position = getPosition();
     shader.Use();
-    glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);
+    glm::mat4 projection = camera.GetProjectionMatrix();
     shader.SetMatrix4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
-    // Set the model transformation matrix
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, position);
+    model = glm::translate(model, getHitboxPosition());
     shader.SetMatrix4("model", model);
 
     // Draw hitbox using indices
     glBindVertexArray(hitboxVAO);
     glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0); // Draw the hitbox edges
+}
+
+
+//set pos
+void Cube::setPosition(glm::vec3 pos) {
+    position = pos;
+    updateHitbox();
 }
 
 std::string Cube::getInfo() const {

@@ -12,8 +12,8 @@
 class Plane : public Primitives {
 public:
     Plane();
-    void draw(Shader& shader, glm::vec3 position, Camera& camera) override;
-    void drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) override;
+    void draw(Shader& shader, Camera& camera) override;
+    void drawHitbox(Shader& shader, Camera& camera) override;
     
 private:
     unsigned int VAO, VBO, EBO;
@@ -26,6 +26,37 @@ private:
     void setup() override;
 
     std::string getInfo() const override;
+
+    static constexpr float plane_vertices[] = {
+        // positions          // texture coords
+        -0.5f, 0.0f, -0.5f,  0.0f, 0.0f,  // Bottom-left
+         0.5f, 0.0f, -0.5f,  1.0f, 0.0f,  // Bottom-right
+         0.5f, 0.0f,  0.5f,  1.0f, 1.0f,  // Top-right
+        -0.5f, 0.0f,  0.5f,  0.0f, 1.0f   // Top-left
+    };
+
+    // Indices for the plane (two triangles)
+    static constexpr unsigned int plane_indices[] = {
+        0, 1, 2,  // First triangle
+        2, 3, 0   // Second triangle
+    };
+
+    // Hitbox data for the plane (wireframe around the plane)
+    static constexpr float plane_hitbox_vertices[] = {
+        -0.5f, 0.0f, -0.5f,
+         0.5f, 0.0f, -0.5f,
+         0.5f, 0.0f,  0.5f,
+        -0.5f, 0.0f,  0.5f
+    };
+
+    static constexpr unsigned int plane_hitbox_indices[] = {
+        0, 1,
+        1, 2,
+        2, 3,
+        3, 0
+    };
+
+
 };
 
 #endif // PLANE_H

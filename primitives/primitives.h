@@ -69,10 +69,10 @@ public:
     virtual void setup() = 0;
 
     // Pure virtual function for drawing
-    virtual void draw(Shader& shader, glm::vec3 position, Camera& camera) = 0;
+    virtual void draw(Shader& shader, Camera& camera) = 0;
 
     // Pure virtual function for drawing the hitbox
-    virtual void drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) = 0;
+    virtual void drawHitbox(Shader& shader, Camera& camera) = 0;
 
     // Get information about the primitive
     virtual std::string getInfo() const = 0;
@@ -117,6 +117,16 @@ public:
     //get hitbox
     Hitbox getHitbox() const {
         return hitbox;
+    }
+
+    //Get hibox position
+    glm::vec3 getHitboxPosition() const {
+        return (hitbox.min + hitbox.max) / 2.0f;
+    }
+
+    //get position
+    glm::vec3 getPosition() const {
+        return position;
     }
 
     virtual ~Primitives() {}

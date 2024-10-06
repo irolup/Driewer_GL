@@ -28,7 +28,7 @@ bool Collision::checkCollision(Primitives* a, Primitives* b) {
 
     // Debugging output
     if (collisionDetected) {
-        std::cout << "Collision detected between: " << a->getInfo() << " and " << b->getInfo() << std::endl;
+        //std::cout << "Collision detected between: " << a->getInfo() << " and " << b->getInfo() << std::endl;
     }
     return collisionDetected;
 }
@@ -103,7 +103,7 @@ void Collision::applyGravity(Primitives* primitive) {
         // Gravity affects the primitive's velocity over time if it's dynamic
         primitive->velocity += gravity * deltaTime;
         primitive->position += primitive->velocity * deltaTime;
-        std::cout << "Gravity applied to: " << primitive->getInfo() << " | New position: " << glm::to_string(primitive->position) << std::endl;
+        //std::cout << "Gravity applied to: " << primitive->getInfo() << " | New position: " << glm::to_string(primitive->position) << std::endl;
     }
 }
 

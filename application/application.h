@@ -15,6 +15,7 @@
 #include "../primitives/sphere.h"
 #include "../primitives/plane.h"
 #include "../collision/collision.h"
+#include "../lights/lights.h"
 
 // Represents the current state of the game
 enum GameState {
@@ -36,10 +37,25 @@ public:
     Camera          *myCamera;
     Shader          shader;
     Shader          hitboxShader;
+    Shader          lightShader;
+    Shader          defaultShader;
     Cube* cube;
     Plane* plane;
     Sphere* sphere;
+
+    //cube light
+    Sphere* sphere_light;
+
     std::vector<Primitives*> primitives;
+
+    Light ambient_light;
+    Light point_light;
+    Light directional_light;
+    Light spot_light;
+    //vector of lights
+    std::vector<Light*> lights;
+
+    
     Collision collision;
 
     bool                    Keys[1024];

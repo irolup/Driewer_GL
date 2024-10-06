@@ -1,34 +1,5 @@
 #include "plane.h"
 
-// Vertex data for a plane
-float plane_vertices[] = {
-    // positions          // texture coords
-    -0.5f, 0.0f, -0.5f,  0.0f, 0.0f,  // Bottom-left
-     0.5f, 0.0f, -0.5f,  1.0f, 0.0f,  // Bottom-right
-     0.5f, 0.0f,  0.5f,  1.0f, 1.0f,  // Top-right
-    -0.5f, 0.0f,  0.5f,  0.0f, 1.0f   // Top-left
-};
-
-// Indices for the plane (two triangles)
-unsigned int plane_indices[] = {
-    0, 1, 2,  // First triangle
-    2, 3, 0   // Second triangle
-};
-
-// Hitbox data for the plane (wireframe around the plane)
-float plane_hitbox_vertices[] = {
-    -0.5f, 0.0f, -0.5f,
-     0.5f, 0.0f, -0.5f,
-     0.5f, 0.0f,  0.5f,
-    -0.5f, 0.0f,  0.5f
-};
-
-unsigned int plane_hitbox_indices[] = {
-    0, 1,
-    1, 2,
-    2, 3,
-    3, 0
-};
 
 Plane::Plane() {
     setup();
@@ -121,9 +92,9 @@ void Plane::setup() {
     updateHitbox();
 }
 
-void Plane::draw(Shader& shader, glm::vec3 position, Camera& camera) {
+void Plane::draw(Shader& shader, Camera& camera) {
     shader.Use();
-    glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);
+    glm::mat4 projection = camera.GetProjectionMatrix();
     shader.SetMatrix4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     shader.SetMatrix4("view", view);
@@ -137,7 +108,7 @@ void Plane::draw(Shader& shader, glm::vec3 position, Camera& camera) {
     }
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, position);
+    model = glm::translate(model, getPosition());
     //scale more big
     model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
     shader.SetMatrix4("model", model);
@@ -157,7 +128,7 @@ void Plane::draw(Shader& shader, glm::vec3 position, Camera& camera) {
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-void Plane::drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) {
+void Plane::drawHitbox(Shader& shader, Camera& camera) {
     shader.Use();
     glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);
     shader.SetMatrix4("projection", projection);
@@ -165,7 +136,7 @@ void Plane::drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) {
     shader.SetMatrix4("view", view);
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, position);
+    model = glm::translate(model, getHitboxPosition());
     model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
     shader.SetMatrix4("model", model);
 

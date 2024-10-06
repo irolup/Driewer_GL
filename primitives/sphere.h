@@ -13,8 +13,8 @@
 class Sphere : public Primitives {
 public:
     Sphere();
-    void draw(Shader& shader, glm::vec3 position, Camera& camera) override;
-    void drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) override;
+    void draw(Shader& shader, Camera& camera) override;
+    void drawHitbox(Shader& shader, Camera& camera) override;
 
 private:
     unsigned int VAO, VBO, EBO;
@@ -30,7 +30,6 @@ private:
     void generateSphereVertices(unsigned int sectors, unsigned int stacks);
 
     std::string getInfo() const override;
-
 };
 
 #endif // SPHERE_H

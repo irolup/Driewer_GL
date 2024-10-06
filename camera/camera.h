@@ -24,10 +24,14 @@ const float ZOOM        =  45.0f;
 const int DEFAULT_WIDTH  = 920;
 const int DEFAULT_HEIGHT = 800;
 
+// Default near and far clipping planes
+const float DEFAULT_NEAR_PLANE = 0.1f;
+const float DEFAULT_FAR_PLANE  = 100.0f;
+
 // Camera class
 class Camera {
 public:
-    // camera Attributes
+    // Camera Attributes
     glm::vec3 Position;
     glm::vec3 Front;
     glm::vec3 Up;
@@ -37,12 +41,12 @@ public:
     // Camera resolution with width and height
     int Width;
     int Height;
-    
-    // euler Angles
+
+    // Euler Angles
     float Yaw;
     float Pitch;
-    
-    // camera options
+
+    // Camera options
     float MovementSpeed;
     float MouseSensitivity;
     float Zoom;
@@ -65,8 +69,11 @@ public:
     // Returns the view matrix
     glm::mat4 GetViewMatrix();
 
-    // Returns the projection matrix
+    // Returns the projection matrix with custom near and far planes
     glm::mat4 GetProjectionMatrix(float nearPlane, float farPlane);
+
+    // Returns the projection matrix with default near and far planes
+    glm::mat4 GetProjectionMatrix();
 
     // Processes keyboard input
     void ProcessKeyboard(Camera_Movement direction, float deltaTime);

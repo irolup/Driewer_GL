@@ -29,13 +29,19 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/hitbox.vs", "shaders/hitbox.fs", nullptr, "hitbox");
     hitboxShader = ResourceManager::GetShader("hitbox");
 
+    ResourceManager::LoadShader("shaders/lights.vs", "shaders/lights.fs", nullptr, "lights");
+    lightShader = ResourceManager::GetShader("lights");
+
+    ResourceManager::LoadShader("shaders/default.vs", "shaders/default.fs", nullptr, "default");
+    defaultShader = ResourceManager::GetShader("default");
+
     myCamera = new Camera(glm::vec3(0.0f, 1.0f, 2.0f));
 
     //Cube object
     cube = new Cube();
     cube->collisionEnabled = true;
     cube->isStatic = false;
-    cube->setPosition(glm::vec3(0.0f, 5.0f, 0.0f));
+    cube->setPosition(glm::vec3(0.0f, 7.0f, 0.0f));
 
     plane = new Plane();
     plane->collisionEnabled = true;
@@ -43,8 +49,8 @@ void Game::Init()
     plane->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
 
     //sphere = new Sphere();
-    //sphere->collisionEnabled = true;
-    //sphere->isStatic = false;
+    //sphere->collisionEnabled = false;
+    //sphere->isStatic = true;
     //sphere->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
 
     primitives.push_back(cube);
@@ -52,36 +58,53 @@ void Game::Init()
     //primitives.push_back(sphere);
 
     drawHitbox = false;
+
+    sphere_light = new Sphere();
+    sphere_light->collisionEnabled = false;
+    sphere_light->isStatic = true;
+    sphere_light->setPosition(glm::vec3(0.0f, 9.0f, 0.0f));
+    primitives.push_back(sphere_light);
+
+    //Create spotlight that target 0,0,0 and position at -4.0, 4.0, 4.0
+    spot_light.addSpotlight(glm::vec3(0.0f, 9.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), 1.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
+    //point_light.setType(Light::LightType::POINT);
+    //point_light.setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    //point_light.setPosition(glm::vec3(1.2f, 1.0f, 2.0f));
+    //point_light.setIntensity(1.0f);
+
+    //add point light to vector
+    lights.push_back(&spot_light);
+
 }
 
 void Game::Update(float dt)
 {
     collision.update(primitives);
+
+    //move the light in a circle 
+    float radius = 2.5f;
+    float lightX = sin(glfwGetTime()) * radius;
+    float lightZ = cos(glfwGetTime()) * radius;
+    spot_light.setPosition(glm::vec3(lightX, 9.0f, lightZ));
 }
 
 void Game::Render()
 {
-    //shader.Use();
-    //glm::mat4 projection = glm::perspective(glm::radians(myCamera->Zoom), (float)Width / (float)Height, 0.1f, 100.0f);
-    //shader.SetMatrix4("projection", projection);
-    //glm::mat4 view = myCamera->GetViewMatrix();
-    //shader.SetMatrix4("view", view);
-    //Draw primitives
+    //use light shader
+    for (int i = 0; i < lights.size(); i++) {
+        lights[i]->useLight(lightShader, *myCamera);
+    }
+
     for (int i = 0; i < primitives.size(); i++) {
-        //glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f); // Change the offsets as needed
-        ////if the primitives is plane (with get info) place at 0,0,0
-        //if (primitives[i]->getInfo() == "Plane") {
-        //    position = glm::vec3(0.0f, 0.0f, 0.0f);
-        //} else if (primitives[i]->getInfo() == "Sphere") {
-        //    position = glm::vec3(0.5f * i, 0.0f, 0.5f * i);
-        //} else if (primitives[i]->getInfo() == "Cube") {
-        //    position = glm::vec3(-0.5f * i, 0.0f, -0.5f * i);
-        //}
-        //primitives[i]->draw(shader, primitives[i]->position, *myCamera);
         if (drawHitbox) {
-            primitives[i]->drawHitbox(hitboxShader, primitives[i]->position, *myCamera);
+            primitives[i]->drawHitbox(hitboxShader, *myCamera);
         } else {
-            primitives[i]->draw(shader, primitives[i]->position, *myCamera);
+            //if sphere draw hit
+            if (primitives[i]->getInfo() == "Sphere") {
+                primitives[i]->drawHitbox(hitboxShader, *myCamera);
+            } else {
+            primitives[i]->draw(lightShader, *myCamera);
+            }
         }
     }
 }
@@ -144,8 +167,9 @@ void Game::ProcessInput(float dt)
             for (int i = 0; i < primitives.size(); i++) {
                 if (primitives[i]->getInfo() == "Plane") {
                     primitives[i]->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-                } else if (primitives[i]->getInfo() == "Sphere") {
-                    primitives[i]->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
+                } else if //sphere not change position
+                (primitives[i]->getInfo() == "Sphere") {
+                    primitives[i]->setPosition(glm::vec3(0.0f, 9.0f, 0.0f));
                 } else if (primitives[i]->getInfo() == "Cube") {
                     primitives[i]->setPosition(glm::vec3(0.0f, 3.0f, 0.0f));
                 }

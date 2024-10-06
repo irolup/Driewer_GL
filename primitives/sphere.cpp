@@ -116,8 +116,12 @@ void Sphere::setup() {
     textures.push_back(texture2);
 }
 
-void Sphere::draw(Shader& shader, glm::vec3 position, Camera& camera) {
+void Sphere::draw(Shader& shader, Camera& camera) {
     shader.Use();
+    glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);
+    shader.SetMatrix4("projection", projection);
+    glm::mat4 view = camera.GetViewMatrix();
+    shader.SetMatrix4("view", view);
     shader.SetInteger("texture1", 0);
     shader.SetInteger("texture2", 1);
 
@@ -127,7 +131,7 @@ void Sphere::draw(Shader& shader, glm::vec3 position, Camera& camera) {
     }
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, position);
+    model = glm::translate(model, getPosition());
     shader.SetMatrix4("model", model);
     //Materials
     shader.SetVector4f("material.ambient", material.ambient);
@@ -146,7 +150,7 @@ void Sphere::draw(Shader& shader, glm::vec3 position, Camera& camera) {
 }
 
 //draw hitbox TO DO AND AJUST
-void Sphere::drawHitbox(Shader& shader, glm::vec3 position, Camera& camera) {
+void Sphere::drawHitbox(Shader& shader, Camera& camera) {
     shader.Use();
     glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);
     shader.SetMatrix4("projection", projection);

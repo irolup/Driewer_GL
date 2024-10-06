@@ -38,11 +38,17 @@ glm::mat4 Camera::GetViewMatrix()
     return glm::lookAt(Position, Position + Front, Up);
 }
 
-// Returns the projection matrix
+// Returns the projection matrix with custom near and far planes
 glm::mat4 Camera::GetProjectionMatrix(float nearPlane, float farPlane)
 {
     float aspectRatio = static_cast<float>(Width) / static_cast<float>(Height);
     return glm::perspective(glm::radians(Zoom), aspectRatio, nearPlane, farPlane);
+}
+
+// Returns the projection matrix with default near and far planes
+glm::mat4 Camera::GetProjectionMatrix()
+{
+    return GetProjectionMatrix(DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE);
 }
 
 // Processes keyboard input

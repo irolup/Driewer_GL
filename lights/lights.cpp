@@ -84,13 +84,6 @@ void Light::useLight(Shader& shader, Camera& camera) {
 
     // Set the view position
     shader.SetVector3f("viewPos", camera.Position);
-
-    // Set the view and projection matrices
-    glm::mat4 projection = camera.GetProjectionMatrix();
-    shader.SetMatrix4("projection", projection);
-    glm::mat4 view = camera.GetViewMatrix();
-    shader.SetMatrix4("view", view);
-
     // Set the number of lights
     shader.SetInteger("lightCount", static_cast<int>(lights.size()));
 
@@ -127,9 +120,6 @@ void Light::useLight(Shader& shader, Camera& camera) {
         }
     }
 
-    // Set the model matrix
-    glm::mat4 model = glm::mat4(1.0f);
-    shader.SetMatrix4("model", model);
 }
 
 // Set the types of lights

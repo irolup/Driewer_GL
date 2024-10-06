@@ -23,10 +23,14 @@ uniform Light lights[MAX_LIGHTS];
 uniform int lightCount; // Total number of lights
 uniform vec3 viewPos;   // Camera position
 
-// Function to calculate lighting
+// Textures
+uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_normal1;
+
+// Function to calculate point and directional lighting
 vec3 CalculateLighting(Light light, vec3 normal, vec3 viewDir, vec3 fragPos) {
     vec3 result = vec3(0.0);
-    
+
     // Diffuse lighting
     vec3 lightDir = normalize(light.position - fragPos);
     float diff = max(dot(normal, lightDir), 0.0);
@@ -43,51 +47,65 @@ vec3 CalculateLighting(Light light, vec3 normal, vec3 viewDir, vec3 fragPos) {
     return result;
 }
 
+// Function to calculate ambient lighting
+vec3 CalculateAmbientLight(Light light) {
+    return light.color.rgb * light.intensity; // Ambient light color and intensity
+}
+
+// Function to calculate directional lighting
+vec3 CalculateDirectionalLight(Light light, vec3 normal, vec3 viewDir) {
+    vec3 lightDir = normalize(-light.direction);
+    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse = diff * light.color.rgb * light.intensity;
+
+    // Specular lighting
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    vec3 specular = spec * light.color.rgb * light.intensity;
+
+    return diffuse + specular;
+}
+
+// Function to calculate spotlight lighting
+vec3 CalculateSpotlight(Light light, vec3 normal, vec3 viewDir, vec3 fragPos) {
+    vec3 lightDir = normalize(light.direction);
+    float theta = dot(lightDir, normalize(fragPos - light.position));
+    float epsilon = light.cutOff - light.outerCutOff;
+    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+
+    return CalculateLighting(light, normal, viewDir, fragPos) * intensity;
+}
+
 void main() {
     vec3 normal = normalize(Normal);
     vec3 viewDir = normalize(ViewPos - FragPos);
     vec3 lighting = vec3(0.0);
     
-    // First process AMBIENT lights (assume type 0)
+    // Phase 1: Calculate ambient lighting
     for (int i = 0; i < lightCount; i++) {
         if (lights[i].type == 0) { // Ambient light
-            lighting += lights[i].color.rgb * lights[i].intensity; // Use ambient light color and intensity
+            lighting += CalculateAmbientLight(lights[i]);
         }
     }
 
-    // Then process POINT lights (type 1)
+    // Phase 2: Calculate point lights
     for (int i = 0; i < lightCount; i++) {
         if (lights[i].type == 1) { // Point light
             lighting += CalculateLighting(lights[i], normal, viewDir, FragPos);
         }
     }
 
-    // Next, process DIRECTIONAL lights (type 2)
+    // Phase 3: Calculate directional lights
     for (int i = 0; i < lightCount; i++) {
         if (lights[i].type == 2) { // Directional light
-            vec3 lightDir = normalize(-lights[i].direction);
-            float diff = max(dot(normal, lightDir), 0.0);
-            vec3 diffuse = diff * lights[i].color.rgb * lights[i].intensity;
-
-            // Specular lighting
-            vec3 reflectDir = reflect(-lightDir, normal);
-            float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-            vec3 specular = spec * lights[i].color.rgb * lights[i].intensity;
-
-            lighting += diffuse + specular;
+            lighting += CalculateDirectionalLight(lights[i], normal, viewDir);
         }
     }
 
-    // Finally, process SPOTLIGHT lights (type 3)
+    // Phase 4: Calculate spotlights
     for (int i = 0; i < lightCount; i++) {
         if (lights[i].type == 3) { // Spotlight
-            vec3 lightDir = normalize(lights[i].direction);
-            float theta = dot(lightDir, normalize(FragPos - lights[i].position));
-            float epsilon = lights[i].cutOff - lights[i].outerCutOff;
-            float intensity = clamp((theta - lights[i].outerCutOff) / epsilon, 0.0, 1.0);
-
-            vec3 diffuse = CalculateLighting(lights[i], normal, viewDir, FragPos) * intensity;
-            lighting += diffuse;
+            lighting += CalculateSpotlight(lights[i], normal, viewDir, FragPos);
         }
     }
 

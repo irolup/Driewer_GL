@@ -46,7 +46,7 @@ void Cube::setup() {
 
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load("texture/container.jpg", &width, &height, &nrChannels, 0);
+    unsigned char* data = stbi_load("texture/rock.jpg", &width, &height, &nrChannels, 0);
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -97,40 +97,36 @@ void Cube::setup() {
     updateHitbox();
 }
 
-// Draw the cube using indices
 void Cube::draw(Shader& shader, Camera& camera) {
     shader.Use();
+
     glm::mat4 projection = camera.GetProjectionMatrix();
     shader.SetMatrix4("projection", projection);
+    
     glm::mat4 view = camera.GetViewMatrix();
     shader.SetMatrix4("view", view);
-    shader.SetInteger("texture1", 0);
-    shader.SetInteger("texture2", 1);
-
-    // Materials
-    shader.SetVector4f("material.ambient", material.ambient);
-    shader.SetVector4f("material.diffuse", material.diffuse);
-    shader.SetVector4f("material.specular", material.specular);
-    shader.SetVector4f("material.emission", material.emission);
-    shader.SetFloat("material.shininess", material.shininess);
-
-    // Light and view positions
-    shader.SetVector3f("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
+    
+    // Set the view position
     shader.SetVector3f("viewPos", camera.Position);
-    shader.SetVector4f("lightColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-    // Bind textures
-    for (unsigned int i = 0; i < textures.size(); i++) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, textures[i]);
-    }
+    // Set the texture units
+    //shader.SetInteger("texture_diffuse1", 0);
+    //shader.SetInteger("texture_normal1", 1);
+    
+    // Bind the diffuse texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textures[0]); // Assuming textures[0] is your diffuse texture
+
+    // Bind the normal texture if used
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, textures[1]); // Assuming textures[1] is your normal texture
 
     // Set the model transformation matrix
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, getPosition());
     shader.SetMatrix4("model", model);
 
-    // Draw cube using indices
+    // Draw the cube using indices
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 }

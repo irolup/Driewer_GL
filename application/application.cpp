@@ -66,11 +66,14 @@ void Game::Init()
     primitives.push_back(sphere_light);
 
     //Create spotlight that target 0,0,0 and position at -4.0, 4.0, 4.0
-    spot_light.addSpotlight(glm::vec3(0.0f, 9.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), 1.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
+    spot_light.addSpotlight(glm::vec3(0.0f, 9.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 0.0f), 1.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
     //point_light.setType(Light::LightType::POINT);
     //point_light.setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     //point_light.setPosition(glm::vec3(1.2f, 1.0f, 2.0f));
     //point_light.setIntensity(1.0f);
+
+    //create point light
+    //point_light.addPointLight(glm::vec3(1.2f, 1.0f, 2.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 1.0f);
 
     //add point light to vector
     lights.push_back(&spot_light);
@@ -93,20 +96,25 @@ void Game::Render()
     //use light shader
     for (int i = 0; i < lights.size(); i++) {
         lights[i]->useLight(lightShader, *myCamera);
+        for (int i = 0; i < primitives.size(); i++)
+        {
+            primitives[i]->draw(lightShader, *myCamera);
+        }
+        
     }
 
-    for (int i = 0; i < primitives.size(); i++) {
-        if (drawHitbox) {
-            primitives[i]->drawHitbox(hitboxShader, *myCamera);
-        } else {
-            //if sphere draw hit
-            if (primitives[i]->getInfo() == "Sphere") {
-                primitives[i]->drawHitbox(hitboxShader, *myCamera);
-            } else {
-            primitives[i]->draw(lightShader, *myCamera);
-            }
-        }
-    }
+    //for (int i = 0; i < primitives.size(); i++) {
+    //    if (drawHitbox) {
+    //        primitives[i]->drawHitbox(hitboxShader, *myCamera);
+    //    } else {
+    //        //if sphere draw hit
+    //        if (primitives[i]->getInfo() == "Sphere") {
+    //            primitives[i]->drawHitbox(hitboxShader, *myCamera);
+    //        } else {
+    //        primitives[i]->draw(lightShader, *myCamera);
+    //        }
+    //    }
+    //}
 }
 
 void Game::ProcessInput(float dt)

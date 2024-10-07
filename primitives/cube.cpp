@@ -6,8 +6,8 @@
 Cube::Cube() {
     setup();
 
-    material.ambient = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    material.diffuse = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+    material.ambient = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    material.diffuse = glm::vec4(1.0f, 0.5f, 0.31f, 1.0f);
     material.specular = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     material.emission = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     material.shininess = 32.0f; // Example shininess value
@@ -113,8 +113,23 @@ void Cube::draw(Shader& shader, Camera& camera) {
     glm::mat4 view = camera.GetViewMatrix();
     shader.SetMatrix4("view", view);
     
+    //light position same as camera position
+    glm::vec3 lightPos = camera.Position;
+    shader.SetVector3f("lightPos", lightPos);
+
     // Set the view position
-    shader.SetVector3f("viewPos", camera.Position);
+    glm::vec3 viewPos = camera.Position;
+    shader.SetVector3f("viewPos", viewPos);
+
+    //lightcolor for testing lightColor
+    shader.SetVector4f("lightColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+    //material
+    shader.SetVector4f("material.ambient", material.ambient);
+    shader.SetVector4f("material.diffuse", material.diffuse);
+    shader.SetVector4f("material.specular", material.specular);
+    shader.SetVector4f("material.emission", material.emission);
+    shader.SetFloat("material.shininess", material.shininess);
 
     // Set the texture units
     shader.SetInteger("texture_diffuse1", 0);

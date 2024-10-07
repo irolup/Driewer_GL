@@ -98,6 +98,9 @@ void Plane::draw(Shader& shader, Camera& camera) {
     shader.SetMatrix4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     shader.SetMatrix4("view", view);
+
+    shader.SetVector4f("lightColor", glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
+
     shader.SetInteger("texture_diffuse1", 0);
     shader.SetInteger("texture_normal1", 1);
 

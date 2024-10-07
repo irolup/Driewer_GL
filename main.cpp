@@ -62,7 +62,7 @@ int main()
         game.MouseCallback(window, xpos, ypos);
     });
     glfwSetScrollCallback(window, scroll_callback);
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     //SET KEY CALLBACK
     glfwSetKeyCallback(window, key_callback);
 

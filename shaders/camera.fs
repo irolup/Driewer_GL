@@ -23,6 +23,21 @@ struct Material {
 uniform Material material;
 
 // Light properties
+struct Light {
+    int type; // 0: Directional, 1: Point, 2: Spotlight
+    vec4 color;
+    vec3 position;
+    vec3 direction; // Direction for directional and spotlight
+    float intensity;
+    float cutOff; // Inner cutoff angle
+    float outerCutOff; // Outer cutoff angle
+};
+
+uniform int lightCount;
+uniform Light lights[1]; // Adjust size as necessary
+
+
+// Light properties
 uniform vec3 lightPos; // Position of the light source
 uniform vec3 viewPos;  // Position of the camera/viewer
 uniform vec4 lightColor; // Color of the light
@@ -61,6 +76,7 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     vec4 specular = material.specular * spec * lightColor;
 
-    // Combine results
+
     FragColor = textureColor * (ambient + diffuse + specular);
+    //FragColor = vec4(lightDir * 0.5 + 0.5, 1.0) // Visualize lightDir
 }

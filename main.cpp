@@ -19,7 +19,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 //void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
-void processInput(GLFWwindow *window);
+//void processInput(GLFWwindow *window);
 
 // settings
 const unsigned int SCR_WIDTH = 920;
@@ -62,7 +62,7 @@ int main()
         game.MouseCallback(window, xpos, ypos);
     });
     glfwSetScrollCallback(window, scroll_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     //SET KEY CALLBACK
     glfwSetKeyCallback(window, key_callback);
 

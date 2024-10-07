@@ -7,8 +7,8 @@ in vec3 Normal;  // Normal vector in world space
 in vec3 Tangent; // Tangent vector in world space
 
 // Texture samplers
-uniform sampler2D texture1; // Diffuse texture
-uniform sampler2D texture2; // Normal map
+uniform sampler2D texture_diffuse1; // Diffuse texture
+uniform sampler2D texture_normal1; // Normal map
 
 // Material struct
 struct Material {
@@ -30,10 +30,12 @@ uniform vec4 lightColor; // Color of the light
 void main()
 {
     // Sample the diffuse texture
-    vec4 textureColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.5);
+    //vec4 textureColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.5);
+
+    vec4 textureColor = texture(texture_diffuse1, TexCoord);
 
     // Normal mapping
-    vec3 normalMap = texture(texture2, TexCoord).xyz * 2.0 - 1.0; // Read normal from normal map
+    vec3 normalMap = texture(texture_normal1, TexCoord).xyz * 2.0 - 1.0; // Read normal from normal map
     normalMap = normalize(normalMap); // Normalize the normal vector
 
     // Calculate TBN matrix

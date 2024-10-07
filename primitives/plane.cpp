@@ -98,8 +98,8 @@ void Plane::draw(Shader& shader, Camera& camera) {
     shader.SetMatrix4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     shader.SetMatrix4("view", view);
-    shader.SetInteger("texture1", 0);
-    shader.SetInteger("texture2", 1);
+    shader.SetInteger("texture_diffuse1", 0);
+    shader.SetInteger("texture_normal1", 1);
 
     // Bind texture
     for (unsigned int i = 0; i < textures.size(); i++) {

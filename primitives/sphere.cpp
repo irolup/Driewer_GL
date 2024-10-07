@@ -77,16 +77,20 @@ void Sphere::setup() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // Load texture 1
+    // Load texture
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
+    // Set texture parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    // Load image, create texture and generate mipmaps
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("texture/container.jpg", &width, &height, &nrChannels, 0);
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char *data = stbi_load("texture/rock.jpg", &width, &height, &nrChannels, 0);
+    
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -95,17 +99,20 @@ void Sphere::setup() {
     }
     stbi_image_free(data);
 
-    // Load texture 2
+    //texture2
     glGenTextures(1, &texture2);
     glBindTexture(GL_TEXTURE_2D, texture2);
+    // Set texture parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    data = stbi_load("texture/awesomeface.png", &width, &height, &nrChannels, 0);
+    // Load image, create texture and generate mipmaps
+    data = stbi_load("texture/rock_norm.jpg", &width, &height, &nrChannels, 0);
+
     if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         std::cout << "Failed to load texture" << std::endl;
@@ -122,8 +129,8 @@ void Sphere::draw(Shader& shader, Camera& camera) {
     shader.SetMatrix4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     shader.SetMatrix4("view", view);
-    shader.SetInteger("texture1", 0);
-    shader.SetInteger("texture2", 1);
+    shader.SetInteger("texture_diffuse1", 0);
+    shader.SetInteger("texture_normal1", 1);
 
     for (unsigned int i = 0; i < textures.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);

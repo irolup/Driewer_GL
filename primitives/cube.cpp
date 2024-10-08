@@ -16,24 +16,30 @@ Cube::Cube() {
 void Cube::setup() {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO); // Element buffer object for indices
+    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
 
-    // Vertex buffer object (VBO)
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
 
-    // Element buffer object (EBO)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_indices), cube_indices, GL_STATIC_DRAW);
 
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    // Positions
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // Texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    // Normals
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // Texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    // Tangents
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
+    glEnableVertexAttribArray(3);
+
+    glBindVertexArray(0);
 
 
     // Load texture
@@ -115,14 +121,14 @@ void Cube::draw(Shader& shader, Camera& camera) {
     
     //light position same as camera position
     glm::vec3 lightPos = camera.Position;
-    shader.SetVector3f("lightPos", lightPos);
+    //shader.SetVector3f("lightPos", lightPos);
 
     // Set the view position
     glm::vec3 viewPos = camera.Position;
     shader.SetVector3f("viewPos", viewPos);
 
     //lightcolor for testing lightColor
-    shader.SetVector4f("lightColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    //shader.SetVector4f("lightColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
     //material
     shader.SetVector4f("material.ambient", material.ambient);

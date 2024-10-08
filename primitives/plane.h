@@ -28,11 +28,11 @@ private:
     std::string getInfo() const override;
 
     static constexpr float plane_vertices[] = {
-        // positions          // texture coords
-        -0.5f, 0.0f, -0.5f,  0.0f, 0.0f,  // Bottom-left
-         0.5f, 0.0f, -0.5f,  1.0f, 0.0f,  // Bottom-right
-         0.5f, 0.0f,  0.5f,  1.0f, 1.0f,  // Top-right
-        -0.5f, 0.0f,  0.5f,  0.0f, 1.0f   // Top-left
+        // positions         // normals         // texture coords // tangents
+        -0.5f, 0.0f, -0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,  -1.0f, 0.0f, // Bottom-left
+         0.5f, 0.0f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  -1.0f, 0.0f, // Bottom-right
+         0.5f, 0.0f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,  -1.0f, 0.0f, // Top-right
+        -0.5f, 0.0f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,  -1.0f, 0.0f  // Top-left
     };
 
     // Indices for the plane (two triangles)

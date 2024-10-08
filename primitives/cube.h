@@ -40,47 +40,46 @@ private:
 
         // Cube vertex data
     static constexpr float cube_vertices[] = {
-        // positions          // texture coords
+        // positions          // normals           // texture coords // tangents
         // Back face
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-left
+         0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-right
+         0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-right
+        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-left
         // Front face
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // top-left
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-left
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-right
+         0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-right
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-left
         // Left face
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // top-left
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-right
+        -0.5f, -0.5f,  0.5f, -1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-left
+        -0.5f,  0.5f,  0.5f, -1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-left
+        -0.5f,  0.5f, -0.5f, -1.0f, 0.0f, 0.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-right
         // Right face
-         0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
-         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-left
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-right
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-right
+         0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-left
         // Bottom face
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-left
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // top-right
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-left
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-right
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-right
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-left
         // Top face
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f  // bottom-left
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-left
+         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-right
+         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-right
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f  // bottom-left
     };
 
-    // Cube index data
     static constexpr unsigned int cube_indices[] = {
-        0, 1, 2, 2, 3, 0,  // Back face
-        4, 5, 6, 6, 7, 4,  // Front face
-        8, 9, 10, 10, 11, 8,  // Left face
-        12, 13, 14, 14, 15, 12,  // Right face
-        16, 17, 18, 18, 19, 16,  // Bottom face
-        20, 21, 22, 22, 23, 20   // Top face
+        0, 1, 2, 0, 2, 3, // Back face
+        4, 5, 6, 4, 6, 7, // Front face
+        8, 9, 10, 8, 10, 11, // Left face
+        12, 13, 14, 12, 14, 15, // Right face
+        16, 17, 18, 16, 18, 19, // Bottom face
+        20, 21, 22, 20, 22, 23  // Top face
     };
 
     // Hitbox vertices for wireframe rendering
@@ -97,9 +96,12 @@ private:
 
     // Hitbox indices for drawing lines (edges)
     static constexpr unsigned int hitbox_indices[] = {
-        0, 1, 1, 2, 2, 3, 3, 0,  // Back face edges
-        4, 5, 5, 6, 6, 7, 7, 4,  // Front face edges
-        0, 4, 1, 5, 2, 6, 3, 7   // Connecting edges
+        0, 1, 2, 2, 3, 0,
+        4, 5, 6, 6, 7, 4,
+        0, 1, 5, 5, 4, 0,
+        2, 3, 7, 7, 6, 2,
+        0, 3, 7, 7, 4, 0,
+        1, 2, 6, 6, 5, 1
     };
 };
 

@@ -95,10 +95,10 @@ void Game::Render()
 {
     //use light shader
     for (int i = 0; i < lights.size(); i++) {
-        //lights[i]->useLight(lightShader, *myCamera);
+        lights[i]->useLight(lightShader, *myCamera);
         for (int i = 0; i < primitives.size(); i++)
         {
-            primitives[i]->draw(shader, *myCamera);
+            primitives[i]->draw(lightShader, *myCamera);
         }
         
     }

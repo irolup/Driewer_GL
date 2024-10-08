@@ -12,10 +12,10 @@ struct Light {
 
 #define MAX_LIGHTS 10 // Adjust as needed
 
-in vec2 TexCoords;
 in vec3 FragPos;
 in vec3 Normal;
-in vec3 ViewPos;
+in vec2 TexCoords;
+in vec3 Tangent;
 
 out vec4 FragColor;
 
@@ -78,8 +78,25 @@ vec3 CalculateSpotlight(Light light, vec3 normal, vec3 viewDir, vec3 fragPos) {
 
 void main() {
     vec3 normal = normalize(Normal);
-    vec3 viewDir = normalize(ViewPos - FragPos);
+    vec3 viewDir = normalize(viewPos - FragPos);
     vec3 lighting = vec3(0.0);
+
+    vec4 textureColor = texture(texture_diffuse1, TexCoords);
+    //vec4 ambient = textureColor * lights[0].color *material.ambient;
+
+    //Normal mapping
+    vec3 normalMap = texture(texture_normal1, TexCoords).xyz * 2.0 - 1.0;
+    normalMap = normalize(normalMap);
+
+    //Calculate TBN matrix
+    vec3 T = normalize(Tangent);
+    vec3 N = normalize(Normal);
+    vec3 B = normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    normal = normalize(TBN * normalMap);
+    
+
     
     // Phase 1: Calculate ambient lighting
     for (int i = 0; i < lightCount; i++) {

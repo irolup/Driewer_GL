@@ -21,11 +21,20 @@ void Plane::setup() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(plane_indices), plane_indices, GL_STATIC_DRAW);
 
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // Texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    // Normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // Texture coord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    // Tangent attribute
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (void*)(8 * sizeof(float)));
+    glEnableVertexAttribArray(3);
 
     // Hitbox VAO, VBO, and EBO
     glGenVertexArrays(1, &hitboxVAO);
@@ -99,6 +108,9 @@ void Plane::draw(Shader& shader, Camera& camera) {
     glm::mat4 view = camera.GetViewMatrix();
     shader.SetMatrix4("view", view);
 
+    glm::vec3 viewPos = camera.Position;
+    shader.SetVector3f("viewPos", viewPos);
+
     shader.SetVector4f("lightColor", glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
 
     shader.SetInteger("texture_diffuse1", 0);
@@ -123,9 +135,9 @@ void Plane::draw(Shader& shader, Camera& camera) {
     shader.SetFloat("material.shininess", material.shininess);
 
     //light pos
-    shader.SetVector3f("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
-    shader.SetVector3f("viewPos", camera.Position);
-    shader.SetVector4f("lightColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    //shader.SetVector3f("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
+    //shader.SetVector3f("viewPos", camera.Position);
+    //shader.SetVector4f("lightColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

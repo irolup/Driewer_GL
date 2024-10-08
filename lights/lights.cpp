@@ -18,7 +18,16 @@ Light::LightData* Light::createLight(LightType type, const glm::vec4& color, flo
     newLight->type = type;
     newLight->color = color;
     newLight->intensity = intensity;
+
+    // Initialize other properties
+    newLight->position = glm::vec3(0.0f); // Default position, or pass as parameter
+    newLight->direction = glm::vec3(0.0f); // Default direction, or pass as parameter
+    newLight->cutOff = 0.0f; // Default cutoff, can be changed later for spotlights
+    newLight->outerCutOff = 0.0f; // Default outer cutoff
+
     lights.push_back(newLight);
+    std::cout << "Light added" << std::endl;
+    std::cout << "Number of lights in lights: " << lights.size() << std::endl;
     return newLight;
 }
 
@@ -86,6 +95,8 @@ void Light::useLight(Shader& shader, Camera& camera) {
     shader.SetVector3f("viewPos", camera.Position);
     // Set the number of lights
     shader.SetInteger("lightCount", static_cast<int>(lights.size()));
+    //log number of lights
+    //std::cout << "Number of lights: " << lights.size() << std::endl;
 
     for (unsigned int i = 0; i < lights.size(); i++) {
         std::string lightType = "lights[" + std::to_string(i) + "].type";

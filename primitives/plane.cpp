@@ -111,7 +111,7 @@ void Plane::draw(Shader& shader, Camera& camera) {
     glm::vec3 viewPos = camera.Position;
     shader.SetVector3f("viewPos", viewPos);
 
-    shader.SetVector4f("lightColor", glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
+    //shader.SetVector4f("lightColor", glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
 
     shader.SetInteger("texture_diffuse1", 0);
     shader.SetInteger("texture_normal1", 1);

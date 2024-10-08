@@ -48,10 +48,10 @@ public:
 
     std::vector<Primitives*> primitives;
 
-    Light ambient_light;
+    Light spot_light;
     Light point_light;
     Light directional_light;
-    Light spot_light;
+    
     //vector of lights
     std::vector<Light*> lights;
 

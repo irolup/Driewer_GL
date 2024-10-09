@@ -7,6 +7,14 @@ Sphere::Sphere() {
 
     generateSphereVertices(sectors, stacks);
     setup();
+    material.ambient = glm::vec3(1.0f, 0.0f, 0.0f);
+    material.diffuse = glm::vec3(1.0f, 0.5f, 0.31f);
+    material.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    material.metallic = 0.0f;
+    material.roughness = 0.5f;
+    material.occlusion = 1.0f;
+    material.brightness = 1.0f;
+    material.fresnel_ior = glm::vec3(1.5f);
 }
 
 //ADD FUNCTION FOR HITBOX
@@ -129,8 +137,11 @@ void Sphere::draw(Shader& shader, Camera& camera) {
     shader.SetMatrix4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     shader.SetMatrix4("view", view);
-    shader.SetInteger("texture_diffuse1", 0);
-    shader.SetInteger("texture_normal1", 1);
+    shader.SetInteger("texture_diffuse", 0);
+    shader.SetInteger("texture_normal", 1);
+    shader.SetInteger("texture_metallic", 2);
+    shader.SetInteger("texture_roughness", 3);
+    shader.SetInteger("texture_occlusion", 4);
 
     for (unsigned int i = 0; i < textures.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
@@ -141,11 +152,14 @@ void Sphere::draw(Shader& shader, Camera& camera) {
     model = glm::translate(model, getPosition());
     shader.SetMatrix4("model", model);
     //Materials
-    shader.SetVector4f("material.ambient", material.ambient);
-    shader.SetVector4f("material.diffuse", material.diffuse);
-    shader.SetVector4f("material.specular", material.specular);
-    shader.SetVector4f("material.emission", material.emission);
-    shader.SetFloat("material.shininess", material.shininess);
+    shader.SetVector3f("material.ambient", material.ambient);
+    shader.SetVector3f("material.diffuse", material.diffuse);
+    shader.SetVector3f("material.specular", material.specular);
+    shader.SetFloat("material.metallic", material.metallic);
+    shader.SetFloat("material.roughness", material.roughness);
+    shader.SetFloat("material.occlusion", material.occlusion);
+    shader.SetFloat("material.brightness", material.brightness);
+    shader.SetVector3f("material.fresnel_ior", material.fresnel_ior);
 
     //light pos
     shader.SetVector3f("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));

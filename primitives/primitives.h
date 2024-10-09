@@ -20,11 +20,14 @@ public:
 
     // PBR Material properties (as an example)
     struct Material {
-        glm::vec4 ambient;
-        glm::vec4 diffuse;
-        glm::vec4 specular;
-        glm::vec4 emission;
-        float shininess;
+        glm::vec3 ambient;
+        glm::vec3 diffuse;
+        glm::vec3 specular;
+        float metallic;
+        float roughness;
+        float occlusion;
+        float brightness;
+        glm::vec3 fresnel_ior;
     } material;
 
     //struct for hitbox
@@ -33,35 +36,17 @@ public:
         glm::vec3 max;
     } hitbox;
 
-// couleurs de réflexion du matériau
-//uniform vec3 material_color_ambient;
-//uniform vec3 material_color_diffuse;
-//uniform vec3 material_color_specular;
-//
-//// facteur de brillance du matériau
-//uniform float material_brightness;
-//
-//// facteur de métallicité du matériau
-//uniform float material_metallic;
-//
-//// facteur de rugosité du matériau
-//uniform float material_roughness;
-//
-//// facteur d'occlusion ambiante
-//uniform float material_occlusion;
-//
-//// indice de réfraction de l'effet de Fresnel;
-//uniform vec3 material_fresnel_ior;
-
-
     Primitives(glm::vec3 pos = glm::vec3(0.0f), glm::vec3 scl = glm::vec3(1.0f), glm::vec4 clr = glm::vec4(1.0f),
         bool moving = false, bool collision = false, float m = 1.0f, glm::vec3 vel = glm::vec3(0.0f)) 
         : position(pos), scale(scl), color(clr), isStatic(moving), collisionEnabled(collision), mass(m), velocity(vel) {
-            material.ambient = glm::vec4(1.0f);
-            material.diffuse = glm::vec4(0.5f);
-            material.specular = glm::vec4(1.0f);
-            material.emission = glm::vec4(0.0f);
-            material.shininess = 32.0f; // Default shininess
+            material.ambient = glm::vec3(1.0f);
+            material.diffuse = glm::vec3(0.5f);
+            material.specular = glm::vec3(1.0f);
+            material.metallic = 0.0f;
+            material.roughness = 0.5f;
+            material.occlusion = 1.0f;
+            material.brightness = 1.0f;
+            material.fresnel_ior = glm::vec3(1.5f);
             updateHitbox();
         }
 

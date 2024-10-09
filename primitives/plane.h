@@ -17,7 +17,7 @@ public:
     
 private:
     unsigned int VAO, VBO, EBO;
-    unsigned int texture1, texture2;
+    unsigned int texture_diffuse, texture_normal, texture_metalllic, texture_roughness, texture_ao;
 
     unsigned int hitboxVAO, hitboxVBO, hitboxEBO;
 

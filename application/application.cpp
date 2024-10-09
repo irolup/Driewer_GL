@@ -62,23 +62,12 @@ void Game::Init()
     sphere_light = new Sphere();
     sphere_light->collisionEnabled = false;
     sphere_light->isStatic = true;
-    sphere_light->setPosition(glm::vec3(0.0f, 9.0f, 0.0f));
-    primitives.push_back(sphere_light);
-
-    sphere_light = new Sphere();
-    sphere_light->collisionEnabled = false;
-    sphere_light->isStatic = true;
-    sphere_light->setPosition(glm::vec3(00.0f, 20.0f, 20.0f));
+    sphere_light->setPosition(glm::vec3(0.0f, 5.0f, 0.0f));
     primitives.push_back(sphere_light);
 
     //Create spotlight that target 0,0,0 and position at -4.0, 4.0, 4.0
-    //spot_light.addSpotlight(glm::vec3(0.0f, 9.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 0.0f), 0.2f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
+    spot_light.addSpotlight(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 0.0f), 1.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(60.0f)));
     
-    //add pointlight at 0, 9, 0
-    //point_light.addPointLight(glm::vec3(0.0f, 20.0f, 20.0f), glm::vec4(1.0f, 1.0f, 1.0f, 0.0f), 0.5f);
-    //add another spot light looking at 0, 0, 0 but more far away and more intensity
-    spot_light.addSpotlight(glm::vec3(0.0f, 20.0f, 20.0f), glm::vec3(0.0f, -1.0f, -1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 0.0f), 0.5f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(20.0f)));
-
 }
 
 void Game::Update(float dt)
@@ -89,8 +78,8 @@ void Game::Update(float dt)
     float radius = 2.5f;
     float lightX = sin(glfwGetTime()) * radius;
     float lightZ = cos(glfwGetTime()) * radius;
-    //spot_light.setPosition(glm::vec3(lightX, 9.0f, lightZ));
-    //sphere_light->setPosition(glm::vec3(lightX, 9.0f, lightZ));
+    spot_light.setPosition(glm::vec3(lightX, 5.0f, lightZ));
+    sphere_light->setPosition(glm::vec3(lightX, 5.0f, lightZ));
 }
 
 void Game::Render()
@@ -103,20 +92,7 @@ void Game::Render()
     {
         primitives[i]->draw(lightShader, *myCamera);
     }
-        
 
-    //for (int i = 0; i < primitives.size(); i++) {
-    //    if (drawHitbox) {
-    //        primitives[i]->drawHitbox(hitboxShader, *myCamera);
-    //    } else {
-    //        //if sphere draw hit
-    //        if (primitives[i]->getInfo() == "Sphere") {
-    //            primitives[i]->drawHitbox(hitboxShader, *myCamera);
-    //        } else {
-    //        primitives[i]->draw(lightShader, *myCamera);
-    //        }
-    //    }
-    //}
 }
 
 void Game::ProcessInput(float dt)

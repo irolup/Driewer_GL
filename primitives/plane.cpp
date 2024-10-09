@@ -3,6 +3,14 @@
 
 Plane::Plane() {
     setup();
+    material.ambient = glm::vec3(1.0f, 0.0f, 0.0f);
+    material.diffuse = glm::vec3(1.0f, 0.5f, 0.31f);
+    material.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    material.metallic = 0.0f;
+    material.roughness = 0.5f;
+    material.occlusion = 1.0f;
+    material.brightness = 1.0f;
+    material.fresnel_ior = glm::vec3(1.5f);
 }
 
 void Plane::setup() {
@@ -53,8 +61,8 @@ void Plane::setup() {
 
 
     // Load texture
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
+    glGenTextures(1, &texture_diffuse);
+    glBindTexture(GL_TEXTURE_2D, texture_diffuse);
     // Set texture parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -64,7 +72,7 @@ void Plane::setup() {
     // Load image, create texture and generate mipmaps
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char *data = stbi_load("texture/rock.jpg", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("texture/PBR_textures/diff.jpg", &width, &height, &nrChannels, 0);
     
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -75,8 +83,8 @@ void Plane::setup() {
     stbi_image_free(data);
 
     //texture2
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
+    glGenTextures(1, &texture_normal);
+    glBindTexture(GL_TEXTURE_2D, texture_normal);
     // Set texture parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -84,7 +92,7 @@ void Plane::setup() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Load image, create texture and generate mipmaps
-    data = stbi_load("texture/rock_norm.jpg", &width, &height, &nrChannels, 0);
+    data = stbi_load("texture/PBR_textures/norm.jpg", &width, &height, &nrChannels, 0);
 
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -94,9 +102,82 @@ void Plane::setup() {
     }
     stbi_image_free(data);
 
+    //texture mettalic
+    glGenTextures(1, &texture_metalllic);
+    glBindTexture(GL_TEXTURE_2D, texture_metalllic);
+    // Set texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Load image, create texture and generate mipmaps
+    data = stbi_load("texture/PBR_textures/met.jpg", &width, &height, &nrChannels, 0);
+    if (data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+
+    //texture roughness
+    glGenTextures(1, &texture_roughness);
+    glBindTexture(GL_TEXTURE_2D, texture_roughness);
+    // Set texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Load image, create texture and generate mipmaps
+    data = stbi_load("texture/PBR_textures/rough.jpg", &width, &height, &nrChannels, 0);
+    if (data) {
+        if (nrChannels == 1) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+        } else if (nrChannels == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        } else if (nrChannels == 4) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        }
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+    
+//
+    glGenTextures(1, &texture_ao);
+    glBindTexture(GL_TEXTURE_2D, texture_ao);
+    // Set texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Load image, create texture and generate mipmaps
+    data = stbi_load("texture/PBR_textures/ao.jpg", &width, &height, &nrChannels, 0);
+    if (data) {
+        // Check the number of channels and set the texture format accordingly
+        if (nrChannels == 1) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+        } else if (nrChannels == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        } else if (nrChannels == 4) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        }
+    
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        std::cout << "Failed to load AO texture" << std::endl;
+    }
+
     //add textures to vector
-    textures.push_back(texture1);
-    textures.push_back(texture2);
+    textures.push_back(texture_diffuse);
+    textures.push_back(texture_normal);
+    textures.push_back(texture_metalllic);
+    textures.push_back(texture_roughness);
+    textures.push_back(texture_ao);
 
     updateHitbox();
 }
@@ -111,10 +192,11 @@ void Plane::draw(Shader& shader, Camera& camera) {
     glm::vec3 viewPos = camera.Position;
     shader.SetVector3f("viewPos", viewPos);
 
-    //shader.SetVector4f("lightColor", glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
-
-    shader.SetInteger("texture_diffuse1", 0);
-    shader.SetInteger("texture_normal1", 1);
+    shader.SetInteger("texture_diffuse", 0);
+    shader.SetInteger("texture_normal", 1);
+    shader.SetInteger("texture_metallic", 2);
+    shader.SetInteger("texture_roughness", 3);
+    shader.SetInteger("texture_occlusion", 4);
 
     // Bind texture
     for (unsigned int i = 0; i < textures.size(); i++) {
@@ -128,16 +210,14 @@ void Plane::draw(Shader& shader, Camera& camera) {
     model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
     shader.SetMatrix4("model", model);
     //Materials
-    shader.SetVector4f("material.ambient", material.ambient);
-    shader.SetVector4f("material.diffuse", material.diffuse);
-    shader.SetVector4f("material.specular", material.specular);
-    shader.SetVector4f("material.emission", material.emission);
-    shader.SetFloat("material.shininess", material.shininess);
-
-    //light pos
-    //shader.SetVector3f("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
-    //shader.SetVector3f("viewPos", camera.Position);
-    //shader.SetVector4f("lightColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    shader.SetVector3f("material.ambient", material.ambient);
+    shader.SetVector3f("material.diffuse", material.diffuse);
+    shader.SetVector3f("material.specular", material.specular);
+    shader.SetFloat("material.metallic", material.metallic);
+    shader.SetFloat("material.roughness", material.roughness);
+    shader.SetFloat("material.occlusion", material.occlusion);
+    shader.SetFloat("material.brightness", material.brightness);
+    shader.SetVector3f("material.fresnel_ior", material.fresnel_ior);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

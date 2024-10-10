@@ -6,14 +6,24 @@
 Cube::Cube() {
     setup();
 
-    material.ambient = glm::vec3(1.0f, 0.0f, 0.0f);
-    material.diffuse = glm::vec3(1.0f, 0.5f, 0.31f);
-    material.specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    material.metallic = 0.0f;
-    material.roughness = 0.5f;
-    material.occlusion = 1.0f;
-    material.brightness = 1.0f;
-    material.fresnel_ior = glm::vec3(1.5f);
+    //material.ambient = glm::vec3(0.5f, 0.5f, 0.5f);
+    //material.diffuse = glm::vec3(1.0f, 0.5f, 0.31f);
+    //material.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    //material.metallic = 0.0f;
+    //material.roughness = 0.5f;
+    //material.occlusion = 1.0f;
+    //material.brightness = 1.0f;
+    //material.fresnel_ior = glm::vec3(1.5f);
+
+    //material like metal
+    material.ambient = glm::vec3(0.5f, 0.5f, 0.5f);    // Metals typically don't have ambient color contribution
+    material.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);    // Metals often reflect their environment, so their diffuse color is more neutral
+    material.specular = glm::vec3(0.1f, 0.1f, 0.1f);   // High specular highlights for shiny surfaces
+    material.metallic = 1.0f;                          // Full metallic value to simulate metal
+    material.roughness = 0.3f;                         // Low roughness for a smooth, shiny surface
+    material.occlusion = 1.0f;                       // Occlusion usually remains at full value
+    material.brightness = 1.0f;                        // Keep brightness at standard level
+    material.fresnel_ior = glm::vec3(2.5f);            // Higher IOR for metals, as they tend to reflect more light at glancing angles
 }
 
 void Cube::setup() {
@@ -63,7 +73,7 @@ void Cube::setup() {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture diff" << std::endl;
     }
     stbi_image_free(data);
 
@@ -83,7 +93,7 @@ void Cube::setup() {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture norm" << std::endl;
     }
     stbi_image_free(data);
 
@@ -102,7 +112,7 @@ void Cube::setup() {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture met" << std::endl;
     }
     stbi_image_free(data);
 
@@ -127,7 +137,7 @@ void Cube::setup() {
         }
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture rough" << std::endl;
     }
     stbi_image_free(data);
 

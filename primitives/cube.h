@@ -67,19 +67,31 @@ private:
          0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-right
         -0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-left
         // Top face
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-left
-         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-right
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-right
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f  // bottom-left
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-left
+         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
+         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f  // bottom-left
     };
 
     static constexpr unsigned int cube_indices[] = {
-        0, 1, 2, 0, 2, 3, // Back face
-        4, 5, 6, 4, 6, 7, // Front face
-        8, 9, 10, 8, 10, 11, // Left face
-        12, 13, 14, 12, 14, 15, // Right face
-        16, 17, 18, 16, 18, 19, // Bottom face
-        20, 21, 22, 20, 22, 23  // Top face
+        // Back face
+        0, 1, 2, // First triangle
+        2, 3, 0, // Second triangle
+        // Front face
+        4, 5, 6, // First triangle
+        6, 7, 4, // Second triangle
+        // Left face
+        8, 9, 10, // First triangle
+        10, 11, 8, // Second triangle
+        // Right face
+        12, 13, 14, // First triangle
+        14, 15, 12, // Second triangle
+        // Bottom face
+        16, 17, 18, // First triangle
+        18, 19, 16, // Second triangle
+        // Top face
+        20, 21, 22, // First triangle
+        22, 23, 20  // Second triangle
     };
 
     // Hitbox vertices for wireframe rendering

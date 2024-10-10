@@ -32,8 +32,8 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/lights.vs", "shaders/lights.fs", nullptr, "lights");
     lightShader = ResourceManager::GetShader("lights");
 
-    ResourceManager::LoadShader("shaders/default.vs", "shaders/default.fs", nullptr, "default");
-    defaultShader = ResourceManager::GetShader("default");
+    ResourceManager::LoadShader("shaders/PBR.vs", "shaders/PBR.fs", nullptr, "PBR");
+    PBR = ResourceManager::GetShader("PBR");
 
     myCamera = new Camera(glm::vec3(0.0f, 1.0f, 2.0f));
 
@@ -48,26 +48,29 @@ void Game::Init()
     plane->isStatic = true;
     plane->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
 
-    //sphere = new Sphere();
-    //sphere->collisionEnabled = false;
-    //sphere->isStatic = true;
-    //sphere->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
-
     primitives.push_back(cube);
     primitives.push_back(plane);
     //primitives.push_back(sphere);
 
     drawHitbox = false;
 
+    //for pointlight
     sphere_light = new Sphere();
     sphere_light->collisionEnabled = false;
     sphere_light->isStatic = true;
-    sphere_light->setPosition(glm::vec3(0.0f, 5.0f, 0.0f));
+    sphere_light->setPosition(glm::vec3(-5.0f, 5.0f, 0.0f));
     primitives.push_back(sphere_light);
 
-    //Create spotlight that target 0,0,0 and position at -4.0, 4.0, 4.0
-    spot_light.addSpotlight(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 0.0f), 1.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(60.0f)));
+    //for spotlight
+    sphere_light = new Sphere();
+    sphere_light->collisionEnabled = false;
+    sphere_light->isStatic = true;
+    sphere_light->setPosition(glm::vec3(5.0f, 5.0f, 5.0f));
+    primitives.push_back(sphere_light);
+
+    light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
     
+    light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 40.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(30.0f)));
 }
 
 void Game::Update(float dt)
@@ -78,19 +81,18 @@ void Game::Update(float dt)
     float radius = 2.5f;
     float lightX = sin(glfwGetTime()) * radius;
     float lightZ = cos(glfwGetTime()) * radius;
-    spot_light.setPosition(glm::vec3(lightX, 5.0f, lightZ));
-    sphere_light->setPosition(glm::vec3(lightX, 5.0f, lightZ));
+    //spot_light.setPosition(glm::vec3(lightX, 5.0f, lightZ));
+    //sphere_light->setPosition(glm::vec3(lightX, 5.0f, lightZ));
 }
 
 void Game::Render()
 {
     //use light shader
-    spot_light.useLight(lightShader, *myCamera);
-    //point_light.useLight(lightShader, *myCamera);
+    light.useLight(PBR, *myCamera);
 
     for (int i = 0; i < primitives.size(); i++)
     {
-        primitives[i]->draw(lightShader, *myCamera);
+        primitives[i]->draw(PBR, *myCamera);
     }
 
 }
@@ -112,24 +114,18 @@ void Game::ProcessInput(float dt)
         if (this->Keys[GLFW_KEY_D]){    
             myCamera->ProcessKeyboard(Camera_Movement::RIGHT, cameraSpeed);
         }
-        //activated desactivated depth test and face culing with u and i
+        //activated mouse
         if (this->Keys[GLFW_KEY_M]){
-            glEnable(GL_DEPTH_TEST);
-            std::cout << "Depth test is enabled" << std::endl;
+            isMouseEnabled = true;
+            EnableMouse();
+            std::cout << "Mouse is enabled" << std::endl;
         }
         if (this->Keys[GLFW_KEY_N]){
-            glDisable(GL_DEPTH_TEST);
-            std::cout << "Depth test is disabled" << std::endl;
+            isMouseEnabled = false;
+            DisableMouse();
+            std::cout << "Mouse is disabled" << std::endl;
         }
-        //v b for face culling
-        if (this->Keys[GLFW_KEY_V]){
-            glEnable(GL_CULL_FACE);
-            std::cout << "Face culling is enabled" << std::endl;
-        }
-        if (this->Keys[GLFW_KEY_B]){
-            glDisable(GL_CULL_FACE);
-            std::cout << "Face culling is disabled" << std::endl;
-        }
+
         //key c to make all primitives static
         if (this->Keys[GLFW_KEY_C]){
             for (int i = 0; i < primitives.size(); i++) {
@@ -188,7 +184,11 @@ void Game::ProcessInput(float dt)
 
 void Game::MouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
-
+    if (!isMouseEnabled)
+    {
+        return;
+    }
+    
     if (firstMouse)
     {
         lastX = static_cast<float>(xpos);
@@ -206,4 +206,18 @@ void Game::MouseCallback(GLFWwindow* window, double xpos, double ypos)
 
     // Pass the offsets to the camera (be sure this method handles both offsets)
     myCamera->ProcessMouseMovement(xoffset, yoffset);
+}
+
+void Game::SetWindow(GLFWwindow* win) {
+    window = win;
+}
+
+void Game::EnableMouse() {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    isMouseEnabled = true;
+}
+
+void Game::DisableMouse() {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    isMouseEnabled = false;
 }

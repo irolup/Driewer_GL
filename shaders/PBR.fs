@@ -1,385 +1,280 @@
-#version 330
-//#pragma include "lights.glsl"
-//#pragma include "material.glsl"
+#version 330 core
 
-const float PI = 3.1415926535897932384626433832795;
+// Constants
+const float PI = 3.14159265358979323846;
 
-const float light_attenuation_factor_constant = 0.01;
-const float light_attenuation_factor_linear = 0.000001;
-const float light_attenuation_factor_quadratic = 0.0000001;
+// Maximum number of lights
+#define MAX_LIGHTS 5 // Adjust as needed
 
-// attributs de surface interpolés à partir des valeurs en sortie du shader de sommet
-in vec3 surface_position;
-in vec3 surface_normal;
-in vec2 surface_texcoord;
-in vec4 eyeSpaceVertexPos;
-in vec3 interp_eyePos;
-in vec2 varyingtexcoord;
+// Light struct
+struct Light {
+    int type; // 0: ambient light, 1: point light, 2: directional light, 3: spotlight
+    vec3 position;
+    vec3 direction;
+    vec4 color;
+    float intensity;
+    float cutOff;
+    float outerCutOff;
+};
 
-// attribut en sortie
-out vec4 fragment_color;
+// Material struct
+struct Material {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float metallic;
+    float roughness;
+    float occlusion;
+    float brightness;
+    vec3 fresnel_ior;
+};
 
-// couleurs de réflexion du matériau
-uniform vec3 material_color_ambient;
-uniform vec3 material_color_diffuse;
-uniform vec3 material_color_specular;
+// Uniforms
+uniform Material material;
+uniform Light lights[MAX_LIGHTS];
+uniform int lightCount; // Total number of lights
+uniform vec3 viewPos;   // Camera position
 
-// facteur de brillance du matériau
-uniform float material_brightness;
+// Inputs from vertex shader
+in vec3 FragPos;
+in vec3 Normal;
+in vec2 TexCoords;
+in vec3 Tangent;
 
-// facteur de métallicité du matériau
-uniform float material_metallic;
+// Output to framebuffer
+out vec4 FragColor;
 
-// facteur de rugosité du matériau
-uniform float material_roughness;
-
-// facteur d'occlusion ambiante
-uniform float material_occlusion;
-
-// indice de réfraction de l'effet de Fresnel;
-uniform vec3 material_fresnel_ior;
-
-// facteur d'exposition
-uniform float tone_mapping_exposure;
-
-// mode de mappage tonal (Reinhard ou ACES filmic)
-uniform bool tone_mapping_toggle;
-
-// facteur gamma
-uniform float tone_mapping_gamma;
-
-// texture diffuse
+// Textures
 uniform sampler2D texture_diffuse;
-
-// texture métallique
+uniform sampler2D texture_normal;
 uniform sampler2D texture_metallic;
-
-// texture de rugosité
 uniform sampler2D texture_roughness;
-
-// texture d'occlusion ambiante
 uniform sampler2D texture_occlusion;
 
-// texture de normales
-uniform sampler2D texture_normal;
+// Function declarations
+vec3 perturb_normal(vec3 N, vec3 V, vec2 texcoord);
+float trowbridge_reitz(vec3 N, vec3 H, float roughness);
+float schlick_beckmann(float cosTheta, float roughness);
+float smith(vec3 N, vec3 L, vec3 V, float roughness);
+vec3 schlick_fresnel(float cosTheta, vec3 F0);
+vec3 tone_mapping_reinhard(vec3 color);
+vec3 tone_mapping_aces_filmic(vec3 color);
+vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos);
 
-// position d'une source de lumière
-uniform vec3 light_position;
+vec3 getNormalFromMap() {
+    vec3 tangentNormal = texture(texture_normal, TexCoords).xyz * 2.0 - 1.0;
 
-// couleur de la source de lumière
-uniform vec3 light_color;
+    vec3 T = normalize(Tangent - dot(Tangent, Normal) * Normal);
+    vec3 B = cross(Normal, T);
+    mat3 TBN = mat3(T, B, Normal);
 
-// intensité de la source de lumière
-uniform float light_intensity;
-
-//uniform int lightsNumber;
-//
-//vec4 directional_light( in int lightIndex, in vec3 normal) {
-//    vec4 outputColor = vec4(0.0);
-//    vec3 eyeVector, lightDir;
-//    vec4 diffuse, ambient, globalAmbient, specular = vec4(0.0);
-//    float intensity;
-//
-//    eyeVector = normalize(interp_eyePos);
-//    lightDir = normalize(lights.light[lightIndex].position.xyz);
-//    ambient = material.ambient * lights.light[lightIndex].ambient * texture(texture_diffuse, surface_texcoord);
-//    outputColor += ambient;
-//    intensity = max(dot(normal, lightDir), 0.0);
-//    if (intensity > 0.0) {
-//        vec3 halfVector;
-//        float NdotHV;
-//
-//        diffuse = lights.light[lightIndex].diffuse * material.diffuse;
-//        outputColor += diffuse * intensity * texture(texture_diffuse, surface_texcoord);
-//        halfVector = normalize(lightDir + eyeVector);
-//        NdotHV = max(dot(normal, halfVector), 0.0);
-//        specular = pow(NdotHV, material.shininess) * material.specular * lights.light[lightIndex].specular;
-//        outputColor += specular;
-//    }
-//    outputColor.w = 1.0;
-//    return outputColor;
-//}
-//
-//vec4 point_light( in int lightIndex, in vec3 normal) {
-//    vec3 lightDir;
-//    vec4 pointLightColor;
-//    float intensity, dist;
-//
-//    pointLightColor = vec4(0.0);
-//    lightDir = vec3(lights.light[lightIndex].position - eyeSpaceVertexPos);
-//    dist = length(lightDir);
-//    intensity = max(dot(normal, normalize(lightDir)), 0.0);
-//    if (intensity > 0.0) {
-//        float att, NdotHV;
-//        vec4 diffuse, specular, ambient = vec4(0.0);
-//        vec3 halfVector;
-//
-//        att = 1.0 / (lights.light[lightIndex].constant_attenuation + lights.light[lightIndex].linear_attenuation * dist + lights.light[lightIndex].quadratic_attenuation * dist * dist);
-//        diffuse = material.diffuse * lights.light[lightIndex].diffuse * texture(texture_diffuse, surface_texcoord);
-//        ambient = material.ambient * lights.light[lightIndex].ambient * texture(texture_diffuse, surface_texcoord);
-//        pointLightColor += att * (diffuse * intensity + ambient);
-//        halfVector = normalize(lightDir - vec3(eyeSpaceVertexPos));
-//        NdotHV = max(dot(normal, halfVector), 0.0);
-//        specular = pow(NdotHV, material.shininess) * material.specular * lights.light[lightIndex].specular;
-//        pointLightColor += att * specular;
-//    }
-//    return pointLightColor;
-//}
-//
-//
-//vec4 spot_light( in int lightIndex, in vec3 normal) {
-//    vec3 lightDir;
-//    vec4 spotLightColor;
-//    float intensity, dist;
-//
-//    spotLightColor = vec4(0.0);
-//    lightDir = vec3(lights.light[lightIndex].position - eyeSpaceVertexPos);
-//    dist = length(lightDir);
-//    intensity = max(dot(normal, normalize(lightDir)), 0.0);
-//    if (intensity > 0.0) {
-//        float spotEffect, att, NdotHV;
-//        vec4 diffuse, specular, ambient = vec4(0.0);
-//        vec3 halfVector;
-//
-//        spotEffect = dot(normalize(lights.light[lightIndex].spot_direction), normalize(-lightDir));
-//        if (spotEffect > lights.light[lightIndex].spot_cos_cutoff) {
-//            spotEffect = pow(spotEffect, lights.light[lightIndex].spot_exponent);
-//            att = spotEffect / (lights.light[lightIndex].constant_attenuation + lights.light[lightIndex].linear_attenuation * dist + lights.light[lightIndex].quadratic_attenuation * dist * dist);
-//            diffuse = material.diffuse * lights.light[lightIndex].diffuse * texture(texture_diffuse, surface_texcoord);
-//            ambient = material.ambient * lights.light[lightIndex].ambient * texture(texture_diffuse, surface_texcoord);
-//            spotLightColor += att * (diffuse * intensity + ambient);
-//            halfVector = normalize(lightDir - vec3(eyeSpaceVertexPos));
-//            NdotHV = max(dot(normal, halfVector), 0.0);
-//            specular = pow(NdotHV, material.shininess) * material.specular * lights.light[lightIndex].specular;
-//            spotLightColor += att * specular;
-//        }
-//    }
-//    return spotLightColor;
-//}
-//
-//vec4 calc_lighting_color( in vec3 normal) {
-//    vec4 lightingColor = vec4(0.0);
-//
-//    for (int i = 0; i < lightsNumber; i++) {
-//        if (lights.light[i].position.w == 0.0) {
-//            lightingColor += directional_light(i, normal);
-//        } else {
-//            if (lights.light[i].spot_cutoff <= 90.0) {
-//                lightingColor += spot_light(i, normal);
-//            } else {
-//                lightingColor += point_light(i, normal);
-//            }
-//        }
-//    }
-//    return lightingColor;
-//}
-
-
-
-mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
-{
-    // get edge vectors of the pixel triangle
-    vec3 dp1 = dFdx( p );
-    vec3 dp2 = dFdy( p );
-    vec2 duv1 = dFdx( uv );
-    vec2 duv2 = dFdy( uv );
-    
-    // solve the linear system
-    vec3 dp2perp = cross( dp2, N );
-    vec3 dp1perp = cross( N, dp1 );
-    vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
-    vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
-    
-    // construct a scale-invariant frame
-    float invmax = inversesqrt( max( dot(T,T), dot(B,B) ) );
-    return mat3( T * invmax, B * invmax, N );
+    return normalize(TBN * tangentNormal);
 }
 
-vec3 perturb_normal( vec3 N, vec3 V, vec2 texcoord )
+
+// Perturb normal using normal map
+vec3 perturb_normal(vec3 N, vec3 V, vec2 texcoord)
 {
-    // assume N, the interpolated vertex normal and
-    // V, the view vector (vertex to eye)
-    vec3 map = texture(texture_normal, texcoord ).xyz;
-    map = map * 255./127. - 128./127.;
-    mat3 TBN = cotangent_frame(N, -V, texcoord);
+    // Texture normal map
+    vec3 map = texture(texture_normal, texcoord).rgb;
+    map = map * 2.0 - 1.0; // Transform from [0,1] to [-1,1]
+
+    // Reconstruct TBN matrix
+    vec3 T = normalize(Tangent - dot(Tangent, N) * N);
+    vec3 B = cross(N, T);
+    mat3 TBN = mat3(T, B, N);
+
+    // Transform normal
     return normalize(TBN * map);
 }
 
-// fonction de distribution des microfacettes (Trowbridge-Reitz)
-float trowbridge_reitz(vec3 n, vec3 h, float roughness)
+// Normal Distribution Function (NDF) - Trowbridge-Reitz GGX
+float trowbridge_reitz(vec3 N, vec3 H, float roughness)
 {
-  float a = roughness * roughness;
-  float a2 = a * a;
-  float ndh = max(dot(n, h), 0.0);
-  float ndh2 = ndh * ndh;
-  float numerator = a2;
-  float denominator = (ndh2 * (a2 - 1.0) + 1.0);
-  denominator = denominator * denominator * PI;
-  return numerator / denominator;
+    float a = roughness * roughness;
+    float NdotH = max(dot(N, H), 0.0);
+    float denom = (NdotH * NdotH * (a - 1.0) + 1.0);
+    return (a * a) / (PI * denom * denom + 0.0001); // Avoid division by zero
 }
 
-// fonction géométrique pour calculer l'impact de l'occlusion et de l'ombrage des microfacettes (Schlick-Beckmann)
-float schlick_beckmann(float costheta, float roughness)
+// Geometry Function (Smith's method)
+float smith(vec3 N, vec3 L, vec3 V, float roughness)
 {
-  float r = (roughness + 1.0);
-  float k = (r * r) / 8.0;
-  float numerator = costheta;
-  float denominator = costheta * (1.0 - k) + k;
-  return numerator / denominator;
+    float NdotL = max(dot(N, L), 0.0);
+    float NdotV = max(dot(N, V), 0.0);
+    float ggx2 = schlick_beckmann(NdotV, roughness);
+    float ggx1 = schlick_beckmann(NdotL, roughness);
+    return ggx1 * ggx2;
 }
 
-// fonction géométrique avec occlusion et ombrage combinés (méthode de Smith)
-float smith(vec3 n, vec3 l, vec3 v, float roughness)
+// Schlick-Beckmann approximation for geometry function
+float schlick_beckmann(float NdotX, float roughness)
 {
-  float ndl = max(dot(n, l), 0.0);
-  float ndv = max(dot(n, v), 0.0);
-  float shadow = schlick_beckmann(ndl, roughness);
-  float occlusion = schlick_beckmann(ndv, roughness);
-  return shadow * occlusion;
+    float k = (roughness + 1.0);
+    k = (k * k) / 8.0;
+    return NdotX / (NdotX * (1.0 - k) + k + 0.0001); // Avoid division by zero
 }
 
-// fonction qui calcul l'effet de Fresnel
-vec3 schlick_fresnel(float costheta, vec3 f0)
+// Fresnel Equation (Schlick's approximation)
+vec3 schlick_fresnel(float cosTheta, vec3 F0)
 {
-  return f0 + (1.0 - f0) * pow(1.0 - costheta, 5.0);
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-// mappage tonal de la couleur HDR vers LDR (Reinhard tone mapping)
-vec3 tone_mapping_reinhard(vec3 x)
+// Reinhard tone mapping
+vec3 tone_mapping_reinhard(vec3 color)
 {
-  return x / (x + vec3(1.0));
+    return color / (color + vec3(1.0));
 }
 
-// mappage tonal de la couleur HDR vers LDR (approximation de la courbe du ACES filmic tone mapping)
-vec3 tone_mapping_aces_filmic(vec3 x)
+// ACES Filmic tone mapping
+vec3 tone_mapping_aces_filmic(vec3 color)
 {
-  float a = 2.51f;
-  float b = 0.03f;
-  float c = 2.43f;
-  float d = 0.59f;
-  float e = 0.14f;
-  return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+    float a = 2.51;
+    float b = 0.03;
+    float c = 2.43;
+    float d = 0.59;
+    float e = 0.14;
+    return clamp((color * (a * color + b)) / (color * (c * color + d) + e), 0.0, 1.0);
 }
 
-// fonction qui calcule un modèle d'illumination de type pbr avec brdf de cook-torrance
-vec3 brdf_cook_torrance()
+// Calculate PBR lighting using Cook-Torrance BRDF
+vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos)
 {
-  // re-normaliser la normale après interpolation
-  vec3 n = normalize(perturb_normal(surface_normal, interp_eyePos, varyingtexcoord));
+    // Retrieve material properties from textures
+    vec3 albedo = texture(texture_diffuse, TexCoords).rgb * material.diffuse;
+    float metallic = texture(texture_metallic, TexCoords).r * material.metallic;
+    float roughness = texture(texture_roughness, TexCoords).r * material.roughness;
+    float ao = texture(texture_occlusion, TexCoords).r * material.occlusion;
 
-  // calculer la direction de la surface vers la lumière (l)
-  vec3 l = normalize(light_position - surface_position);
+    vec3 ambient = material.ambient * albedo * ao; 
 
-  // calculer la direction de la surface vers la caméra (v)
-  vec3 v = normalize(-surface_position);
+    // Fresnel reflectance at normal incidence
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
-  // calculer la direction du demi-vecteur de réflection (h) en fonction du vecteur de lumière (l) et de vue (v)
-  vec3 h = normalize(l + v);
+    // Light direction
+    vec3 L;
+    if (light.type == 2) // Directional light
+    {
+        L = normalize(-light.direction);
+    }
+    else // Point light or Spotlight
+    {
+        L = normalize(light.position - fragPos);
+    }
 
-  // échantillonage de la texture diffuse
-  vec3 texture_sample_diffuse = texture(texture_diffuse, surface_texcoord).rgb;
+    // Half vector
+    vec3 H = normalize(V + L);
 
-  // conversion de l'échantillon de la texture diffuse de l'espace gamma vers l'espace linéaire
-  texture_sample_diffuse = pow(texture_sample_diffuse, vec3(tone_mapping_gamma));
+    // NDF
+    float NDF = trowbridge_reitz(N, H, roughness);
 
-  // échantillonage de la texture de métallicité
-  float texture_sample_metallic = texture(texture_metallic, surface_texcoord).r;
+    // Geometry
+    float G = smith(N, L, V, roughness);
 
-  // échantillonage de la texture de rugosité
-  float texture_sample_roughness = texture(texture_roughness, surface_texcoord).r;
+    // Fresnel
+    vec3 F = schlick_fresnel(max(dot(H, V), 0.0), F0);
 
-  // échantillonage de la texture d'occlusion
-  float texture_sample_occlusion = texture(texture_occlusion, surface_texcoord).r;
+    // Specular reflection
+    vec3 numerator = NDF * G * F;
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float denominator = 4.0 * NdotV * NdotL + 0.0001; // Avoid division by zero
+    vec3 specular = numerator / denominator;
 
-    // échantillonage de la texture de normales
-    vec3 texture_sample_normal = texture(texture_normal, surface_texcoord).rgb * 2.0 - 1.0;
+    // Diffuse reflection
+    vec3 kD = vec3(1.0) - F; // Energy conservation
+    kD *= 1.0 - metallic;
 
-  // facteurs du matériau combinées avec les échantillons de couleur
-  float metallic = material_metallic * texture_sample_metallic;
-  float roughness = material_roughness * texture_sample_roughness;
-  float occlusion = material_occlusion * texture_sample_occlusion;
+    // Light radiance
+    vec3 radiance;
+    if (light.type == 2) // Directional light
+    {
+        radiance = light.color.rgb * light.intensity;
+    }
+    else // Point light or Spotlight
+    {
+        float distance = length(light.position - fragPos);
+        float attenuation = 1.0 / (distance * distance); // Simple attenuation
+        radiance = light.color.rgb * attenuation * light.intensity;
+    }
 
-  // combiner l'échantillon de la texture diffuse avec la couleur diffuse du matériau
-  vec3 albedo = material_color_diffuse * texture_sample_diffuse;
+    // Final reflected light
+    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
 
-  // calculer la réflexion ambiante
-  vec3 ambient = material_color_ambient * albedo * occlusion;
+    vec3 color = ( ambient + Lo ) * material.brightness;
 
-  // distance entre la position de la lumière et de la surface
-  float light_distance = length(light_position - surface_position);
-
-  // calculer l'atténuation de l'intensité de la lumière en fonction de la distance
-  float light_attenuation = 1.0 / (light_attenuation_factor_constant + light_attenuation_factor_linear * light_distance + light_attenuation_factor_quadratic * (light_distance * light_distance));
-
-  // calculer la radiance de la lumière
-  vec3 radiance = light_color * light_attenuation * light_intensity;
-
-  // calculer le niveau de réflexion diffuse (n • l)
-  float diffuse_reflection = max(dot(n, l), 0.0);
-
-  // calculer la distribution des microfacettes
-  float d = trowbridge_reitz(n, h, roughness);
-
-  // calculer la fonction géométrique
-  float g = smith(n, l, v, roughness);
-
-  // reflexion de la surface avec un angle d'incidence nul
-  vec3 f0 = material_fresnel_ior;
-
-  // moduler l'effet de Fresnel ave la couleur diffuse en fonction du facteur de métallicité
-  f0 = mix(f0, albedo, metallic);
-
-  // calculer l'effet de Fresnel
-  vec3 f = schlick_fresnel(max(dot(h, v), 0.0), f0);
-
-  // calculer le numérateur de l'équation (produit des fonctions d, f et g)
-  vec3 coor_torrance_numerator = d * f * g;
-
-  // calculer le dénominateur de l'équation (facteur de normalisation)
-  float coor_torrance_denominator = 4.0 * max(dot(n, v), 0.0) * diffuse_reflection;
-
-  // calculer le résultat de l'équation avec le numérateur et de dénominateur
-  vec3 specular = coor_torrance_numerator / max(coor_torrance_denominator, 0.001);
-
-  // mixer avec la couleur spéculaire du matériau
-  specular = specular * material_color_specular;
-
-  // calculer le ratio de réflection de la lumière à partir de l'effet de Fresnel (contribution spéculaire)
-  vec3 ks = f;
-
-  // calculer le ratio de réfraction (contribution diffuse) proportionnelement à la contribution spéculaire
-  vec3 kd = vec3(1.0) - ks;
-
-  // pondérer la contribution diffuse en fonction du niveau de métallicité de la surface
-  kd *= 1.0 - metallic;
-
-  // calculer la réflectance de la fonction BRDF de Cook-Torrance
-  vec3 reflectance = (kd * albedo / PI + specular) * radiance * diffuse_reflection;
-
-  // mixer la couleur des composantes de réflexion
-  vec3 color = (ambient + reflectance) * material_brightness;
-
-  // retourner la couleur
-  return color;
+    return color;
 }
 
 void main()
 {
-  // évaluation du modèle d'illumination
-  vec3 color = brdf_cook_torrance();
+    // Retrieve material properties from textures
+    vec3 albedo = texture(texture_diffuse, TexCoords).rgb * material.diffuse;
+    float metallic = texture(texture_metallic, TexCoords).r * material.metallic;
+    float roughness = texture(texture_roughness, TexCoords).r * material.roughness;
+    float ao = texture(texture_occlusion, TexCoords).r * material.occlusion;
 
-  // ajustement de la couleur en fonction du facteur d'exposition
-  color = vec3(1.0) - exp(-color * tone_mapping_exposure);
+    // Normalize interpolated normal
+    vec3 N = normalize(Normal);
 
-  // mappage tonal de la couleur HDR vers LDR
-  if (tone_mapping_toggle)
-    color = tone_mapping_aces_filmic(color);
-  else
-    color = tone_mapping_reinhard(color);
+    // View direction
+    vec3 V = normalize(viewPos - FragPos);
 
-  // conversion de couleur de l'espace linéaire vers l'espace gamma
-  color = pow(color, vec3(1.0 / tone_mapping_gamma));
+    // Apply normal mapping if normal map is provided
+    if (textureSize(texture_normal, 0).x > 0)
+    {
+    //N = perturb_normal(N, V, TexCoords);
+    N = getNormalFromMap();
+    }
 
-  // assigner la couleur final du fragment dans un attribut en sortie
-  fragment_color = vec4(color, 1.0);
+    // Fresnel reflectance at normal incidence
+    //vec3 F0 = mix(vec3(0.04), albedo, metallic);
+
+    // Accumulate lighting
+    vec3 lighting = vec3(0.0);
+
+    for (int i = 0; i < lightCount; i++)
+    {
+        Light light = lights[i];
+
+        if (light.type == 0) // Ambient light
+        {
+            vec3 ambient = material.ambient * albedo * light.color.rgb * light.intensity;
+            lighting += ambient;
+        }
+        else if (light.type == 1) // Point light
+        {
+            lighting += CalculateLightingPBR(light, N, V, FragPos);
+        }
+        else if (light.type == 2) // Directional light
+        {
+            // For directional lights, direction is used instead of position
+            lighting += CalculateLightingPBR(light, N, V, FragPos);
+        }
+        else if (light.type == 3) // Spotlight
+        {
+            vec3 L = normalize(light.position - FragPos);
+            float theta = dot(L, normalize(-light.direction));
+            float epsilon = light.cutOff - light.outerCutOff;
+            float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+
+            if (intensity > 0.0)
+            {
+                vec3 spotlightRadiance = CalculateLightingPBR(light, N, V, FragPos) * intensity;
+                lighting += spotlightRadiance;
+            }
+        }
+    }
+
+    // Apply brightness and ambient occlusion
+    //lighting *= material.brightness;
+    //lighting = mix(lighting, lighting, material.occlusion);
+
+    // Tone mapping (adjust exposure and gamma as needed)
+    vec3 color = tone_mapping_reinhard(lighting);
+    color = pow(color, vec3(1.0 / 2.2)); // Apply gamma correction
+
+    // Output final color
+    FragColor = vec4(color, 1.0);
 }

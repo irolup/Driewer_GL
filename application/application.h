@@ -38,7 +38,7 @@ public:
     Shader          shader;
     Shader          hitboxShader;
     Shader          lightShader;
-    Shader          defaultShader;
+    Shader          PBR;
     Cube* cube;
     Plane* plane;
     Sphere* sphere;
@@ -48,9 +48,7 @@ public:
 
     std::vector<Primitives*> primitives;
 
-    Light spot_light;
-    Light point_light;
-    Light directional_light;
+    Light light;
     
     //vector of lights
     std::vector<Light*> lights;
@@ -64,6 +62,12 @@ public:
     bool firstMouse = true;
     float lastX = Width / 2.0f;
     float lastY = Height / 2.0f;
+
+    bool isMouseEnabled = true;
+    void EnableMouse();
+    void DisableMouse();
+
+    GLFWwindow* window;
 
     bool drawHitbox = false;
 
@@ -79,6 +83,7 @@ public:
     void MouseCallback(GLFWwindow* window, double xpos, double ypos);
     void Update(float dt);
     void Render();
+    void SetWindow(GLFWwindow* window);
 
     //Collision detection
     

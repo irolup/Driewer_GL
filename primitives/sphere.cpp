@@ -97,13 +97,13 @@ void Sphere::setup() {
     // Load image, create texture and generate mipmaps
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char *data = stbi_load("texture/rock.jpg", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("texture/PBR_textures_2/diff.jpg", &width, &height, &nrChannels, 0);
     
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture diff" << std::endl;
     }
     stbi_image_free(data);
 
@@ -117,13 +117,13 @@ void Sphere::setup() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Load image, create texture and generate mipmaps
-    data = stbi_load("texture/rock_norm.jpg", &width, &height, &nrChannels, 0);
+    data = stbi_load("texture/PBR_textures_2/norm.jpg", &width, &height, &nrChannels, 0);
 
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture norm" << std::endl;
     }
     stbi_image_free(data);
 

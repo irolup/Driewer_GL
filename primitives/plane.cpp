@@ -3,14 +3,17 @@
 
 Plane::Plane() {
     setup();
-    material.ambient = glm::vec3(1.0f, 0.0f, 0.0f);
-    material.diffuse = glm::vec3(1.0f, 0.5f, 0.31f);
-    material.specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    material.metallic = 0.0f;
-    material.roughness = 0.5f;
-    material.occlusion = 1.0f;
-    material.brightness = 1.0f;
-    material.fresnel_ior = glm::vec3(1.5f);
+
+    // Material setup for a brick wall look
+    material.ambient = glm::vec3(0.1f, 0.1f, 0.1f);    // A muted, earthy tone to reflect the color of bricks
+    material.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);     // Brick color, typically a reddish or earthy color
+    material.specular = glm::vec3(0.1f, 0.1f, 0.1f);    // Low specular to reduce shininess
+    material.metallic = 0.0f;                          // Non-metallic material
+    material.roughness = 0.7f;                         // Higher roughness for a more textured, rough surface
+    material.occlusion = 1.0f;                         // Full occlusion to maintain depth in the material
+    material.brightness = 1.0f;                        // Standard brightness
+    material.fresnel_ior = glm::vec3(1.0f);            // IOR for non-metallic surfaces, typically around 1.0
+
 }
 
 void Plane::setup() {
@@ -78,7 +81,7 @@ void Plane::setup() {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture diff" << std::endl;
     }
     stbi_image_free(data);
 
@@ -98,7 +101,7 @@ void Plane::setup() {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture norm" << std::endl;
     }
     stbi_image_free(data);
 
@@ -117,7 +120,7 @@ void Plane::setup() {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture met" << std::endl;
     }
     stbi_image_free(data);
 
@@ -142,7 +145,7 @@ void Plane::setup() {
         }
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture rough" << std::endl;
     }
     stbi_image_free(data);
     

@@ -21,9 +21,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 //void processInput(GLFWwindow *window);
 
-// settings
-const unsigned int SCR_WIDTH = 920;
-const unsigned int SCR_HEIGHT = 800;
+// settings 720p
+const unsigned int SCR_WIDTH = 1280;
+const unsigned int SCR_HEIGHT = 720;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -70,6 +70,8 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    game.SetWindow(window);
 
     game.Init();
     float deltaTime = 0.0f;

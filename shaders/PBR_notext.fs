@@ -44,49 +44,13 @@ in vec3 Tangent;
 // Output to framebuffer
 out vec4 FragColor;
 
-// Textures
-uniform sampler2D texture_diffuse;
-uniform sampler2D texture_normal;
-uniform sampler2D texture_metallic;
-uniform sampler2D texture_roughness;
-uniform sampler2D texture_occlusion;
-
 // Function declarations
-vec3 perturb_normal(vec3 N, vec3 V, vec2 texcoord);
 float trowbridge_reitz(vec3 N, vec3 H, float roughness);
 float schlick_beckmann(float cosTheta, float roughness);
 float smith(vec3 N, vec3 L, vec3 V, float roughness);
 vec3 schlick_fresnel(float cosTheta, vec3 F0);
 vec3 tone_mapping_reinhard(vec3 color);
-vec3 tone_mapping_aces_filmic(vec3 color);
 vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos);
-
-vec3 getNormalFromMap() {
-    vec3 tangentNormal = texture(texture_normal, TexCoords).xyz * 2.0 - 1.0;
-
-    vec3 T = normalize(Tangent - dot(Tangent, Normal) * Normal);
-    vec3 B = cross(Normal, T);
-    mat3 TBN = mat3(T, B, Normal);
-
-    return normalize(TBN * tangentNormal);
-}
-
-
-// Perturb normal using normal map
-vec3 perturb_normal(vec3 N, vec3 V, vec2 texcoord)
-{
-    // Texture normal map
-    vec3 map = texture(texture_normal, texcoord).rgb;
-    map = map * 2.0 - 1.0; // Transform from [0,1] to [-1,1]
-
-    // Reconstruct TBN matrix
-    vec3 T = normalize(Tangent - dot(Tangent, N) * N);
-    vec3 B = cross(N, T);
-    mat3 TBN = mat3(T, B, N);
-
-    // Transform normal
-    return normalize(TBN * map);
-}
 
 // Normal Distribution Function (NDF) - Trowbridge-Reitz GGX
 float trowbridge_reitz(vec3 N, vec3 H, float roughness)
@@ -127,27 +91,15 @@ vec3 tone_mapping_reinhard(vec3 color)
     return color / (color + vec3(1.0));
 }
 
-// ACES Filmic tone mapping
-vec3 tone_mapping_aces_filmic(vec3 color)
-{
-    float a = 2.51;
-    float b = 0.03;
-    float c = 2.43;
-    float d = 0.59;
-    float e = 0.14;
-    return clamp((color * (a * color + b)) / (color * (c * color + d) + e), 0.0, 1.0);
-}
-
 // Calculate PBR lighting using Cook-Torrance BRDF
 vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos)
 {
-    // Retrieve material properties from textures
-    vec3 albedo = texture(texture_diffuse, TexCoords).rgb * material.diffuse;
-    float metallic = texture(texture_metallic, TexCoords).r * material.metallic;
-    float roughness = texture(texture_roughness, TexCoords).r * material.roughness;
-    float ao = texture(texture_occlusion, TexCoords).r * material.occlusion;
+    vec3 albedo = material.diffuse;
+    float metallic = material.metallic;
+    float roughness = material.roughness;
+    float ao = material.occlusion;
 
-    vec3 ambient = material.ambient * albedo * ao; 
+    vec3 ambient = material.ambient * albedo * ao;
 
     // Fresnel reflectance at normal incidence
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
@@ -202,34 +154,18 @@ vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos)
     // Final reflected light
     vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
 
-    vec3 color = ( ambient + Lo ) * material.brightness;
+    vec3 color = (ambient + Lo) * material.brightness;
 
     return color;
 }
 
 void main()
 {
-    // Retrieve material properties from textures
-    vec3 albedo = texture(texture_diffuse, TexCoords).rgb * material.diffuse;
-    float metallic = texture(texture_metallic, TexCoords).r * material.metallic;
-    float roughness = texture(texture_roughness, TexCoords).r * material.roughness;
-    float ao = texture(texture_occlusion, TexCoords).r * material.occlusion;
-
     // Normalize interpolated normal
     vec3 N = normalize(Normal);
 
     // View direction
     vec3 V = normalize(viewPos - FragPos);
-
-    // Apply normal mapping if normal map is provided
-    if (textureSize(texture_normal, 0).x > 0)
-    {
-    //N = perturb_normal(N, V, TexCoords);
-    N = getNormalFromMap();
-    }
-
-    // Fresnel reflectance at normal incidence
-    //vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
     // Accumulate lighting
     vec3 lighting = vec3(0.0);
@@ -240,7 +176,7 @@ void main()
 
         if (light.type == 0) // Ambient light
         {
-            vec3 ambient = material.ambient * albedo * light.color.rgb * light.intensity;
+            vec3 ambient = material.ambient * material.diffuse * light.color.rgb * light.intensity;
             lighting += ambient;
         }
         else if (light.type == 1) // Point light
@@ -249,7 +185,6 @@ void main()
         }
         else if (light.type == 2) // Directional light
         {
-            // For directional lights, direction is used instead of position
             lighting += CalculateLightingPBR(light, N, V, FragPos);
         }
         else if (light.type == 3) // Spotlight
@@ -267,14 +202,8 @@ void main()
         }
     }
 
-    // Apply brightness and ambient occlusion
-    //lighting *= material.brightness;
-    //lighting = mix(lighting, lighting, material.occlusion);
-
     // Tone mapping (adjust exposure and gamma as needed)
-    //vec3 color = tone_mapping_reinhard(lighting);
-    vec3 color = tone_mapping_aces_filmic(lighting);
-
+    vec3 color = tone_mapping_reinhard(lighting);
     color = pow(color, vec3(1.0 / 2.2)); // Apply gamma correction
 
     // Output final color

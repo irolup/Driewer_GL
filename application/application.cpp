@@ -23,9 +23,6 @@ void Game::Init()
 {
     glEnable(GL_DEPTH_TEST);
 
-    ResourceManager::LoadShader("shaders/camera.vs", "shaders/camera.fs", nullptr, "shader");
-    shader = ResourceManager::GetShader("shader");
-
     ResourceManager::LoadShader("shaders/hitbox.vs", "shaders/hitbox.fs", nullptr, "hitbox");
     hitboxShader = ResourceManager::GetShader("hitbox");
 
@@ -34,6 +31,9 @@ void Game::Init()
 
     ResourceManager::LoadShader("shaders/PBR.vs", "shaders/PBR.fs", nullptr, "PBR");
     PBR = ResourceManager::GetShader("PBR");
+
+    ResourceManager::LoadShader("shaders/PBR_notext.vs", "shaders/PBR_notext.fs", nullptr, "PBR_notext");
+    PBR_notext = ResourceManager::GetShader("PBR_notext");
 
     myCamera = new Camera(glm::vec3(0.0f, 1.0f, 2.0f));
 
@@ -87,13 +87,23 @@ void Game::Update(float dt)
 
 void Game::Render()
 {
-    //use light shader
-    light.useLight(PBR, *myCamera);
-
+    if(texturesActive)
+    {
+        light.useLight(PBR, *myCamera);
     for (int i = 0; i < primitives.size(); i++)
     {
         primitives[i]->draw(PBR, *myCamera);
     }
+    }
+    else
+    {
+        light.useLight(PBR_notext, *myCamera);
+        for (int i = 0; i < primitives.size(); i++)
+        {
+            primitives[i]->draw(PBR_notext, *myCamera);
+        }
+    }
+    
 
 }
 
@@ -125,6 +135,18 @@ void Game::ProcessInput(float dt)
             DisableMouse();
             std::cout << "Mouse is disabled" << std::endl;
         }
+        //t and y to texture and no texture
+        if (this->Keys[GLFW_KEY_T])
+        {
+            texturesActive = true;
+            std::cout << "Textures are enabled" << std::endl;
+        }
+        if (this->Keys[GLFW_KEY_Y])
+        {
+            texturesActive = false;
+            std::cout << "Textures are disabled" << std::endl;
+        }
+        
 
         //key c to make all primitives static
         if (this->Keys[GLFW_KEY_C]){

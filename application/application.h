@@ -35,10 +35,10 @@ public:
     // Game-related State data
 
     Camera          *myCamera;
-    Shader          shader;
     Shader          hitboxShader;
     Shader          lightShader;
     Shader          PBR;
+    Shader          PBR_notext;
     Cube* cube;
     Plane* plane;
     Sphere* sphere;
@@ -70,6 +70,7 @@ public:
     GLFWwindow* window;
 
     bool drawHitbox = false;
+    bool texturesActive = true;
 
     //audio
 

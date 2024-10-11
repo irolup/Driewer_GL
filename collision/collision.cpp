@@ -107,6 +107,41 @@ void Collision::applyGravity(Primitives* primitive) {
     }
 }
 
+// Special handling for player collisions
+void Collision::handlePlayerCollision(Player* player, std::vector<Primitives*>& primitives) {
+    for (auto& primitive : primitives) {
+        if (primitive != player && checkCollision(player, primitive)) {
+            glm::vec3 overlap;
+            glm::vec3 pMin = player->hitbox.min;
+            glm::vec3 pMax = player->hitbox.max;
+            glm::vec3 oMin = primitive->hitbox.min;
+            glm::vec3 oMax = primitive->hitbox.max;
+
+            // Calculate the overlap along each axis
+            overlap.x = std::min(pMax.x, oMax.x) - std::max(pMin.x, oMin.x);
+            overlap.y = std::min(pMax.y, oMax.y) - std::max(pMin.y, oMin.y);
+            overlap.z = std::min(pMax.z, oMax.z) - std::max(pMin.z, oMin.z);
+
+            glm::vec3 normal = calculateNormal(player, primitive);
+
+            // Handle ground collision (stopping downward motion)
+            if (overlap.y < overlap.x && overlap.y < overlap.z) {
+                player->position.y = oMax.y + player->scale.y / 2.0f; // Prevent the player from sinking into the ground
+                player->velocity.y = 0.0f; // Stop vertical movement (falling)
+                slideAlongSurface(player, normal); // Allow player to slide along other objects
+            } else {
+                if (overlap.x < overlap.z) {
+                    player->position.x += (oMax.x < player->position.x) ? overlap.x : -overlap.x;
+                } else {
+                    player->position.z += (oMax.z < player->position.z) ? overlap.z : -overlap.z;
+                }
+                slideAlongSurface(player, normal); // Slide along the surface in the other axes
+            }
+        }
+    }
+}
+
+
 // Update function: Apply gravity and check collisions between all primitives
 void Collision::update(std::vector<Primitives*>& primitives) {
     for (size_t i = 0; i < primitives.size(); ++i) {
@@ -118,4 +153,22 @@ void Collision::update(std::vector<Primitives*>& primitives) {
             resolveCollision(primitives[i], primitives[j]);
         }
     }
+}
+
+// Update function: Apply gravity, handle player collision, and check collisions between all primitives
+void Collision::updateWithPLayer(std::vector<Primitives*>& primitives, Player* player) {
+    //applyGravity(player); // Apply gravity to the player
+
+    for (size_t i = 0; i < primitives.size(); ++i) {
+        // Apply gravity to each primitive
+        applyGravity(primitives[i]);
+
+        // Check for collisions with other primitives
+        for (size_t j = i + 1; j < primitives.size(); ++j) {
+            resolveCollision(primitives[i], primitives[j]);
+        }
+    }
+
+    // Handle player collision separately
+    handlePlayerCollision(player, primitives);
 }

@@ -35,7 +35,7 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/PBR_notext.vs", "shaders/PBR_notext.fs", nullptr, "PBR_notext");
     PBR_notext = ResourceManager::GetShader("PBR_notext");
 
-    myCamera = new Camera(glm::vec3(0.0f, 1.0f, 2.0f));
+    myCamera = new Camera(glm::vec3(0.0f, 2.0f, 2.0f));
 
     //Cube object
     cube = new Cube();
@@ -71,18 +71,24 @@ void Game::Init()
     light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
     
     light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 40.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(30.0f)));
+
+
+    //Collsion test
+    player = new Player(glm::vec3(0.0f, 2.0f, 2.0f), glm::vec3(1.0f, 2.0f, 1.0f), *myCamera);
+
+
 }
 
 void Game::Update(float dt)
 {
     collision.update(primitives);
+    //collision.updateWithPLayer(primitives, player);
 
-    //move the light in a circle 
-    float radius = 2.5f;
-    float lightX = sin(glfwGetTime()) * radius;
-    float lightZ = cos(glfwGetTime()) * radius;
-    //spot_light.setPosition(glm::vec3(lightX, 5.0f, lightZ));
-    //sphere_light->setPosition(glm::vec3(lightX, 5.0f, lightZ));
+    //player->update(dt);
+
+    //gravity
+    //player->applyGravity(dt, gravity);
+
 }
 
 void Game::Render()
@@ -188,6 +194,10 @@ void Game::ProcessInput(float dt)
         if (this->Keys[GLFW_KEY_J]){
             drawHitbox = false;
             std::cout << "Hitbox is disabled" << std::endl;
+        }
+        //space to jump
+        if (this->Keys[GLFW_KEY_SPACE]){
+            player->jump();
         }
 
     }

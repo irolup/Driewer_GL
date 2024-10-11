@@ -34,6 +34,7 @@ public:
     GameState               State;
     // Game-related State data
 
+    Player          *player;
     Camera          *myCamera;
     Shader          hitboxShader;
     Shader          lightShader;
@@ -55,6 +56,10 @@ public:
 
     
     Collision collision;
+
+    Collision *collisionPtr;
+    glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f); // Gravity force
+    float deltaTime = 0.016f;
 
     bool                    Keys[1024];
     bool                    KeysProcessed[1024];

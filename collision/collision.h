@@ -2,6 +2,7 @@
 #define COLLISION_H
 
 #include "../primitives/primitives.h"
+#include "../player/player.h"
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -24,11 +25,13 @@ public:
 
     // Update method to apply gravity and resolve collisions between all primitives
     void update(std::vector<Primitives*>& primitives);
+    void updateWithPLayer(std::vector<Primitives*>& primitives, Player* player);
 
 private:
 
     glm::vec3 calculateNormal(Primitives* a, Primitives* b);
     void slideAlongSurface(Primitives* moving, glm::vec3 normal);
+    void handlePlayerCollision(Player* player, std::vector<Primitives*>& primitives);
 
 };
 

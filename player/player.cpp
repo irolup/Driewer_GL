@@ -23,11 +23,18 @@ void Player::update(float deltaTime) {
     std::cout << "Player Position: " << this->position.x << " " << this->position.y - 2.0f << " " << this->position.z << std::endl;
 }
 
-void Player::jump() {
-    if (!isJumping) {
-        this->velocity.y = 10.0f; // Adjust jump strength as needed
-        isJumping = true;
-    }
+//take window to pass to camera for checking spacebar
+void Player::jump(GLFWwindow* window, float deltaTime) {
+    //if (!isJumping) {
+    //    this->velocity.y = 10.0f; // Adjust jump strength as needed
+    //    isJumping = true;
+    //}
+    camera->ProcessJump(deltaTime, window);
+}
+
+//move the player
+void Player::movePlayer(Camera_Movement direction, float deltaTime) {
+    camera->ProcessMovement(direction, deltaTime);
 }
 
 void Player::applyGravity(float deltaTime, glm::vec3 gravity) {

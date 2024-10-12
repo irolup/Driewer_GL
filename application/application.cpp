@@ -118,21 +118,25 @@ void Game::ProcessInput(float dt)
     if (this->State == GAME_MENU)
     {
         float cameraSpeed = 5.f * dt;
-        myCamera->ProcessJump(dt, window);
+        //myCamera->ProcessJump(dt, window);
         if (this->Keys[GLFW_KEY_W] ){
             //myCamera->ProcessKeyboard(Camera_Movement::FORWARD, cameraSpeed);
-            myCamera->ProcessMovement(Camera_Movement::FORWARD, cameraSpeed);
+            player->movePlayer(Camera_Movement::FORWARD, cameraSpeed);
         }
         if (this->Keys[GLFW_KEY_S]){
             //myCamera->ProcessKeyboard(Camera_Movement::BACKWARD, cameraSpeed);
-            myCamera->ProcessMovement(Camera_Movement::BACKWARD, cameraSpeed);
+            player->movePlayer(Camera_Movement::BACKWARD, cameraSpeed);
         }
         if (this->Keys[GLFW_KEY_A]){
-            myCamera->ProcessKeyboard(Camera_Movement::LEFT, cameraSpeed);
+            //myCamera->ProcessKeyboard(Camera_Movement::LEFT, cameraSpeed);
+            player->movePlayer(Camera_Movement::LEFT, cameraSpeed);
         }
         if (this->Keys[GLFW_KEY_D]){    
-            myCamera->ProcessKeyboard(Camera_Movement::RIGHT, cameraSpeed);
+            //myCamera->ProcessKeyboard(Camera_Movement::RIGHT, cameraSpeed);
+            player->movePlayer(Camera_Movement::RIGHT, cameraSpeed);
         }
+        player->jump(window, dt);
+
         //activated mouse
         if (this->Keys[GLFW_KEY_M]){
             isMouseEnabled = true;

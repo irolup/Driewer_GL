@@ -19,7 +19,7 @@ public:
     Player(glm::vec3 position, glm::vec3 scale, Camera& camera); // Constructor
 
     void update(float deltaTime);  // Update player's position
-    void jump();                   // Handle jump action
+    void jump(GLFWwindow* window, float deltaTime); // Jump function
     void applyGravity(float deltaTime, glm::vec3 gravity); // Apply gravity
 
     virtual void setup() override; // Setup function do nothing
@@ -29,6 +29,8 @@ public:
     virtual void drawHitbox(Shader& shader, Camera& camera) override; // Draw hitbox function do nothing
 
     virtual std::string getInfo() const override; // Get information about the player
+
+    void movePlayer(Camera_Movement direction, float deltaTime); // Move the player
 
     void movePlayer(); // Move the player
 };

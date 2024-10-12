@@ -1,4 +1,5 @@
 #include "camera.h"
+#include <GLFW/glfw3.h> // Include GLFW header for glfwGetKey
 
 // Constructor with default values
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch, int width, int height)
@@ -7,7 +8,11 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch, int wid
       MouseSensitivity(SENSITIVITY), 
       Zoom(ZOOM), 
       Width(width), 
-      Height(height)
+      Height(height),
+      isJumping(false),         // Initialize jump state to false
+      initialY(position.y),     // Set the initial Y position to the camera's starting Y
+      JumpVelocity(0.0f),       // Start with no vertical velocity
+      Gravity(-9.8f)            // Use gravity to bring the camera down (adjust as needed)
 {
     Position = position;
     WorldUp = up;
@@ -102,4 +107,49 @@ void Camera::updateCameraVectors()
 
     Right = glm::normalize(glm::cross(Front, WorldUp));
     Up = glm::normalize(glm::cross(Right, Front));
+}
+
+void Camera::ProcessMovement(Camera_Movement direction, float deltaTime)
+{
+    float velocity = MovementSpeed * deltaTime;
+
+    // Calculate the movement direction, but constrain to the XZ-plane
+    glm::vec3 forwardXZ = glm::normalize(glm::vec3(Front.x, 0.0f, Front.z));
+
+    if (direction == FORWARD)
+        Position += forwardXZ * velocity;  // Move forward in XZ plane
+    if (direction == BACKWARD)
+        Position -= forwardXZ * velocity;  // Move backward in XZ plane
+    if (direction == LEFT)
+        Position -= Right * velocity;      // Move left (strafe)
+    if (direction == RIGHT)
+        Position += Right * velocity;      // Move right (strafe)
+}
+
+void Camera::ProcessJump(float deltaTime, GLFWwindow* window)
+{
+    // Check for jump input (spacebar) and ensure the camera is not already jumping
+    if (!isJumping && glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        isJumping = true;
+        JumpVelocity = 5.0f;  // Initial upward velocity for jump (tweak to control height)
+    }
+
+    // If the camera is jumping or in the air, apply gravity
+    if (isJumping || Position.y > initialY)
+    {
+        // Apply gravity to the jump velocity
+        JumpVelocity += Gravity * deltaTime;
+
+        // Update the camera's Y position with the jump velocity
+        Position.y += JumpVelocity * deltaTime;
+
+        // If the camera has returned to or below its initial Y position, stop the jump
+        if (Position.y <= initialY)
+        {
+            Position.y = initialY;  // Reset the Y position to the initial value
+            isJumping = false;      // Stop jumping
+            JumpVelocity = 0.0f;    // Reset the jump velocity
+        }
+    }
 }

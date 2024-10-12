@@ -118,11 +118,14 @@ void Game::ProcessInput(float dt)
     if (this->State == GAME_MENU)
     {
         float cameraSpeed = 5.f * dt;
+        myCamera->ProcessJump(dt, window);
         if (this->Keys[GLFW_KEY_W] ){
-            myCamera->ProcessKeyboard(Camera_Movement::FORWARD, cameraSpeed);
+            //myCamera->ProcessKeyboard(Camera_Movement::FORWARD, cameraSpeed);
+            myCamera->ProcessMovement(Camera_Movement::FORWARD, cameraSpeed);
         }
         if (this->Keys[GLFW_KEY_S]){
-            myCamera->ProcessKeyboard(Camera_Movement::BACKWARD, cameraSpeed);
+            //myCamera->ProcessKeyboard(Camera_Movement::BACKWARD, cameraSpeed);
+            myCamera->ProcessMovement(Camera_Movement::BACKWARD, cameraSpeed);
         }
         if (this->Keys[GLFW_KEY_A]){
             myCamera->ProcessKeyboard(Camera_Movement::LEFT, cameraSpeed);
@@ -194,11 +197,7 @@ void Game::ProcessInput(float dt)
         if (this->Keys[GLFW_KEY_J]){
             drawHitbox = false;
             std::cout << "Hitbox is disabled" << std::endl;
-        }
-        //space to jump
-        if (this->Keys[GLFW_KEY_SPACE]){
-            player->jump();
-        }
+        }        
 
     }
     if (this->State == GAME_WIN)

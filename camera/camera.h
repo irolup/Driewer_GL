@@ -3,7 +3,9 @@
 
 #include "../glad/glad.h"
 #include <glm/glm.hpp>
+#include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 
 // Defines several possible options for camera movement
 enum Camera_Movement {
@@ -51,6 +53,13 @@ public:
     float MouseSensitivity;
     float Zoom;
 
+    // Jumping-related variables
+    bool isJumping;           // Flag to check if the camera is jumping
+    float initialY;           // Store the initial Y position
+    float JumpVelocity;       // Controls jump strength
+    float Gravity;            // Simulates gravity
+
+
     // Constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), 
            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), 
@@ -83,6 +92,11 @@ public:
 
     // Processes mouse scroll
     void ProcessMouseScroll(float yoffset);
+
+    void ProcessMovement(Camera_Movement direction, float deltaTime);
+
+    //need to take window as parameter for checking spacebar
+    void ProcessJump(float deltaTime, GLFWwindow* window);
 
 private:
     // Updates camera vectors based on Euler angles

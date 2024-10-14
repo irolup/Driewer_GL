@@ -28,7 +28,7 @@ bool Collision::checkCollision(Primitives* a, Primitives* b) {
 
     // Debugging output
     if (collisionDetected) {
-        //std::cout << "Collision detected between: " << a->getInfo() << " and " << b->getInfo() << std::endl;
+        std::cout << "Collision detected between: " << a->getInfo() << " and " << b->getInfo() << std::endl;
     }
     return collisionDetected;
 }
@@ -93,8 +93,16 @@ void Collision::resolveCollision(Primitives* a, Primitives* b) {
             a->position.z += (bMax.z < a->position.z) ? overlap.z : -overlap.z;
             slideAlongSurface(a, normal);
         }
+    } else if (!a->isStatic && !b->isStatic) {
+    // Handle both objects being dynamic
+    // Separate the objects and adjust their velocities appropriately
+    glm::vec3 correction = normal * overlap;
+    a->position -= correction * 0.5f;
+    b->position += correction * 0.5f;
+    
+    slideAlongSurface(a, normal);
+    slideAlongSurface(b, normal);
     }
-    // Handle the case where both A and B are dynamic if needed
 }
 
 // Apply gravity to a primitive (modifying its velocity and position)
@@ -107,68 +115,99 @@ void Collision::applyGravity(Primitives* primitive) {
     }
 }
 
-// Special handling for player collisions
-void Collision::handlePlayerCollision(Player* player, std::vector<Primitives*>& primitives) {
-    for (auto& primitive : primitives) {
-        if (primitive != player && checkCollision(player, primitive)) {
-            glm::vec3 overlap;
-            glm::vec3 pMin = player->hitbox.min;
-            glm::vec3 pMax = player->hitbox.max;
-            glm::vec3 oMin = primitive->hitbox.min;
-            glm::vec3 oMax = primitive->hitbox.max;
-
-            // Calculate the overlap along each axis
-            overlap.x = std::min(pMax.x, oMax.x) - std::max(pMin.x, oMin.x);
-            overlap.y = std::min(pMax.y, oMax.y) - std::max(pMin.y, oMin.y);
-            overlap.z = std::min(pMax.z, oMax.z) - std::max(pMin.z, oMin.z);
-
-            glm::vec3 normal = calculateNormal(player, primitive);
-
-            // Handle ground collision (stopping downward motion)
-            if (overlap.y < overlap.x && overlap.y < overlap.z) {
-                player->position.y = oMax.y + player->scale.y / 2.0f; // Prevent the player from sinking into the ground
-                player->velocity.y = 0.0f; // Stop vertical movement (falling)
-                slideAlongSurface(player, normal); // Allow player to slide along other objects
-            } else {
-                if (overlap.x < overlap.z) {
-                    player->position.x += (oMax.x < player->position.x) ? overlap.x : -overlap.x;
-                } else {
-                    player->position.z += (oMax.z < player->position.z) ? overlap.z : -overlap.z;
-                }
-                slideAlongSurface(player, normal); // Slide along the surface in the other axes
-            }
-        }
-    }
-}
 
 
 // Update function: Apply gravity and check collisions between all primitives
 void Collision::update(std::vector<Primitives*>& primitives) {
+    // Apply gravity to all primitives first
     for (size_t i = 0; i < primitives.size(); ++i) {
-        // Apply gravity to each primitive
         applyGravity(primitives[i]);
+    }
 
-        // Check for collisions with other primitives
+    // Then resolve collisions
+    for (size_t i = 0; i < primitives.size(); ++i) {
         for (size_t j = i + 1; j < primitives.size(); ++j) {
             resolveCollision(primitives[i], primitives[j]);
         }
     }
 }
 
-// Update function: Apply gravity, handle player collision, and check collisions between all primitives
-void Collision::updateWithPLayer(std::vector<Primitives*>& primitives, Player* player) {
-    //applyGravity(player); // Apply gravity to the player
-
-    for (size_t i = 0; i < primitives.size(); ++i) {
-        // Apply gravity to each primitive
-        applyGravity(primitives[i]);
-
-        // Check for collisions with other primitives
-        for (size_t j = i + 1; j < primitives.size(); ++j) {
-            resolveCollision(primitives[i], primitives[j]);
-        }
+bool Collision::checkPlayerCollision(Player* player, Primitives* primitive) {
+    if (!player->collisionEnabled || !primitive->collisionEnabled) {
+        return false;  // If collision is disabled for either object, no collision
     }
 
-    // Handle player collision separately
-    handlePlayerCollision(player, primitives);
+    // Update hitboxes for collision detection
+    player->updateHitbox();
+    primitive->updateHitbox();
+
+    // Use the updated hitboxes to check for overlap
+    glm::vec3 playerMin = player->hitbox.min;
+    glm::vec3 playerMax = player->hitbox.max;
+    glm::vec3 primMin = primitive->hitbox.min;
+    glm::vec3 primMax = primitive->hitbox.max;
+
+    // Check for overlap
+    bool collisionDetected = (playerMin.x <= primMax.x && playerMax.x >= primMin.x) &&
+                             (playerMin.y <= primMax.y && playerMax.y >= primMin.y) &&
+                             (playerMin.z <= primMax.z && playerMax.z >= primMin.z);
+
+    // Debugging output
+    if (collisionDetected) {
+        std::cout << "Collision detected between Player and " << primitive->getInfo() << std::endl;
+    }
+    return collisionDetected;
+}
+
+// Resolve the collision between the player and a primitive
+void Collision::resolvePlayerCollision(Player* player, Primitives* primitive) {
+    if (!checkPlayerCollision(player, primitive)) return;
+
+    glm::vec3 overlap;
+    // Use the hitboxes for calculations
+    glm::vec3 playerMin = player->hitbox.min;
+    glm::vec3 playerMax = player->hitbox.max;
+    glm::vec3 primMin = primitive->hitbox.min;
+    glm::vec3 primMax = primitive->hitbox.max;
+
+    // Compute overlap on each axis
+    overlap.x = std::min(playerMax.x, primMax.x) - std::max(playerMin.x, primMin.x);
+    overlap.y = std::min(playerMax.y, primMax.y) - std::max(playerMin.y, primMin.y);
+    overlap.z = std::min(playerMax.z, primMax.z) - std::max(playerMin.z, primMin.z);
+
+    glm::vec3 normal = calculateNormal(player, primitive);
+
+    if (overlap.y < overlap.x && overlap.y < overlap.z) {
+        player->position.y = primMax.y + player->scale.y / 2.0f;  // Move player out of primitive
+        player->velocity.y = 0.0f; // Stop downward movement
+        slideAlongSurface(player, normal); // Slide the player along the surface
+    } else if (overlap.x < overlap.z) {
+        player->position.x += (primMax.x < player->position.x) ? overlap.x : -overlap.x;
+        slideAlongSurface(player, normal);
+    } else {
+        player->position.z += (primMax.z < player->position.z) ? overlap.z : -overlap.z;
+        slideAlongSurface(player, normal);
+    }
+}
+
+// Update function: Apply gravity and check collisions between the player and all primitives
+void Collision::updatePlayer(Player* player, std::vector<Primitives*>& primitives) {
+    // Apply gravity to the player
+    //applyGravity(player);
+
+    // Then resolve collisions with primitives
+    for (size_t i = 0; i < primitives.size(); ++i) {
+        resolvePlayerCollision(player, primitives[i]);
+    }
+}
+
+// Update gravity for player (added to support gravity application)
+void Collision::applyGravity(Player* player) {
+    if (player->collisionEnabled && !player->isStatic) {
+        // Gravity affects the player's velocity over time if they're dynamic
+        player->velocity += gravity * deltaTime;
+        player->position += player->velocity * deltaTime;
+        // Update the player's hitbox
+        player->updateHitbox();
+    }
 }

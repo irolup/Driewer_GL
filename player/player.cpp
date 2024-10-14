@@ -1,7 +1,8 @@
 #include "player.h"
+#include <glm/gtx/string_cast.hpp>
 
 Player::Player(glm::vec3 position, glm::vec3 scale, Camera& camera) 
-    : camera(&camera) 
+    : Primitives(), camera(&camera) 
 {
     this->position = position;
     this->scale = scale;
@@ -9,16 +10,14 @@ Player::Player(glm::vec3 position, glm::vec3 scale, Camera& camera)
     this->isJumping = false;
     this->collisionEnabled = true;
     this->isStatic = false;
+    updateHitbox();
 }
 
 void Player::update(float deltaTime) {
-    // Update the player's position based on velocity and deltaTime
-    //this->position += this->velocity * deltaTime;
-    // Update the player's camera position
-    //camera->Position = this->position;
 
-    //take the camera position and put the camera position for the player position
-    this->position = camera->Position;
+
+    std::cout << "Player Hitbox: " << glm::to_string(hitbox.min) << " " << glm::to_string(hitbox.max) << std::endl;
+
     //log for player position
     std::cout << "Player Position: " << this->position.x << " " << this->position.y - 2.0f << " " << this->position.z << std::endl;
 }
@@ -30,17 +29,32 @@ void Player::jump(GLFWwindow* window, float deltaTime) {
     //    isJumping = true;
     //}
     camera->ProcessJump(deltaTime, window);
+    this->position = camera->Position;
+    //update hitbox
+    updateHitbox();
 }
 
 //move the player
 void Player::movePlayer(Camera_Movement direction, float deltaTime) {
     camera->ProcessMovement(direction, deltaTime);
+    this->position = camera->Position;
+    //log of the player position
+    //update hitbox
+    updateHitbox();
+    //std::cout << "Player Position: " << this->position.x << " " << this->position.y - 2.0f << " " << this->position.z << std::endl;
 }
 
 void Player::applyGravity(float deltaTime, glm::vec3 gravity) {
     if (isJumping) {
         this->velocity += gravity * deltaTime;
+        this->position += velocity * deltaTime;
     }
+    if (position.y <= 0.0f) {  // If the player hits the ground, stop jumping
+        position.y = 0.0f;
+        velocity.y = 0.0f;
+        isJumping = false;
+    }
+    updateHitbox();
 }
 
 void Player::setup() {
@@ -61,8 +75,11 @@ std::string Player::getInfo() const {
     return "Player";
 }
 
-//function to move the player
-void Player::movePlayer(){
-    position = camera->Position;
-}
 
+//update the hitbox of the player
+void Player::updateHitbox() {
+    hitbox.min = position - (scale / 2.0f);  // Calculate the min point of the bounding box
+    hitbox.max = position + (scale / 2.0f);  // Calculate the max point of the bounding box
+    //log hitbox
+    //std::cout << "Player Hitbox: " << glm::to_string(hitbox.min) << " " << glm::to_string(hitbox.max) << std::endl;
+}

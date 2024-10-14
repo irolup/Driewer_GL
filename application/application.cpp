@@ -78,16 +78,17 @@ void Game::Init()
 
     //Collsion test
     player = new Player(glm::vec3(0.0f, 2.0f, 2.0f), glm::vec3(1.0f, 2.0f, 1.0f), *myCamera);
-
+    primitives.push_back(player);
 
 }
 
 void Game::Update(float dt)
 {
     collision.update(primitives);
-    //collision.updateWithPLayer(primitives, player);
+    collision.updatePlayer(player, primitives);
 
-    //player->update(dt);
+    //update player
+    player->update(dt);
 
     //gravity
     //player->applyGravity(dt, gravity);

@@ -32,5 +32,5 @@ public:
 
     void movePlayer(Camera_Movement direction, float deltaTime); // Move the player
 
-    void movePlayer(); // Move the player
+    void updateHitbox(); // Update the player's hitbox
 };

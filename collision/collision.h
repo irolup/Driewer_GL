@@ -22,16 +22,22 @@ public:
 
     // Apply gravity to a primitive, modifying its velocity and position
     void applyGravity(Primitives* primitive);
+    void applyGravity(Player* player);
 
     // Update method to apply gravity and resolve collisions between all primitives
     void update(std::vector<Primitives*>& primitives);
-    void updateWithPLayer(std::vector<Primitives*>& primitives, Player* player);
+
+
+
+    // Function to check and resolve player collisions
+    bool checkPlayerCollision(Player* player, Primitives* primitive);
+    void resolvePlayerCollision(Player* player, Primitives* primitive);
+    void updatePlayer(Player* player, std::vector<Primitives*>& primitives);
 
 private:
 
     glm::vec3 calculateNormal(Primitives* a, Primitives* b);
     void slideAlongSurface(Primitives* moving, glm::vec3 normal);
-    void handlePlayerCollision(Player* player, std::vector<Primitives*>& primitives);
 
 };
 

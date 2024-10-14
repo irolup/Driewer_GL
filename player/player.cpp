@@ -15,8 +15,8 @@ Player::Player(glm::vec3 position, glm::vec3 scale, Camera& camera)
 
 void Player::update(float deltaTime) {
 
-
-    std::cout << "Player Hitbox: " << glm::to_string(hitbox.min) << " " << glm::to_string(hitbox.max) << std::endl;
+    //update position for the camera
+    camera->Position = this->position;
 
     //log for player position
     std::cout << "Player Position: " << this->position.x << " " << this->position.y - 2.0f << " " << this->position.z << std::endl;

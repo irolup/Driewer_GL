@@ -75,6 +75,9 @@ public:
            int width = DEFAULT_WIDTH, 
            int height = DEFAULT_HEIGHT);
 
+    //Constructor with width and height and position
+    Camera(int width, int height, glm::vec3 position);
+
     // Returns the view matrix
     glm::mat4 GetViewMatrix();
 
@@ -97,6 +100,9 @@ public:
 
     //need to take window as parameter for checking spacebar
     void ProcessJump(float deltaTime, GLFWwindow* window);
+
+    //func to set the window size
+    void SetWindowSize(int width, int height);
 
 private:
     // Updates camera vectors based on Euler angles

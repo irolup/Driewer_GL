@@ -37,6 +37,26 @@ Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float u
     updateCameraVectors();
 }
 
+// Constructor with width and height
+Camera::Camera(int width, int height, glm::vec3 position)
+    : Front(glm::vec3(0.0f, 0.0f, -1.0f)), 
+      MovementSpeed(SPEED), 
+      MouseSensitivity(SENSITIVITY), 
+      Zoom(ZOOM), 
+      Width(width), 
+      Height(height),
+      isJumping(false),         // Initialize jump state to false
+      initialY(position.y),     // Set the initial Y position to the camera's starting Y
+      JumpVelocity(0.0f),       // Start with no vertical velocity
+      Gravity(-9.8f)            // Use gravity to bring the camera down (adjust as needed)
+{
+    Position = position;
+    WorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    Yaw = YAW;
+    Pitch = PITCH;
+    updateCameraVectors();
+}
+
 // Returns the view matrix
 glm::mat4 Camera::GetViewMatrix()
 {
@@ -152,4 +172,10 @@ void Camera::ProcessJump(float deltaTime, GLFWwindow* window)
             JumpVelocity = 0.0f;    // Reset the jump velocity
         }
     }
+}
+
+void Camera::SetWindowSize(int width, int height)
+{
+    Width = width;
+    Height = height;
 }

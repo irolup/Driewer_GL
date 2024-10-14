@@ -35,7 +35,10 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/PBR_notext.vs", "shaders/PBR_notext.fs", nullptr, "PBR_notext");
     PBR_notext = ResourceManager::GetShader("PBR_notext");
 
-    myCamera = new Camera(glm::vec3(0.0f, 2.0f, 2.0f));
+    //cam with width and height and position
+    myCamera = new Camera(Width, Height, glm::vec3(0.0f, 2.0f, 2.0f));
+
+    //myCamera = new Camera(glm::vec3(0.0f, 2.0f, 2.0f));
 
     //Cube object
     cube = new Cube();
@@ -255,4 +258,9 @@ void Game::EnableMouse() {
 void Game::DisableMouse() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     isMouseEnabled = false;
+}
+
+void Game::SetCameraWindowSize(unsigned int width, unsigned int height) {
+    myCamera->Width = width;
+    myCamera->Height = height;
 }

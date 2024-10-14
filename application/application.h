@@ -74,6 +74,8 @@ public:
 
     GLFWwindow* window;
 
+    void SetCameraWindowSize(unsigned int width, unsigned int height);
+
     bool drawHitbox = false;
     bool texturesActive = true;
 

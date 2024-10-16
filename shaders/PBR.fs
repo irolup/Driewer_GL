@@ -73,7 +73,7 @@ vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
     float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 0.0), viewDir)));
     float layerDepth = 1.0 / numLayers;
     float currentLayerDepth = 0.0;
-    vec2 P = viewDir.xy / viewDir.z * heightScale; 
+    vec2 P = viewDir.xy * heightScale; 
     vec2 deltaTexCoords = P / numLayers;
     vec2 currentTexCoords = texCoords;
     float currentDepthMapValue = texture(texture_disp, currentTexCoords).r;
@@ -269,23 +269,10 @@ void main()
     mat3 TBN = mat3(T, B, N);
 
     vec2 newTexCoords = TexCoords;
-    // Parallax mapping
-    //desactive parallax if pitch < -30
-    //float pitch = degrees(acos(dot(N, V)));
-
-    //if(pitch < -30.0)
-    //{
-    //    newTexCoords = TexCoords;
-    //}
-    //else
-    //{
-    //    newTexCoords = ParallaxMapping(TexCoords, V);
-    //}
 
 
-    //vec2 newTexCoords = ParallaxMapping(TexCoords, V);
+    newTexCoords = ParallaxMapping(TexCoords, V);
 
-    //vec2 newTexCoords = TexCoords;
 
     //discard if outside the texture
     if(newTexCoords.x > 1.0 || newTexCoords.y > 1.0 || newTexCoords.x < 0.0 || newTexCoords.y < 0.0)

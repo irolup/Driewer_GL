@@ -89,6 +89,8 @@ void Game::Update(float dt)
 
     //update player
     player->update(dt);
+    //log pitch and yaw
+    std::cout << "Pitch: " << myCamera->getPitch() << " Yaw: " << myCamera->getYaw() << std::endl;
 
     //gravity
     //player->applyGravity(dt, gravity);

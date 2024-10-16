@@ -179,3 +179,15 @@ void Camera::SetWindowSize(int width, int height)
     Width = width;
     Height = height;
 }
+
+//get pitch
+float Camera::getPitch()
+{
+    return Pitch;
+}
+
+//get yaw
+float Camera::getYaw()
+{
+    return Yaw;
+}

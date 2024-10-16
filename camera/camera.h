@@ -104,6 +104,12 @@ public:
     //func to set the window size
     void SetWindowSize(int width, int height);
 
+    //Get camera pitch angle
+    float getPitch();
+
+    //Get camera yaw angle
+    float getYaw();
+
 private:
     // Updates camera vectors based on Euler angles
     void updateCameraVectors();

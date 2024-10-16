@@ -2,6 +2,8 @@
 
 // Constants
 const float PI = 3.14159265358979323846;
+//Height scale for parallax mapping
+const float heightScale = 0.1;
 
 // Maximum number of lights
 #define MAX_LIGHTS 5 // Adjust as needed
@@ -34,6 +36,8 @@ uniform Material material;
 uniform Light lights[MAX_LIGHTS];
 uniform int lightCount; // Total number of lights
 uniform vec3 viewPos;   // Camera position
+uniform float pitch;
+uniform float yaw;
 
 // Inputs from vertex shader
 in vec3 FragPos;
@@ -50,6 +54,7 @@ uniform sampler2D texture_normal;
 uniform sampler2D texture_metallic;
 uniform sampler2D texture_roughness;
 uniform sampler2D texture_occlusion;
+uniform sampler2D texture_disp;
 
 // Function declarations
 vec3 perturb_normal(vec3 N, vec3 V, vec2 texcoord);
@@ -59,14 +64,51 @@ float smith(vec3 N, vec3 L, vec3 V, float roughness);
 vec3 schlick_fresnel(float cosTheta, vec3 F0);
 vec3 tone_mapping_reinhard(vec3 color);
 vec3 tone_mapping_aces_filmic(vec3 color);
-vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos);
+vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo, float metallic, float roughness, float ao);
 
-vec3 getNormalFromMap() {
-    vec3 tangentNormal = texture(texture_normal, TexCoords).xyz * 2.0 - 1.0;
+vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
+{ 
+    const float minLayers = 8;
+    const float maxLayers = 32;
+    float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 0.0), viewDir)));
+    float layerDepth = 1.0 / numLayers;
+    float currentLayerDepth = 0.0;
+    vec2 P = viewDir.xy / viewDir.z * heightScale; 
+    vec2 deltaTexCoords = P / numLayers;
+    vec2 currentTexCoords = texCoords;
+    float currentDepthMapValue = texture(texture_disp, currentTexCoords).r;
 
-    vec3 T = normalize(Tangent - dot(Tangent, Normal) * Normal);
-    vec3 B = cross(Normal, T);
-    mat3 TBN = mat3(T, B, Normal);
+    while(currentLayerDepth < currentDepthMapValue)
+    {
+        currentTexCoords -= deltaTexCoords;
+        currentDepthMapValue = texture(texture_disp, currentTexCoords).r;
+        currentLayerDepth += layerDepth;  
+    }
+
+    vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
+    float afterDepth  = currentDepthMapValue - currentLayerDepth;
+    float beforeDepth = texture(texture_disp, prevTexCoords).r - currentLayerDepth + layerDepth;
+
+    float weight = afterDepth / (afterDepth - beforeDepth);
+    vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0 - weight);
+
+    return finalTexCoords;
+}
+
+//vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
+//{
+//    float height =  texture(texture_disp, texCoords).r;    
+//    vec2 p = viewDir.xy / viewDir.z * (height * heightScale);
+//    return texCoords - p;  
+//}
+
+
+vec3 getNormalFromMap(mat3 TBN, vec2 texCoords){
+    vec3 tangentNormal = texture(texture_normal, texCoords).xyz * 2.0 - 1.0;
+
+    //vec3 T = normalize(Tangent - dot(Tangent, Normal) * Normal);
+    //vec3 B = cross(Normal, T);
+    //mat3 TBN = mat3(T, B, Normal);
 
     return normalize(TBN * tangentNormal);
 }
@@ -76,7 +118,7 @@ vec3 getNormalFromMap() {
 vec3 perturb_normal(vec3 N, vec3 V, vec2 texcoord)
 {
     // Texture normal map
-    vec3 map = texture(texture_normal, texcoord).rgb;
+    vec3 map = texture(texture_normal, texcoord).xyz;
     map = map * 2.0 - 1.0; // Transform from [0,1] to [-1,1]
 
     // Reconstruct TBN matrix
@@ -139,13 +181,9 @@ vec3 tone_mapping_aces_filmic(vec3 color)
 }
 
 // Calculate PBR lighting using Cook-Torrance BRDF
-vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos)
+vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo, float metallic, float roughness, float ao)
 {
-    // Retrieve material properties from textures
-    vec3 albedo = texture(texture_diffuse, TexCoords).rgb * material.diffuse;
-    float metallic = texture(texture_metallic, TexCoords).r * material.metallic;
-    float roughness = texture(texture_roughness, TexCoords).r * material.roughness;
-    float ao = texture(texture_occlusion, TexCoords).r * material.occlusion;
+
 
     vec3 ambient = material.ambient * albedo * ao; 
 
@@ -209,27 +247,55 @@ vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos)
 
 void main()
 {
-    // Retrieve material properties from textures
-    vec3 albedo = texture(texture_diffuse, TexCoords).rgb * material.diffuse;
-    float metallic = texture(texture_metallic, TexCoords).r * material.metallic;
-    float roughness = texture(texture_roughness, TexCoords).r * material.roughness;
-    float ao = texture(texture_occlusion, TexCoords).r * material.occlusion;
-
     // Normalize interpolated normal
     vec3 N = normalize(Normal);
 
     // View direction
     vec3 V = normalize(viewPos - FragPos);
 
+    //calculate TBN matrix
+    vec3 T = normalize(Tangent - dot(Tangent, N) * N);
+    vec3 B = cross(N, T);
+    mat3 TBN = mat3(T, B, N);
+
+    vec2 newTexCoords = TexCoords;
+    // Parallax mapping
+    //desactive parallax if pitch < -30
+    //float pitch = degrees(acos(dot(N, V)));
+
+    //if(pitch < -30.0)
+    //{
+    //    newTexCoords = TexCoords;
+    //}
+    //else
+    //{
+    //    newTexCoords = ParallaxMapping(TexCoords, V);
+    //}
+
+
+    //vec2 newTexCoords = ParallaxMapping(TexCoords, V);
+
+    //vec2 newTexCoords = TexCoords;
+
+    //discard if outside the texture
+    if(newTexCoords.x > 1.0 || newTexCoords.y > 1.0 || newTexCoords.x < 0.0 || newTexCoords.y < 0.0)
+        discard;
+
+    // Retrieve material properties from textures
+    vec3 albedo = texture(texture_diffuse, newTexCoords).rgb * material.diffuse;
+    float metallic = texture(texture_metallic, newTexCoords).r * material.metallic;
+    float roughness = texture(texture_roughness, newTexCoords).r * material.roughness;
+    float ao = texture(texture_occlusion, newTexCoords).r * material.occlusion;
+
+
     // Apply normal mapping if normal map is provided
     if (textureSize(texture_normal, 0).x > 0)
     {
     //N = perturb_normal(N, V, TexCoords);
-    N = getNormalFromMap();
+        N = getNormalFromMap(TBN, newTexCoords);
     }
 
-    // Fresnel reflectance at normal incidence
-    //vec3 F0 = mix(vec3(0.04), albedo, metallic);
+
 
     // Accumulate lighting
     vec3 lighting = vec3(0.0);
@@ -245,12 +311,12 @@ void main()
         }
         else if (light.type == 1) // Point light
         {
-            lighting += CalculateLightingPBR(light, N, V, FragPos);
+            lighting += CalculateLightingPBR(light, N, V, FragPos, albedo, metallic, roughness, ao);
         }
         else if (light.type == 2) // Directional light
         {
             // For directional lights, direction is used instead of position
-            lighting += CalculateLightingPBR(light, N, V, FragPos);
+            lighting += CalculateLightingPBR(light, N, V, FragPos, albedo, metallic, roughness, ao);
         }
         else if (light.type == 3) // Spotlight
         {
@@ -261,7 +327,7 @@ void main()
 
             if (intensity > 0.0)
             {
-                vec3 spotlightRadiance = CalculateLightingPBR(light, N, V, FragPos) * intensity;
+                vec3 spotlightRadiance = CalculateLightingPBR(light, N, V, FragPos, albedo, metallic, roughness, ao) * intensity;
                 lighting += spotlightRadiance;
             }
         }

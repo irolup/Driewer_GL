@@ -136,6 +136,8 @@ void Sphere::draw(Shader& shader, Camera& camera) {
     glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);
     shader.SetMatrix4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
+    shader.SetFloat("pitch", camera.getPitch());
+    shader.SetFloat("yaw", camera.getYaw());
     shader.SetMatrix4("view", view);
     shader.SetInteger("texture_diffuse", 0);
     shader.SetInteger("texture_normal", 1);

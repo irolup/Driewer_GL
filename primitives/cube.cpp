@@ -51,6 +51,7 @@ void Cube::setup() {
     // Tangents
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
     glEnableVertexAttribArray(3);
+    
 
     glBindVertexArray(0);
 
@@ -166,6 +167,34 @@ void Cube::setup() {
     } else {
         std::cout << "Failed to load AO texture" << std::endl;
     }
+    stbi_image_free(data);
+
+    //Displacement map
+    glGenTextures(1, &texture_disp);
+    glBindTexture(GL_TEXTURE_2D, texture_disp);
+    // Set texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // Load image, create texture and generate mipmaps
+    data = stbi_load("texture/PBR_textures_2/disp.jpg", &width, &height, &nrChannels, 0);
+    if (data) {
+        // Check the number of channels and set the texture format accordingly
+        if (nrChannels == 1) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+        } else if (nrChannels == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        } else if (nrChannels == 4) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        }
+
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        std::cout << "Failed to load AO texture" << std::endl;
+    }
+    stbi_image_free(data);
+
 
     // Add textures to the vector
     textures.push_back(texture_diffuse);
@@ -173,6 +202,7 @@ void Cube::setup() {
     textures.push_back(texture_metalllic);
     textures.push_back(texture_roughness);
     textures.push_back(texture_ao);
+    textures.push_back(texture_disp);
 
     // Hitbox setup
     glGenVertexArrays(1, &hitboxVAO);
@@ -206,6 +236,10 @@ void Cube::draw(Shader& shader, Camera& camera) {
     glm::vec3 viewPos = camera.Position;
     shader.SetVector3f("viewPos", viewPos);
 
+    //pitch
+    shader.SetFloat("pitch", camera.getPitch());
+    shader.SetFloat("yaw", camera.getYaw());
+
     //material
     shader.SetVector3f("material.ambient", material.ambient);
     shader.SetVector3f("material.diffuse", material.diffuse);
@@ -222,6 +256,7 @@ void Cube::draw(Shader& shader, Camera& camera) {
     shader.SetInteger("texture_metallic", 2);
     shader.SetInteger("texture_roughness", 3);
     shader.SetInteger("texture_occlusion", 4);
+    shader.SetInteger("texture_disp", 5);
     
     // Bind texture
     for (unsigned int i = 0; i < textures.size(); i++) {

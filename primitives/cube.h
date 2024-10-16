@@ -19,7 +19,7 @@ public:
 private:
     unsigned int VAO, VBO, EBO;
     //texture
-    unsigned int texture_diffuse, texture_normal, texture_metalllic, texture_roughness, texture_ao;
+    unsigned int texture_diffuse, texture_normal, texture_metalllic, texture_roughness, texture_ao, texture_disp;
     std::vector<unsigned int> textures;
 
     //hiotbox

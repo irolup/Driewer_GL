@@ -102,6 +102,20 @@ vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
 //    return texCoords - p;  
 //}
 
+mat3 CotangentFrame(in vec3 N, in vec3 p, in vec2 uv) {
+  vec3 dp1 = dFdx(p);
+  vec3 dp2 = dFdy(p);
+  vec2 duv1 = dFdx(uv);
+  vec2 duv2 = dFdy(uv);
+
+  vec3 dp2perp = cross(dp2, N);
+  vec3 dp1perp = cross(N, dp1);
+  vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+  vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+
+  float invmax = inversesqrt(max(dot(T, T), dot(B, B)));
+  return mat3(T * invmax, B * invmax, N);
+}
 
 vec3 getNormalFromMap(mat3 TBN, vec2 texCoords){
     vec3 tangentNormal = texture(texture_normal, texCoords).xyz * 2.0 - 1.0;
@@ -117,17 +131,13 @@ vec3 getNormalFromMap(mat3 TBN, vec2 texCoords){
 // Perturb normal using normal map
 vec3 perturb_normal(vec3 N, vec3 V, vec2 texcoord)
 {
-    // Texture normal map
-    vec3 map = texture(texture_normal, texcoord).xyz;
-    map = map * 2.0 - 1.0; // Transform from [0,1] to [-1,1]
+  vec3 map = texture(texture_normal, texcoord).rgb;
 
-    // Reconstruct TBN matrix
-    vec3 T = normalize(Tangent - dot(Tangent, N) * N);
-    vec3 B = cross(N, T);
-    mat3 TBN = mat3(T, B, N);
+  map = map * 2.0 - 1.0;
 
-    // Transform normal
-    return normalize(TBN * map);
+
+  mat3 TBN = CotangentFrame(N, -V, texcoord);
+  return normalize(TBN * map);
 }
 
 // Normal Distribution Function (NDF) - Trowbridge-Reitz GGX
@@ -291,8 +301,8 @@ void main()
     // Apply normal mapping if normal map is provided
     if (textureSize(texture_normal, 0).x > 0)
     {
-    //N = perturb_normal(N, V, TexCoords);
-        N = getNormalFromMap(TBN, newTexCoords);
+        N = perturb_normal(N, V, newTexCoords);
+        //N = getNormalFromMap(TBN, newTexCoords);
     }
 
 

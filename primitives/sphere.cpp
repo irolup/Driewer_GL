@@ -172,22 +172,6 @@ void Sphere::draw(Shader& shader, Camera& camera) {
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
 }
 
-//draw hitbox TO DO AND AJUST
-void Sphere::drawHitbox(Shader& shader, Camera& camera) {
-    shader.Use();
-    glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);
-    shader.SetMatrix4("projection", projection);
-    glm::mat4 view = camera.GetViewMatrix();
-    shader.SetMatrix4("view", view);
-
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, position);
-    model = glm::scale(model, scale);
-    shader.SetMatrix4("model", model);
-
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-}
 
 std::string Sphere::getInfo() const {
     return "Sphere";

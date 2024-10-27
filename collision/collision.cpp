@@ -191,9 +191,10 @@ void Collision::resolvePlayerCollision(Player* player, Primitives* primitive) {
 }
 
 // Update function: Apply gravity and check collisions between the player and all primitives
-void Collision::updatePlayer(Player* player, std::vector<Primitives*>& primitives) {
+void Collision::updatePlayer(Player* player, std::vector<Primitives*>& primitives, std::vector<glm::vec3> vertices) {
     // Apply gravity to the player
     //applyGravity(player);
+    checkPlayerTerrainCollision(player, terrain, vertices);
 
     // Then resolve collisions with primitives
     for (size_t i = 0; i < primitives.size(); ++i) {
@@ -210,4 +211,39 @@ void Collision::applyGravity(Player* player) {
         // Update the player's hitbox
         player->updateHitbox();
     }
+}
+
+
+//maybe take juste surrounding of the player for the collision
+bool Collision::checkPlayerTerrainCollision(Player* player, Terrain* terrain, std::vector<glm::vec3> vertices) {
+    if (!player->collisionEnabled) return false;
+
+    // Update hitbox for the player
+    player->updateHitbox();
+
+    // Define a search radius based on player size or desired sensitivity
+    float searchRadius = player->scale.x * 1.5f; // Adjust as needed
+
+    // Iterate over terrain vertices to check collision
+    for (size_t i = 0; i < vertices.size(); ++i) {
+        glm::vec3 terrainVertex = vertices[i];
+
+        // Check if the vertex is within the search radius of the player's position
+        float distanceX = player->position.x - terrainVertex.x;
+        float distanceZ = player->position.z - terrainVertex.z;
+        float distanceSquared = distanceX * distanceX + distanceZ * distanceZ;
+
+        if (distanceSquared <= searchRadius * searchRadius) {
+            // Now check if the player's height is close to the terrain height
+            if (player->position.y <= terrainVertex.y + player->scale.y / 2 &&
+                player->position.y >= terrainVertex.y - player->scale.y / 2) { // Adjust for vertical collision detection
+
+                // Collision detected, adjust player's position
+                player->position.y = terrainVertex.y + player->scale.y / 2; // Snap player to terrain height
+                player->velocity.y = 0.0f; // Stop downward movement
+                return true; // Collision detected
+            }
+        }
+    }
+    return false; // No collision detected
 }

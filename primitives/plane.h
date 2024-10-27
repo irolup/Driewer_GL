@@ -13,13 +13,10 @@ class Plane : public Primitives {
 public:
     Plane();
     void draw(Shader& shader, Camera& camera) override;
-    void drawHitbox(Shader& shader, Camera& camera) override;
     
 private:
     unsigned int VAO, VBO, EBO;
     unsigned int texture_diffuse, texture_normal, texture_metalllic, texture_roughness, texture_ao, texture_disp;
-
-    unsigned int hitboxVAO, hitboxVBO, hitboxEBO;
 
     std::vector<unsigned int> textures;
     
@@ -39,21 +36,6 @@ private:
     static constexpr unsigned int plane_indices[] = {
         0, 1, 2,  // First triangle
         2, 3, 0   // Second triangle
-    };
-
-    // Hitbox data for the plane (wireframe around the plane)
-    static constexpr float plane_hitbox_vertices[] = {
-        -0.5f, 0.0f, -0.5f,
-         0.5f, 0.0f, -0.5f,
-         0.5f, 0.0f,  0.5f,
-        -0.5f, 0.0f,  0.5f
-    };
-
-    static constexpr unsigned int plane_hitbox_indices[] = {
-        0, 1,
-        1, 2,
-        2, 3,
-        3, 0
     };
 
 

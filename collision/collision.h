@@ -3,6 +3,7 @@
 
 #include "../primitives/primitives.h"
 #include "../player/player.h"
+#include "../world_objects/terrain.h"
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -10,6 +11,8 @@ class Collision {
 public:
     glm::vec3 gravity;  // Gravity vector (e.g., glm::vec3(0.0f, -9.81f, 0.0f))
     float deltaTime;     // Time step for simulation
+    //terrain
+    Terrain* terrain;
 
     // Constructor to initialize gravity and deltaTime
     Collision(glm::vec3 g = glm::vec3(0.0f, -9.81f, 0.0f), float dt = 0.016f);
@@ -32,7 +35,9 @@ public:
     // Function to check and resolve player collisions
     bool checkPlayerCollision(Player* player, Primitives* primitive);
     void resolvePlayerCollision(Player* player, Primitives* primitive);
-    void updatePlayer(Player* player, std::vector<Primitives*>& primitives);
+    void updatePlayer(Player* player, std::vector<Primitives*>& primitives, std::vector<glm::vec3> vertices);
+
+    bool checkPlayerTerrainCollision(Player* player, Terrain* terrain, std::vector<glm::vec3> vertices);
 
 private:
 

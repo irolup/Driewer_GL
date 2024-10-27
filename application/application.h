@@ -14,6 +14,7 @@
 #include "../primitives/cube.h"
 #include "../primitives/sphere.h"
 #include "../primitives/plane.h"
+#include "../world_objects/terrain.h"
 #include "../collision/collision.h"
 #include "../lights/lights.h"
 #include "antialiasing.h"
@@ -44,10 +45,16 @@ public:
     Shader          fxaaShader;
     //taa shader
     Shader          taaShader;
+    Shader          msaaShader;
+    Shader          smaaShader;
+    //terrain shader
+    Shader          terrainShader;
     Antialiasing*   antialiasing;
     Cube* cube;
     Plane* plane;
     Sphere* sphere;
+    Terrain* terrain;
+    std::vector<glm::vec3> vertices_terrain;
 
     //cube light
     Sphere* sphere_light;
@@ -83,7 +90,7 @@ public:
 
     bool drawHitbox = false;
     bool texturesActive = true;
-    bool taaActive = true;
+    bool fxaaActive = false;
 
     //audio
 

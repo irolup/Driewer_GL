@@ -41,10 +41,19 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/taa.vs", "shaders/taa.fs", nullptr, "taa");
     taaShader = ResourceManager::GetShader("taa");
 
-    antialiasing = new Antialiasing(Width, Height);
+    ResourceManager::LoadShader("shaders/msaa.vs", "shaders/msaa.fs", nullptr, "msaa");
+    msaaShader = ResourceManager::GetShader("msaa");
+
+    ResourceManager::LoadShader("shaders/smaa.vs", "shaders/smaa.fs", nullptr, "smaa");
+    smaaShader = ResourceManager::GetShader("smaa");
+
+    ResourceManager::LoadShader("shaders/height.vs", "shaders/height.fs", nullptr, "height");
+    terrainShader = ResourceManager::GetShader("height");
+
+    antialiasing = new Antialiasing(Width, Height, Antialiasing::Type::NONE);
 
     //cam with width and height and position
-    myCamera = new Camera(Width, Height, glm::vec3(0.0f, 2.0f, 2.0f));
+    myCamera = new Camera(Width, Height, glm::vec3(0.0f, 20.0f, 2.0f));
 
     //myCamera = new Camera(glm::vec3(0.0f, 2.0f, 2.0f));
 
@@ -79,21 +88,27 @@ void Game::Init()
     sphere_light->setPosition(glm::vec3(5.0f, 5.0f, 5.0f));
     primitives.push_back(sphere_light);
 
+    //terrain
+    terrain = new Terrain();
+
     light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
     
     light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 40.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(30.0f)));
 
 
     //Collsion test
-    player = new Player(glm::vec3(0.0f, 2.0f, 2.0f), glm::vec3(1.0f, 2.0f, 1.0f), *myCamera);
+    player = new Player(glm::vec3(0.0f, 20.0f, 2.0f), glm::vec3(1.0f, 2.0f, 1.0f), *myCamera);
     primitives.push_back(player);
+
+    //vertices for collision detection
+    vertices_terrain = terrain->getVertices();
 
 }
 
 void Game::Update(float dt)
 {
     collision.update(primitives);
-    collision.updatePlayer(player, primitives);
+    collision.updatePlayer(player, primitives, vertices_terrain);
 
     //update player
     player->update(dt);
@@ -107,7 +122,7 @@ void Game::Update(float dt)
 
 void Game::Render()
 {
-    if (taaActive)
+    if (fxaaActive)
     {
         antialiasing->BindFramebuffer();
     }
@@ -115,10 +130,12 @@ void Game::Render()
     if(texturesActive)
     {
         light.useLight(PBR, *myCamera);
+        terrain->draw(terrainShader, *myCamera);
         for (int i = 0; i < primitives.size(); i++)
         {
             primitives[i]->draw(PBR, *myCamera);
         }
+        
     }
     else
     {
@@ -128,11 +145,12 @@ void Game::Render()
             primitives[i]->draw(PBR_notext, *myCamera);
         }
     }
-    if (taaActive)
+    if (fxaaActive)
     {
         antialiasing->UpdateHistoryBuffer(*myCamera);
-        antialiasing->RenderWithShader(taaShader, *myCamera);
-        //antialiasing->RenderWithShader(fxaaShader, *myCamera);
+        //antialiasing->RenderWithShader(taaShader, *myCamera);
+        antialiasing->RenderWithShader(fxaaShader, *myCamera);
+        //antialiasing->RenderWithShader(smaaShader, *myCamera);
     }
 
 
@@ -230,14 +248,14 @@ void Game::ProcessInput(float dt)
             drawHitbox = false;
             std::cout << "Hitbox is disabled" << std::endl;
         }
-        //1 to enable taa and 2 to disable taa
+        //1 to enable taa and 2 to disable fxaa
         if (this->Keys[GLFW_KEY_1]){
-            taaActive = true;
-            std::cout << "TAA is enabled" << std::endl;
+            fxaaActive = true;
+            std::cout << "FXAA is enabled" << std::endl;
         }
         if (this->Keys[GLFW_KEY_2]){
-            taaActive = false;
-            std::cout << "TAA is disabled" << std::endl;
+            fxaaActive = false;
+            std::cout << "FXAA is disabled" << std::endl;
         }
 
     }

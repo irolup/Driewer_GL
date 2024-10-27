@@ -47,21 +47,6 @@ void Plane::setup() {
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (void*)(8 * sizeof(float)));
     glEnableVertexAttribArray(3);
 
-    // Hitbox VAO, VBO, and EBO
-    glGenVertexArrays(1, &hitboxVAO);
-    glGenBuffers(1, &hitboxVBO);
-    glGenBuffers(1, &hitboxEBO);
-
-    glBindVertexArray(hitboxVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, hitboxVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(plane_hitbox_vertices), plane_hitbox_vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hitboxEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(plane_hitbox_indices), plane_hitbox_indices, GL_STATIC_DRAW);
-
 
     // Load texture
     glGenTextures(1, &texture_diffuse);
@@ -256,22 +241,6 @@ void Plane::draw(Shader& shader, Camera& camera) {
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-}
-
-void Plane::drawHitbox(Shader& shader, Camera& camera) {
-    shader.Use();
-    glm::mat4 projection = camera.GetProjectionMatrix(0.1f, 100.0f);
-    shader.SetMatrix4("projection", projection);
-    glm::mat4 view = camera.GetViewMatrix();
-    shader.SetMatrix4("view", view);
-
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, getHitboxPosition());
-    model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
-    shader.SetMatrix4("model", model);
-
-    glBindVertexArray(hitboxVAO);
-    glDrawElements(GL_LINES, 8, GL_UNSIGNED_INT, 0); // Draw the hitbox edges
 }
 
 std::string Plane::getInfo() const {

@@ -204,21 +204,6 @@ void Cube::setup() {
     textures.push_back(texture_ao);
     textures.push_back(texture_disp);
 
-    // Hitbox setup
-    glGenVertexArrays(1, &hitboxVAO);
-    glGenBuffers(1, &hitboxVBO);
-    glGenBuffers(1, &hitboxEBO);
-
-    glBindVertexArray(hitboxVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, hitboxVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(hitbox_vertices), hitbox_vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hitboxEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(hitbox_indices), hitbox_indices, GL_STATIC_DRAW);
-
-    // Position attribute for hitbox
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
 
     updateHitbox();
 }
@@ -272,22 +257,6 @@ void Cube::draw(Shader& shader, Camera& camera) {
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 }
-
-void Cube::drawHitbox(Shader& shader, Camera& camera) {
-    position = getPosition();
-    shader.Use();
-    glm::mat4 projection = camera.GetProjectionMatrix();
-    shader.SetMatrix4("projection", projection);
-    glm::mat4 view = camera.GetViewMatrix();
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, getHitboxPosition());
-    shader.SetMatrix4("model", model);
-
-    // Draw hitbox using indices
-    glBindVertexArray(hitboxVAO);
-    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0); // Draw the hitbox edges
-}
-
 
 //set pos
 void Cube::setPosition(glm::vec3 pos) {

@@ -1,7 +1,11 @@
 #include "antialiasing.h"
 
-Antialiasing::Antialiasing(int width, int height) {
-    InitFramebuffer(width, height);
+Antialiasing::Antialiasing(int width, int height, Type type) : aaType(type) {
+    if (aaType == Type::MSAA) {
+        InitMSAAFramebuffer(width, height);
+    } else {
+        InitFramebuffer(width, height);
+    }
     InitQuad();
 }
 
@@ -50,6 +54,29 @@ void Antialiasing::InitFramebuffer(int width, int height) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void Antialiasing::InitMSAAFramebuffer(int width, int height) {
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    // Create color texture
+    glGenTextures(1, &colorTexture);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, colorTexture);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, width, height, GL_TRUE);  // 4 samples for MSAA
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, colorTexture, 0);
+
+    // Create depth texture
+    glGenTextures(1, &depthTexture);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, depthTexture);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_DEPTH_COMPONENT, width, height, GL_TRUE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, depthTexture, 0);
+
+    // Check framebuffer completeness
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void Antialiasing::InitQuad() {
     float quadVertices[] = {
         // positions     // texCoords     // motion vectors and depth (if needed)
@@ -81,6 +108,13 @@ void Antialiasing::BindFramebuffer() {
 }
 
 void Antialiasing::RenderWithShader(Shader& shader, Camera& camera) {
+    if (aaType == Type::MSAA) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, camera.Width, camera.Height, 0, 0, camera.Width, camera.Height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        return;
+    }
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Bind default framebuffer for final output
     glDisable(GL_DEPTH_TEST);              // Disable depth test for 2D quad render
     shader.Use();

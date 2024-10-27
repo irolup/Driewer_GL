@@ -22,11 +22,6 @@ private:
     unsigned int texture_diffuse, texture_normal, texture_metalllic, texture_roughness, texture_ao, texture_disp;
     std::vector<unsigned int> textures;
 
-    //hiotbox
-    unsigned int hitboxVAO, hitboxVBO, hitboxEBO;
-
-    void drawHitbox(Shader& shader, Camera& camera);
-
     void setup() override;
 
     std::string getInfo() const override;
@@ -97,27 +92,7 @@ private:
         22, 23, 20  // Second triangle
     };
 
-    // Hitbox vertices for wireframe rendering
-    static constexpr float hitbox_vertices[] = {
-        -0.5f, -0.5f, -0.5f, // back-bottom-left
-         0.5f, -0.5f, -0.5f, // back-bottom-right
-         0.5f,  0.5f, -0.5f, // back-top-right
-        -0.5f,  0.5f, -0.5f, // back-top-left
-        -0.5f, -0.5f,  0.5f, // front-bottom-left
-         0.5f, -0.5f,  0.5f, // front-bottom-right
-         0.5f,  0.5f,  0.5f, // front-top-right
-        -0.5f,  0.5f,  0.5f  // front-top-left
-    };
 
-    // Hitbox indices for drawing lines (edges)
-    static constexpr unsigned int hitbox_indices[] = {
-        0, 1, 2, 2, 3, 0,
-        4, 5, 6, 6, 7, 4,
-        0, 1, 5, 5, 4, 0,
-        2, 3, 7, 7, 6, 2,
-        0, 3, 7, 7, 4, 0,
-        1, 2, 6, 6, 5, 1
-    };
 };
 
 #endif // CUBE_H

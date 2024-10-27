@@ -57,8 +57,6 @@ public:
     // Pure virtual function for drawing
     virtual void draw(Shader& shader, Camera& camera) = 0;
 
-    // Pure virtual function for drawing the hitbox
-    virtual void drawHitbox(Shader& shader, Camera& camera) = 0;
 
     // Get information about the primitive
     virtual std::string getInfo() const = 0;

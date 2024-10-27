@@ -26,8 +26,6 @@ public:
 
     virtual void draw(Shader& shader, Camera& camera) override; // Draw function do nothing
 
-    virtual void drawHitbox(Shader& shader, Camera& camera) override; // Draw hitbox function do nothing
-
     virtual std::string getInfo() const override; // Get information about the player
 
     void movePlayer(Camera_Movement direction, float deltaTime); // Move the player

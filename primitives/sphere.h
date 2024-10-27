@@ -14,7 +14,6 @@ class Sphere : public Primitives {
 public:
     Sphere();
     void draw(Shader& shader, Camera& camera) override;
-    void drawHitbox(Shader& shader, Camera& camera) override;
 
 private:
     unsigned int VAO, VBO, EBO;

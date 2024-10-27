@@ -66,11 +66,6 @@ void Player::draw(Shader& shader, Camera& camera) {
     // This function is intentionally left empty
 }
 
-void Player::drawHitbox(Shader& shader, Camera& camera) {
-    // Draw the player's hitbox
-    // This function is intentionally left empty
-}
-
 std::string Player::getInfo() const {
     return "Player";
 }

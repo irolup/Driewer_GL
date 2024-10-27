@@ -9,7 +9,12 @@
 
 class Antialiasing {
 public:
-    Antialiasing(int width, int height);
+    enum class Type {
+            NONE,
+            MSAA,
+            SMAA
+        };
+    Antialiasing(int width, int height, Type type = Type::NONE);
     ~Antialiasing();
 
     void BindFramebuffer();                     // Bind framebuffer for main rendering pass
@@ -26,8 +31,12 @@ private:
     GLuint depthTexture;
     GLuint quadVAO, quadVBO;
 
+    // Antialiasing type
+    Type aaType;
+
     
     void InitFramebuffer(int width, int height);
+    void InitMSAAFramebuffer(int width, int height);  // MSAA initialization
     void InitQuad();
     //resize function
     void Resize(int width, int height);

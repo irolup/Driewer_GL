@@ -20,6 +20,7 @@
                 "${workspaceFolder}/collision/*.cpp",
                 "${workspaceFolder}/lights/*.cpp",
                 "${workspaceFolder}/player/*.cpp",
+                "${workspaceFolder}/world_objects/*.cpp",
                 "-o",
                 "${workspaceFolder}/bin/${fileBasenameNoExtension}",
                 "-lGL",

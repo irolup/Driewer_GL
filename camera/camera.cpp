@@ -148,29 +148,28 @@ void Camera::ProcessMovement(Camera_Movement direction, float deltaTime)
 
 void Camera::ProcessJump(float deltaTime, GLFWwindow* window)
 {
-    // Check for jump input (spacebar) and ensure the camera is not already jumping
-    if (!isJumping && glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    {
+    // Check for jump input and ensure the camera is not already jumping
+    if (!isJumping && glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         isJumping = true;
-        JumpVelocity = 5.0f;  // Initial upward velocity for jump (tweak to control height)
+        JumpVelocity = 12.0f;  // Initial upward velocity for jump (tweak to control height)
+        initialY = Position.y; // Set the initial Y position for this jump
     }
 
     // If the camera is jumping or in the air, apply gravity
-    if (isJumping || Position.y > initialY)
-    {
+    if (isJumping) {
         // Apply gravity to the jump velocity
         JumpVelocity += Gravity * deltaTime;
 
         // Update the camera's Y position with the jump velocity
         Position.y += JumpVelocity * deltaTime;
 
-        // If the camera has returned to or below its initial Y position, stop the jump
-        if (Position.y <= initialY)
-        {
-            Position.y = initialY;  // Reset the Y position to the initial value
-            isJumping = false;      // Stop jumping
-            JumpVelocity = 0.0f;    // Reset the jump velocity
+        // Check if the camera has returned to or just a little higher than the initial Y position
+        if (Position.y <= initialY) {
+            Position.y = initialY;  // Snap the camera back to the initial Y position
+            JumpVelocity = 0.0f;    // Stop the jump velocity
+            isJumping = false;
         }
+        
     }
 }
 

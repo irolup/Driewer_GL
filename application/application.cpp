@@ -97,7 +97,7 @@ void Game::Init()
 
 
     //Collsion test
-    player = new Player(glm::vec3(0.0f, 20.0f, 2.0f), glm::vec3(1.0f, 2.0f, 1.0f), *myCamera);
+    player = new Player(glm::vec3(0.0f, 20.0f, 2.0f), glm::vec3(5.0f, 5.0f, 1.0f), *myCamera);
     primitives.push_back(player);
 
     //vertices for collision detection

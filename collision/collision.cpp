@@ -193,7 +193,7 @@ void Collision::resolvePlayerCollision(Player* player, Primitives* primitive) {
 // Update function: Apply gravity and check collisions between the player and all primitives
 void Collision::updatePlayer(Player* player, std::vector<Primitives*>& primitives, std::vector<glm::vec3> vertices) {
     // Apply gravity to the player
-    //applyGravity(player);
+    applyGravity(player);
     checkPlayerTerrainCollision(player, terrain, vertices);
 
     // Then resolve collisions with primitives
@@ -218,32 +218,56 @@ void Collision::applyGravity(Player* player) {
 bool Collision::checkPlayerTerrainCollision(Player* player, Terrain* terrain, std::vector<glm::vec3> vertices) {
     if (!player->collisionEnabled) return false;
 
-    // Update hitbox for the player
+    // Update the player's hitbox
     player->updateHitbox();
 
     // Define a search radius based on player size or desired sensitivity
-    float searchRadius = player->scale.x * 1.5f; // Adjust as needed
+    float searchRadius = player->scale.x * 1.5f;  // Adjust as necessary
+    float collisionTolerance = 0.1f;              // Small buffer for collision height tolerance
 
-    // Iterate over terrain vertices to check collision
-    for (size_t i = 0; i < vertices.size(); ++i) {
-        glm::vec3 terrainVertex = vertices[i];
+    // Variables for weighted height calculation
+    float weightedHeightSum = 0.0f;
+    float weightSum = 0.0f;
+    float closestDistanceSquared = std::numeric_limits<float>::max();
+    glm::vec3 closestVertex(0.0f);
 
-        // Check if the vertex is within the search radius of the player's position
+    // Loop over terrain vertices to check those within the search radius
+    for (const auto& terrainVertex : vertices) {
         float distanceX = player->position.x - terrainVertex.x;
         float distanceZ = player->position.z - terrainVertex.z;
         float distanceSquared = distanceX * distanceX + distanceZ * distanceZ;
 
         if (distanceSquared <= searchRadius * searchRadius) {
-            // Now check if the player's height is close to the terrain height
-            if (player->position.y <= terrainVertex.y + player->scale.y / 2 &&
-                player->position.y >= terrainVertex.y - player->scale.y / 2) { // Adjust for vertical collision detection
+            // Use the inverse of the distance as a weight (closer vertices have more influence)
+            float weight = 1.0f / (distanceSquared + 0.001f);  // Small offset to avoid division by zero
+            weightedHeightSum += terrainVertex.y * weight;
+            weightSum += weight;
 
-                // Collision detected, adjust player's position
-                player->position.y = terrainVertex.y + player->scale.y / 2; // Snap player to terrain height
-                player->velocity.y = 0.0f; // Stop downward movement
-                return true; // Collision detected
+            // Track the closest vertex for additional height accuracy
+            if (distanceSquared < closestDistanceSquared) {
+                closestDistanceSquared = distanceSquared;
+                closestVertex = terrainVertex;
             }
         }
     }
-    return false; // No collision detected
+
+    if (weightSum > 0.0f) {
+        // Calculate the weighted average height based on surrounding vertices
+        float interpolatedHeight = weightedHeightSum / weightSum;
+
+        // Adjust collision check with a blend of closest vertex height and weighted height
+        float blendedHeight = 0.7f * interpolatedHeight + 0.3f * closestVertex.y;
+
+        // Check if the player's height is within the tolerance range of this blended height
+        if (player->position.y <= blendedHeight + player->scale.y / 2 + collisionTolerance &&
+            player->position.y >= blendedHeight - player->scale.y / 2) {
+
+            // Collision detected: set player’s position smoothly to the blended height
+            player->position.y = blendedHeight + player->scale.y / 2 + collisionTolerance;
+            player->velocity.y = 0.0f;  // Stop downward movement
+            return true;  // Collision detected
+        }
+    }
+
+    return false;  // No collision detected
 }

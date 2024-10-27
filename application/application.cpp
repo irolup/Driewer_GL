@@ -35,6 +35,14 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/PBR_notext.vs", "shaders/PBR_notext.fs", nullptr, "PBR_notext");
     PBR_notext = ResourceManager::GetShader("PBR_notext");
 
+    ResourceManager::LoadShader("shaders/fxaa.vs", "shaders/fxaa.fs", nullptr, "fxaa_shader");
+    fxaaShader = ResourceManager::GetShader("fxaa_shader");
+
+    ResourceManager::LoadShader("shaders/taa.vs", "shaders/taa.fs", nullptr, "taa");
+    taaShader = ResourceManager::GetShader("taa");
+
+    antialiasing = new Antialiasing(Width, Height);
+
     //cam with width and height and position
     myCamera = new Camera(Width, Height, glm::vec3(0.0f, 2.0f, 2.0f));
 
@@ -99,13 +107,18 @@ void Game::Update(float dt)
 
 void Game::Render()
 {
+    if (taaActive)
+    {
+        antialiasing->BindFramebuffer();
+    }
+
     if(texturesActive)
     {
         light.useLight(PBR, *myCamera);
-    for (int i = 0; i < primitives.size(); i++)
-    {
-        primitives[i]->draw(PBR, *myCamera);
-    }
+        for (int i = 0; i < primitives.size(); i++)
+        {
+            primitives[i]->draw(PBR, *myCamera);
+        }
     }
     else
     {
@@ -115,7 +128,16 @@ void Game::Render()
             primitives[i]->draw(PBR_notext, *myCamera);
         }
     }
+    if (taaActive)
+    {
+        antialiasing->UpdateHistoryBuffer(*myCamera);
+        antialiasing->RenderWithShader(taaShader, *myCamera);
+        //antialiasing->RenderWithShader(fxaaShader, *myCamera);
+    }
+
+
     
+
 
 }
 
@@ -207,7 +229,16 @@ void Game::ProcessInput(float dt)
         if (this->Keys[GLFW_KEY_J]){
             drawHitbox = false;
             std::cout << "Hitbox is disabled" << std::endl;
-        }        
+        }
+        //1 to enable taa and 2 to disable taa
+        if (this->Keys[GLFW_KEY_1]){
+            taaActive = true;
+            std::cout << "TAA is enabled" << std::endl;
+        }
+        if (this->Keys[GLFW_KEY_2]){
+            taaActive = false;
+            std::cout << "TAA is disabled" << std::endl;
+        }
 
     }
     if (this->State == GAME_WIN)
@@ -266,4 +297,5 @@ void Game::DisableMouse() {
 void Game::SetCameraWindowSize(unsigned int width, unsigned int height) {
     myCamera->Width = width;
     myCamera->Height = height;
+    antialiasing->Update(width, height);
 }

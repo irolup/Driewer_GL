@@ -16,6 +16,7 @@
 #include "../primitives/plane.h"
 #include "../collision/collision.h"
 #include "../lights/lights.h"
+#include "antialiasing.h"
 
 // Represents the current state of the game
 enum GameState {
@@ -40,6 +41,10 @@ public:
     Shader          lightShader;
     Shader          PBR;
     Shader          PBR_notext;
+    Shader          fxaaShader;
+    //taa shader
+    Shader          taaShader;
+    Antialiasing*   antialiasing;
     Cube* cube;
     Plane* plane;
     Sphere* sphere;
@@ -78,6 +83,7 @@ public:
 
     bool drawHitbox = false;
     bool texturesActive = true;
+    bool taaActive = true;
 
     //audio
 

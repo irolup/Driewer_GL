@@ -271,7 +271,7 @@ void main()
     vec2 newTexCoords = TexCoords;
 
 
-    newTexCoords = ParallaxMapping(TexCoords, V);
+    //newTexCoords = ParallaxMapping(TexCoords, V);
 
 
     //discard if outside the texture

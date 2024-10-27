@@ -73,6 +73,9 @@ private:
         -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f  // bottom-left
     };
 
+
+    
+
     static constexpr unsigned int cube_indices[] = {
         // Back face
         0, 1, 2, // First triangle

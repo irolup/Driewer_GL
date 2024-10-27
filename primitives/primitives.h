@@ -7,6 +7,7 @@
 #include <iostream>
 #include "../shaders/shader.h"
 #include "../camera/camera.h"
+#include "geometryUtils.h"
 
 class Primitives {
 public:

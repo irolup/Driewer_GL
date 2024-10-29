@@ -7,6 +7,8 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+class Player;  // Forward declaration
+
 class Collision {
 public:
     glm::vec3 gravity;  // Gravity vector (e.g., glm::vec3(0.0f, -9.81f, 0.0f))
@@ -43,7 +45,7 @@ private:
 
     glm::vec3 calculateNormal(Primitives* a, Primitives* b);
     void slideAlongSurface(Primitives* moving, glm::vec3 normal);
-
+    float Lerp(float a, float b, float t);
 };
 
 #endif // COLLISION_H

@@ -23,15 +23,19 @@ void Player::update(float deltaTime) {
 }
 
 //take window to pass to camera for checking spacebar
-void Player::jump(GLFWwindow* window, float deltaTime) {
-    //if (!isJumping) {
-    //    this->velocity.y = 10.0f; // Adjust jump strength as needed
-    //    isJumping = true;
-    //}
-    camera->ProcessJump(deltaTime, window);
-    this->position = camera->Position;
-    //update hitbox
-    updateHitbox();
+void Player::jump(GLFWwindow* window, float deltaTime, Terrain* terrain, std::vector<glm::vec3> vertices) {
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        // Only allow jumping if the player is not already jumping and is on the ground
+        Collision collision;
+        if (collision.checkPlayerTerrainCollision(this, terrain, vertices)) {
+            this->velocity.y = 10.0f; // Adjust jump strength as needed
+            isJumping = true; // Set jumping state
+            camera->ProcessJump(deltaTime, window);
+            updateHitbox();
+        }
+    }
+    
+    
 }
 
 //move the player
@@ -48,11 +52,6 @@ void Player::applyGravity(float deltaTime, glm::vec3 gravity) {
     if (isJumping) {
         this->velocity += gravity * deltaTime;
         this->position += velocity * deltaTime;
-    }
-    if (position.y <= 0.0f) {  // If the player hits the ground, stop jumping
-        position.y = 0.0f;
-        velocity.y = 0.0f;
-        isJumping = false;
     }
     updateHitbox();
 }

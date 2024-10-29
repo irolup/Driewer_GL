@@ -28,7 +28,7 @@ bool Collision::checkCollision(Primitives* a, Primitives* b) {
 
     // Debugging output
     if (collisionDetected) {
-        std::cout << "Collision detected between: " << a->getInfo() << " and " << b->getInfo() << std::endl;
+        //std::cout << "Collision detected between: " << a->getInfo() << " and " << b->getInfo() << std::endl;
     }
     return collisionDetected;
 }
@@ -194,9 +194,17 @@ void Collision::resolvePlayerCollision(Player* player, Primitives* primitive) {
 void Collision::updatePlayer(Player* player, std::vector<Primitives*>& primitives, std::vector<glm::vec3> vertices) {
     // Apply gravity to the player
     applyGravity(player);
-    checkPlayerTerrainCollision(player, terrain, vertices);
+    
+    // Check collision with terrain
+    bool onGround = checkPlayerTerrainCollision(player, terrain, vertices);
 
-    // Then resolve collisions with primitives
+    // If the player is grounded, reset jump state
+    if (onGround) {
+        player->isJumping = false; // Player can jump again
+        player->velocity.y = 0.0f; // Stop upward/downward movement
+    }
+
+    // Resolve collisions with primitives
     for (size_t i = 0; i < primitives.size(); ++i) {
         resolvePlayerCollision(player, primitives[i]);
     }
@@ -255,7 +263,7 @@ bool Collision::checkPlayerTerrainCollision(Player* player, Terrain* terrain, st
         // Calculate the weighted average height based on surrounding vertices
         float interpolatedHeight = weightedHeightSum / weightSum;
 
-        // Adjust collision check with a blend of closest vertex height and weighted height
+        // Use a more advanced method to blend the heights
         float blendedHeight = 0.7f * interpolatedHeight + 0.3f * closestVertex.y;
 
         // Check if the player's height is within the tolerance range of this blended height
@@ -265,9 +273,24 @@ bool Collision::checkPlayerTerrainCollision(Player* player, Terrain* terrain, st
             // Collision detected: set player’s position smoothly to the blended height
             player->position.y = blendedHeight + player->scale.y / 2 + collisionTolerance;
             player->velocity.y = 0.0f;  // Stop downward movement
+
+            // Optionally adjust the player's position slightly based on distance from the terrain
+            float deltaY = player->position.y - blendedHeight;
+            if (std::abs(deltaY) < collisionTolerance) {
+                player->position.y -= deltaY * 0.5f;  // Adjust position slightly to smooth it out
+            }
+
             return true;  // Collision detected
         }
     }
 
+    // Optional debug output
+    // std::cout << "Height: " << terrain->getHeightAt(player->position.x, player->position.z) 
+    //           << " Weight: " << weightSum << std::endl;
+
     return false;  // No collision detected
+}
+
+float Collision::Lerp(float a, float b, float t) {
+    return a + t * (b - a);
 }

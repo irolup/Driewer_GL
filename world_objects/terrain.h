@@ -11,13 +11,19 @@
 
 class Terrain : public Primitives {
 public:
-    Terrain();
+    Terrain(float gridSize);
     void draw(Shader& shader, Camera& camera) override;
 
     std::vector<glm::vec3> vertices;
 
     //function to return the indices positions forcollision detection
     std::vector<glm::vec3> getVertices();
+
+    float getGridSize() const;
+    void setGridSize(float gridSize);
+    float getHeightAt(float x, float z);
+    int getTerrainWidth() const;
+    int getTerrainHeight() const;
     
 private:
     unsigned int VAO, VBO, EBO;
@@ -28,17 +34,20 @@ private:
 
     void setup();
     void loadTextures();
-    void generateTerrain();
+    void generateTerrain(float gridSize = 1.0f);
 
     std::string getInfo() const override;
 
     
     std::vector<glm::vec2> uvs;
     std::vector<unsigned int> indices;
-    int height, width, rez;
+    int height, width;
+    float rez;
     int numStrips, numTrisPerStrip;
 
     bool wireframe = false;
+
+    float gridSize = 1.0f;
 
 };
 

@@ -1,9 +1,12 @@
 #pragma once
 #include <glm/glm.hpp>
+#include "../collision/collision.h"
+#include "../world_objects/terrain.h"
 #include "../camera/camera.h"
 #include "../primitives/primitives.h"
 #include "../shaders/shader.h"
 #include <string>
+#include "../include/stb_image.h"
 
 class Player : public Primitives {
 public:
@@ -14,12 +17,13 @@ public:
     bool collisionEnabled;       // Check if collision is enabled
     bool isStatic;              // Check if the player is static
     Camera* camera;             // Player's camera
+    Terrain* terrain;           // Terrain object
 
 
     Player(glm::vec3 position, glm::vec3 scale, Camera& camera); // Constructor
 
     void update(float deltaTime);  // Update player's position
-    void jump(GLFWwindow* window, float deltaTime); // Jump function
+    void jump(GLFWwindow* window, float deltaTime, Terrain* terrain, std::vector<glm::vec3> vertices);
     void applyGravity(float deltaTime, glm::vec3 gravity); // Apply gravity
 
     virtual void setup() override; // Setup function do nothing

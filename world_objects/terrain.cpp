@@ -1,20 +1,21 @@
 #include "terrain.h"
 
-Terrain::Terrain() {
-    generateTerrain();
+Terrain::Terrain(float gridSize) : gridSize(gridSize), width(0), height(0), rez(0.0f), numStrips(0), numTrisPerStrip(0) {
+    generateTerrain(gridSize);
     loadTextures();
     setup();
 }
 
-void Terrain::generateTerrain() {
+void Terrain::generateTerrain(float gridSize) {
     // Load the heightmap
+    this->gridSize = gridSize;
     int nrChannels;
     stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load("texture/terrain/disp.jpg", &width, &height, &nrChannels, 0);
     if (data) {
         float yScale = 32.0f / 255.0f;
         float yShift = 0.0f;
-        rez = 1;
+        rez = gridSize;
         unsigned bytesPerPixel = nrChannels;
 
         // Populate vertices and UV coordinates
@@ -47,6 +48,10 @@ void Terrain::generateTerrain() {
 
         numStrips = (height - 1) / rez;
         numTrisPerStrip = (width / rez) * 2 - 2;
+        //store the height and width of the terrain
+        this->height = height;
+        this->width = width;
+
         std::cout << "Created lattice of " << numStrips << " strips with " << numTrisPerStrip << " triangles each" << std::endl;
         std::cout << "Created " << numStrips * numTrisPerStrip << " triangles total" << std::endl;
     } else {
@@ -246,4 +251,44 @@ std::string Terrain::getInfo() const {
 //function to return the indices positions forcollision detection
 std::vector<glm::vec3> Terrain::getVertices() {
     return vertices;
+}
+
+float Terrain::getGridSize() const {
+    return gridSize;
+}
+
+// Sets a new grid size and regenerates the terrain
+void Terrain::setGridSize(float newGridSize) {
+    if (newGridSize > 0.0f && newGridSize != gridSize) {
+        generateTerrain(newGridSize);
+        setup();
+    }
+}
+
+float Terrain::getHeightAt(float x, float z) {
+    // Convert the world coordinates (x, z) to grid indices
+    int row = static_cast<int>((z + (height / 2.0f)) / (gridSize * (height / static_cast<float>(height))));
+    int col = static_cast<int>((x + (width / 2.0f)) / (gridSize * (width / static_cast<float>(width))));
+
+    // Ensure the indices are within the valid range
+    if (row < 0 || row >= height || col < 0 || col >= width) {
+        std::cout << "Coordinates out of bounds!" << std::endl;
+        return 0.0f; // or some default height
+    }
+
+    // Calculate the index of the vertex based on the row and column
+    int index = col + (row * width);
+    
+    // Return the height of the terrain at the specified coordinates
+    return vertices[index].y;
+}
+
+// Function to get the terrain width
+int Terrain::getTerrainWidth() const {
+    return width; // Return the stored width
+}
+
+// Function to get the terrain height
+int Terrain::getTerrainHeight() const {
+    return height; // Return the stored height
 }

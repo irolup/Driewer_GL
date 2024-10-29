@@ -89,7 +89,7 @@ void Game::Init()
     primitives.push_back(sphere_light);
 
     //terrain
-    terrain = new Terrain();
+    terrain = new Terrain(1.0f);
 
     light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
     
@@ -112,11 +112,14 @@ void Game::Update(float dt)
 
     //update player
     player->update(dt);
-    //log pitch and yaw
-    std::cout << "Pitch: " << myCamera->getPitch() << " Yaw: " << myCamera->getYaw() << std::endl;
+    //cout isplayer jumping
+    std::cout << "Is player jumping: " << player->isJumping << std::endl;
 
     //gravity
     //player->applyGravity(dt, gravity);
+    std::cout << "Height: " << terrain->getHeightAt(player->position.x, player->position.z) << std::endl;
+    //cout gridsize
+    std::cout << "Gridsize: " << terrain->getGridSize() << std::endl;
 
 }
 
@@ -181,7 +184,7 @@ void Game::ProcessInput(float dt)
             //myCamera->ProcessKeyboard(Camera_Movement::RIGHT, cameraSpeed);
             player->movePlayer(Camera_Movement::RIGHT, cameraSpeed);
         }
-        player->jump(window, dt);
+        player->jump(window, dt, terrain, vertices_terrain);
 
         //activated mouse
         if (this->Keys[GLFW_KEY_M]){

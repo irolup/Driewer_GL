@@ -59,7 +59,7 @@ void Plane::setup() {
 
     // Load image, create texture and generate mipmaps
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true);
+    //stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load("texture/PBR_textures/diff.jpg", &width, &height, &nrChannels, 0);
     
     if (data) {
@@ -222,21 +222,7 @@ void Plane::draw(Shader& shader, Camera& camera) {
     model = glm::scale(model, scale);
     shader.SetMatrix4("model", model);
 
-    shader.SetInteger("texture_diffuse", 0);
-    shader.SetInteger("texture_normal", 1);
-    shader.SetInteger("texture_metallic", 2);
-    shader.SetInteger("texture_roughness", 3);
-    shader.SetInteger("texture_occlusion", 4);
-    shader.SetInteger("texture_disp", 5);
-
-    // Bind texture
-    for (unsigned int i = 0; i < textures_plane.size(); i++) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, textures_plane[i]);
-    }
-
-    
-    //Materials
+        //Materials
     shader.SetVector3f("material.ambient", material.ambient);
     shader.SetVector3f("material.diffuse", material.diffuse);
     shader.SetVector3f("material.specular", material.specular);
@@ -246,8 +232,28 @@ void Plane::draw(Shader& shader, Camera& camera) {
     shader.SetFloat("material.brightness", material.brightness);
     shader.SetVector3f("material.fresnel_ior", material.fresnel_ior);
 
+// Bind texture
+    for (unsigned int i = 0; i < textures_plane.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, textures_plane[i]);
+    }
+
+    shader.SetInteger("texture_diffuse", 0);
+    shader.SetInteger("texture_normal", 1);
+    shader.SetInteger("texture_metallic", 2);
+    shader.SetInteger("texture_roughness", 3);
+    shader.SetInteger("texture_occlusion", 4);
+    shader.SetInteger("texture_disp", 5);
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    // Unbind the textures
+    for (unsigned int i = 0; i < textures_plane.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 }
 
 std::string Plane::getInfo() const {

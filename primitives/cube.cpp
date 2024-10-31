@@ -67,7 +67,7 @@ void Cube::setup() {
 
     // Load image, create texture and generate mipmaps
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true);
+    //stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load("texture/PBR_textures_2/diff.jpg", &width, &height, &nrChannels, 0);
     
     if (data) {
@@ -121,6 +121,7 @@ void Cube::setup() {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         }
         glGenerateMipmap(GL_TEXTURE_2D);
+        textures_cube.push_back(texture_metalllic);
     } else {
         std::cout << "Failed to load texture met" << std::endl;
     }
@@ -247,6 +248,12 @@ void Cube::draw(Shader& shader, Camera& camera) {
     shader.SetFloat("material.brightness", material.brightness);
     shader.SetVector3f("material.fresnel_ior", material.fresnel_ior);
 
+for (unsigned int i = 0; i < textures_cube.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, textures_cube[i]);
+    }
+
+
     // Set the texture units
     shader.SetInteger("texture_diffuse", 0);
     shader.SetInteger("texture_normal", 1);
@@ -256,13 +263,17 @@ void Cube::draw(Shader& shader, Camera& camera) {
     shader.SetInteger("texture_disp", 5);
     
     // Bind texture
-    for (unsigned int i = 0; i < textures_cube.size(); i++) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, textures_cube[i]);
-    }
+    
     // Draw the cube using indices
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    // Unbind the textures
+    for (unsigned int i = 0; i < textures_cube.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 }
 
 //set pos

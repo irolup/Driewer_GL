@@ -37,6 +37,8 @@ private:
     GLuint vao;
     std::map<int, GLuint> vbos;
     std::vector<unsigned int> textures_model;
+    //store index of texture in vector
+    int diffuseIndex_;
 };
 
 #endif

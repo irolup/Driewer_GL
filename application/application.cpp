@@ -101,7 +101,7 @@ void Game::Init()
 
     light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
     
-    light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0.2f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
+    light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 20.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
 
 
     //Collsion test
@@ -120,7 +120,9 @@ void Game::Init()
     }
 
     //make string from ../models/wooden_axe_02_1k.gltf
-    std::string filename = "models/wooden_axe_02_1k.gltf";
+    //std::string filename = "models/wooden_axe_02_1k.gltf";
+    //load lemon
+    std::string filename = "models/lemon_1k.gltf";
 
     if(modelLoader.loadModel(filename.c_str()))
     {
@@ -131,7 +133,8 @@ void Game::Init()
     {
         std::cout << "Failed to load model" << std::endl;
     }
-    
+    //set position
+    modelLoader.position = glm::vec3(0.8f, 0.5f, 0.8f);
 
 }
 
@@ -164,7 +167,7 @@ void Game::Render()
             primitives[i]->draw(PBR, *myCamera);
         }
         modelLoader.drawModel(PBR, *myCamera);
-        
+        //modelLoader.dbgModel();
     }
     else
     {

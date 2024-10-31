@@ -60,9 +60,22 @@ void ModelLoader::bindMesh(tinygltf::Mesh& mesh) {
 
             int size = (accessor.type != TINYGLTF_TYPE_SCALAR) ? accessor.type : 1;
             int vaa = -1;
-            if (attrib.first == "POSITION") vaa = 0;
-            if (attrib.first == "NORMAL") vaa = 1;
-            if (attrib.first == "TEXCOORD_0") vaa = 2;
+            if (attrib.first == "POSITION"){
+                vaa = 0;
+            } else if (attrib.first == "NORMAL"){
+                vaa = 1;
+            } else if (attrib.first == "TEXCOORD_0"){
+                vaa = 2;
+            } else if (attrib.first == "TANGENT"){
+                vaa = 3;
+            } else if (attrib.first == "COLOR_0"){
+                vaa = 4;
+            } else if (attrib.first == "JOINTS_0"){
+                vaa = 5;
+            } else if (attrib.first == "WEIGHTS_0"){
+                vaa = 6;
+            }
+            
             if (vaa > -1) {
                 glEnableVertexAttribArray(vaa);
                 glVertexAttribPointer(vaa, size, accessor.componentType,
@@ -75,23 +88,62 @@ void ModelLoader::bindMesh(tinygltf::Mesh& mesh) {
         //store the in vao
 
         if (!model.textures.empty()) {
-            for (size_t i = 0; i < model.textures.size(); ++i) {
-                tinygltf::Texture& tex = model.textures[i];
-                if (tex.source > -1) {
-                    GLuint texid;
-                    glGenTextures(1, &texid);
-                    textures_model.push_back(texid); // Store texture IDs
-                    tinygltf::Image& image = model.images[tex.source];
-                    glBindTexture(GL_TEXTURE_2D, texid);
-                    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-                    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                    GLenum format = (image.component == 3) ? GL_RGB : GL_RGBA;
-                    GLenum type = (image.bits == 8) ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0,
-                                 format, type, &image.image.at(0));
+            int diffuseIndex = -1;
+            int normalIndex = -1;
+            int metallicIndex = -1;
+        
+            // Identify the indices for each texture type in the materials
+            for (const auto& material : model.materials) {
+                //std::cout << "Material: " << material.name << std::endl;
+                
+                // Check for diffuse texture
+                auto diffuseIt = material.pbrMetallicRoughness.baseColorTexture.index;
+                if (diffuseIt >= 0) {
+                    diffuseIndex = diffuseIt;
+                    //std::cout << "Diffuse Index: " << diffuseIndex << std::endl;
+                }
+                
+                // Check for normal texture
+                auto normalIt = material.normalTexture.index;
+                if (normalIt >= 0) {
+                    normalIndex = normalIt;
+                    //std::cout << "Normal Index: " << normalIndex << std::endl;
+                }
+                
+                // Check for metallic texture
+                auto metallicIt = material.pbrMetallicRoughness.metallicRoughnessTexture.index;
+                if (metallicIt >= 0) {
+                    metallicIndex = metallicIt;
+                    //std::cout << "Metallic Index: " << metallicIndex << std::endl;
+                }
+            }
+        
+            // Load textures based on specified order
+            std::vector<int> loadOrder = {diffuseIndex, normalIndex, metallicIndex};
+            for (size_t i = 0; i < loadOrder.size(); ++i) {
+                int texIndex = loadOrder[i];
+                if (texIndex >= 0 && texIndex < model.textures.size()) {
+                    tinygltf::Texture& tex = model.textures[texIndex];
+                    if (tex.source > -1) {
+                        GLuint texid;
+                        glGenTextures(1, &texid);
+                        textures_model.push_back(texid); // Store texture IDs
+                        tinygltf::Image& image = model.images[tex.source];
+
+
+                        glBindTexture(GL_TEXTURE_2D, texid);
+                        //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                        GLenum format = (image.component == 3) ? GL_RGB : GL_RGBA;
+                        GLenum type = (image.bits == 8) ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
+                        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0,
+                                     format, type, &image.image.at(0));
+                        glGenerateMipmap(GL_TEXTURE_2D);
+                        
+                    }
                 }
             }
         }
@@ -148,6 +200,7 @@ void ModelLoader::drawModel(Shader& shader, Camera& camera) {
     model_ = glm::translate(model_, getPosition());  // Assuming getPosition() is a method that returns the model's position
     model_ = glm::scale(model_, scale);  // Use the appropriate scale for your model
 
+    //scale is 10 but even at 1 the texture strech
     shader.SetMatrix4("model", model_);
     
     glm::mat4 projection = camera.GetProjectionMatrix();
@@ -159,22 +212,29 @@ void ModelLoader::drawModel(Shader& shader, Camera& camera) {
     glm::vec3 viewPos = camera.Position;
     shader.SetVector3f("viewPos", viewPos);
 
+    shader.SetVector3f("material.ambient", glm::vec3(1.0f, 1.0f, 1.0f));
+    shader.SetVector3f("material.diffuse", glm::vec3(1.0f, 1.0f, 1.0f));
+    shader.SetVector3f("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+    //metallic and roughness for citrus fruit
+    shader.SetFloat("material.metallic", 0.0f);
+    shader.SetFloat("material.roughness", 0.5f);
+    shader.SetFloat("material.occlusion", 1.0f);
+    shader.SetFloat("material.brightness", 1.0f);
+    shader.SetVector3f("material.fresnel_ior", glm::vec3(1.5f));
+
+    for (size_t i = 0; i < textures_model.size(); ++i) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, textures_model[i]);
+        //cout texture id
+        //std::cout << "Texture ID: " << textures_model[i] << std::endl;
+    }
+//
     shader.SetInteger("texture_diffuse", 0);
-    //shader.SetInteger("texture_normal", 1);
-
-    //bind texture but texture 0 is normal, 1 is diffuse and 2 metal
-    
-    
-    //glActiveTexture(GL_TEXTURE1);
-    //glBindTexture(GL_TEXTURE_2D, textures_model[1]);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textures_model[0]);
-    
-    //LOAD CURRENTLY THE WRONG TEXTURE    
-    
-    
-
+    shader.SetInteger("texture_normal", 1);
+    shader.SetInteger("texture_metallic", 2);
+    shader.SetInteger("texture_roughness", 3);
+    shader.SetInteger("texture_occlusion", 4);
+    shader.SetInteger("texture_disp", 5);
 
     glBindVertexArray(vao);
 
@@ -182,31 +242,48 @@ void ModelLoader::drawModel(Shader& shader, Camera& camera) {
     for (size_t i = 0; i < scene.nodes.size(); ++i) {
         drawModelNodes(model.nodes[scene.nodes[i]]);
     }
-
     glBindVertexArray(0);
+
+    //unbind the texture
+    for (size_t i = 0; i < textures_model.size(); ++i) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 }
 
 void ModelLoader::dbgModel() const {
+    std::cout << "Model Textures and Associated Images:" << std::endl;
+    
+    for (size_t i = 0; i < model.textures.size(); ++i) {
+        const tinygltf::Texture& tex = model.textures[i];
+        if (tex.source >= 0 && tex.source < model.images.size()) {
+            const tinygltf::Image& image = model.images[tex.source];
+            std::cout << "Texture " << i << ":"
+                      << "\n- Image URI: " << image.uri
+                      << "\n- Size: " << image.image.size()
+                      << "\n- Dimensions: " << image.width << "x" << image.height
+                      << "\n- Format: " << ((image.component == 3) ? "RGB" : "RGBA")
+                      << "\n" << std::endl;
+        } else {
+            std::cout << "Texture " << i << " has an invalid source index: " << tex.source << std::endl;
+        }
+    }
+
+    // Original mesh debugging code
     for (const auto& mesh : model.meshes) {
-        std::cout << "mesh : " << mesh.name << std::endl;
+        std::cout << "Mesh : " << mesh.name << std::endl;
         for (const auto& primitive : mesh.primitives) {
             const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
-            std::cout << "indexaccessor: count " << indexAccessor.count
+            std::cout << "Index Accessor: count " << indexAccessor.count
                       << ", type " << indexAccessor.componentType << std::endl;
             const tinygltf::Material& mat = model.materials[primitive.material];
             for (const auto& mats : mat.values) {
-                std::cout << "mat : " << mats.first.c_str() << std::endl;
+                std::cout << "Material Property: " << mats.first.c_str() << std::endl;
             }
-            for (const auto& image : model.images) {
-                std::cout << "image name : " << image.uri
-                          << "  size : " << image.image.size()
-                          << "  w/h : " << image.width << "/" << image.height
-                          << std::endl;
-            }
-            std::cout << "indices : " << primitive.indices << std::endl;
-            std::cout << "mode : " << primitive.mode << std::endl;
+            std::cout << "Indices : " << primitive.indices << std::endl;
+            std::cout << "Mode : " << primitive.mode << std::endl;
             for (const auto& attrib : primitive.attributes) {
-                std::cout << "attribute : " << attrib.first.c_str() << std::endl;
+                std::cout << "Attribute : " << attrib.first.c_str() << std::endl;
             }
         }
     }

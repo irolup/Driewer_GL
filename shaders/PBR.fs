@@ -257,23 +257,54 @@ void main()
     vec3 V = normalize(viewPos - FragPos);
 
     vec2 newTexCoords = TexCoords;
+    //rotate texture 90 degrees
+    newTexCoords.y = 1.0 - newTexCoords.y;
 
     //discard if outside the texture
     //if(newTexCoords.x > 1.0 || newTexCoords.y > 1.0 || newTexCoords.x < 0.0 || newTexCoords.y < 0.0)
     //    discard;
 
     // Retrieve material properties from textures
-    vec3 albedo = texture(texture_diffuse, newTexCoords).rgb * material.diffuse;
-    float metallic = texture(texture_metallic, newTexCoords).r * material.metallic;
-    float roughness = texture(texture_roughness, newTexCoords).r * material.roughness;
-    float ao = texture(texture_occlusion, newTexCoords).r * material.occlusion;
-
+    // Retrieve material properties from textures
+    vec3 albedo = material.diffuse; // Default to material color
+    
+    // Check if the diffuse texture is available
+    if (textureSize(texture_diffuse, 0).x > 0) {
+        albedo = texture(texture_diffuse, newTexCoords).rgb * material.diffuse;
+    }
+    
+    float metallic = material.metallic; // Default to material metallic
+    
+    // Check if the metallic texture is available
+    if (textureSize(texture_metallic, 0).x > 0) {
+        metallic = texture(texture_metallic, newTexCoords).r * material.metallic;
+    }
+    
+    float roughness = material.roughness; // Default to material roughness
+    
+    // Check if the roughness texture is available
+    if (textureSize(texture_roughness, 0).x > 0) {
+        roughness = texture(texture_roughness, newTexCoords).r * material.roughness;
+    }
+    
+    float ao = material.occlusion; // Default to material occlusion
+    
+    // Check if the occlusion texture is available
+    if (textureSize(texture_occlusion, 0).x > 0) {
+        ao = texture(texture_occlusion, newTexCoords).r * material.occlusion;
+    }
 
     // Apply normal mapping if normal map is provided
     if (textureSize(texture_normal, 0).x > 0)
     {
+        //if no tangent is provided use perturb_normal
+        if (Tangent == vec3(0.0))
+            N = normalize(perturb_normal(N, V, newTexCoords));
+        else
+            N = getNormalFromMap(newTexCoords);
+
         //N = normalize(perturb_normal(N, V, newTexCoords));
-        N = getNormalFromMap(newTexCoords);
+        //N = getNormalFromMap(newTexCoords);
     }
 
 

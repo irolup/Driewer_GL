@@ -96,7 +96,7 @@ void Sphere::setup() {
 
     // Load image, create texture and generate mipmaps
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true);
+    //stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load("texture/PBR_textures_2/diff.jpg", &width, &height, &nrChannels, 0);
     
     if (data) {
@@ -139,16 +139,6 @@ void Sphere::draw(Shader& shader, Camera& camera) {
     shader.SetFloat("pitch", camera.getPitch());
     shader.SetFloat("yaw", camera.getYaw());
     shader.SetMatrix4("view", view);
-    shader.SetInteger("texture_diffuse", 0);
-    shader.SetInteger("texture_normal", 1);
-    shader.SetInteger("texture_metallic", 2);
-    shader.SetInteger("texture_roughness", 3);
-    shader.SetInteger("texture_occlusion", 4);
-
-    for (unsigned int i = 0; i < textures_sphere.size(); i++) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, textures_sphere[i]);
-    }
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, getPosition());
@@ -163,13 +153,29 @@ void Sphere::draw(Shader& shader, Camera& camera) {
     shader.SetFloat("material.brightness", material.brightness);
     shader.SetVector3f("material.fresnel_ior", material.fresnel_ior);
 
-    //light pos
-    shader.SetVector3f("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
-    shader.SetVector3f("viewPos", camera.Position);
-    shader.SetVector4f("lightColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+
+    for (unsigned int i = 0; i < textures_sphere.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, textures_sphere[i]);
+    }
+
+    shader.SetInteger("texture_diffuse", 0);
+    shader.SetInteger("texture_normal", 1);
+    shader.SetInteger("texture_metallic", 2);
+    shader.SetInteger("texture_roughness", 3);
+    shader.SetInteger("texture_occlusion", 4);
+
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    //unbind the texture
+    for (unsigned int i = 0; i < textures_sphere.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 }
 
 

@@ -14,6 +14,11 @@
 #include "resources/resource_manager.h"
 #include "texture/texture.h"
 #include "application/application.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#include "../include/stb_image.h"
+#include "../include/stb_image_write.h"
+#include "../include/tiny_gltf.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 //void mouse_callback(GLFWwindow* window, double xpos, double ypos);

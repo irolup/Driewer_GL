@@ -127,8 +127,8 @@ void Sphere::setup() {
     }
     stbi_image_free(data);
 
-    textures.push_back(texture1);
-    textures.push_back(texture2);
+    textures_sphere.push_back(texture1);
+    textures_sphere.push_back(texture2);
 }
 
 void Sphere::draw(Shader& shader, Camera& camera) {
@@ -145,9 +145,9 @@ void Sphere::draw(Shader& shader, Camera& camera) {
     shader.SetInteger("texture_roughness", 3);
     shader.SetInteger("texture_occlusion", 4);
 
-    for (unsigned int i = 0; i < textures.size(); i++) {
+    for (unsigned int i = 0; i < textures_sphere.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, textures[i]);
+        glBindTexture(GL_TEXTURE_2D, textures_sphere[i]);
     }
 
     glm::mat4 model = glm::mat4(1.0f);

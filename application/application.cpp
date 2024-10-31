@@ -1,5 +1,10 @@
 #include "application.h"
 #include "../resources/resource_manager.h"
+#define TINYGLTF_IMPLEMENTATION
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#include "../include/stb_image_write.h"
+#include "../include/tiny_gltf.h"
+#include <unistd.h>
 
 
 Game::Game(unsigned int width, unsigned int height) 
@@ -62,14 +67,17 @@ void Game::Init()
     cube->collisionEnabled = true;
     cube->isStatic = false;
     cube->setPosition(glm::vec3(0.0f, 7.0f, 0.0f));
+    cube->setScale(glm::vec3(1.0f, 1.0f, 1.0f));
+    primitives.push_back(cube);
 
     plane = new Plane();
     plane->collisionEnabled = true;
     plane->isStatic = true;
+    plane->setScale(glm::vec3(10.0f, 0.0f, 10.0f));
     plane->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-
-    primitives.push_back(cube);
     primitives.push_back(plane);
+    
+    
     //primitives.push_back(sphere);
 
     drawHitbox = false;
@@ -93,15 +101,37 @@ void Game::Init()
 
     light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
     
-    light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 40.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(30.0f)));
+    light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0.2f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)));
 
 
     //Collsion test
-    player = new Player(glm::vec3(0.0f, 20.0f, 2.0f), glm::vec3(5.0f, 5.0f, 1.0f), *myCamera);
-    primitives.push_back(player);
+    player = new Player(glm::vec3(0.0f, 20.0f, 2.0f), glm::vec3(1.0f, 2.0f, 1.0f), *myCamera);
+    //primitives.push_back(player);
 
     //vertices for collision detection
     vertices_terrain = terrain->getVertices();
+
+
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != nullptr) {
+        std::cout << "Current working dir: " << cwd << std::endl;
+    } else {
+        perror("getcwd() error");
+    }
+
+    //make string from ../models/wooden_axe_02_1k.gltf
+    std::string filename = "models/wooden_axe_02_1k.gltf";
+
+    if(modelLoader.loadModel(filename.c_str()))
+    {
+        modelLoader.bindModel();
+        std::cout << "Model loaded" << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed to load model" << std::endl;
+    }
+    
 
 }
 
@@ -112,14 +142,9 @@ void Game::Update(float dt)
 
     //update player
     player->update(dt);
-    //cout isplayer jumping
-    std::cout << "Is player jumping: " << player->isJumping << std::endl;
 
-    //gravity
-    //player->applyGravity(dt, gravity);
-    std::cout << "Height: " << terrain->getHeightAt(player->position.x, player->position.z) << std::endl;
-    //cout gridsize
-    std::cout << "Gridsize: " << terrain->getGridSize() << std::endl;
+    std::cout << "PLayer colliding with primitives" << collision.getCollisionWithPlayerwithPrimitives() << std::endl;
+    std::cout << "PLayer colliding with terrain" << collision.getCollisionWithPlayerwithTerrain() << std::endl;
 
 }
 
@@ -138,6 +163,7 @@ void Game::Render()
         {
             primitives[i]->draw(PBR, *myCamera);
         }
+        modelLoader.drawModel(PBR, *myCamera);
         
     }
     else
@@ -184,7 +210,13 @@ void Game::ProcessInput(float dt)
             //myCamera->ProcessKeyboard(Camera_Movement::RIGHT, cameraSpeed);
             player->movePlayer(Camera_Movement::RIGHT, cameraSpeed);
         }
-        player->jump(window, dt, terrain, vertices_terrain);
+        //spacebar to jump
+        if (this->Keys[GLFW_KEY_SPACE])
+        {
+            player->jump(window, dt, terrain, vertices_terrain, collision);
+        }
+        
+        //player->jump(window, dt, terrain, vertices_terrain);
 
         //activated mouse
         if (this->Keys[GLFW_KEY_M]){

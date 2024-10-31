@@ -102,10 +102,16 @@ void Plane::setup() {
     // Load image, create texture and generate mipmaps
     data = stbi_load("texture/PBR_textures/met.jpg", &width, &height, &nrChannels, 0);
     if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        if (nrChannels == 1) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+        } else if (nrChannels == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        } else if (nrChannels == 4) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        }
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture met" << std::endl;
+        std::cout << "Failed to load texture rough" << std::endl;
     }
     stbi_image_free(data);
 
@@ -189,12 +195,12 @@ void Plane::setup() {
 
 
     //add textures to vector
-    textures.push_back(texture_diffuse);
-    textures.push_back(texture_normal);
-    textures.push_back(texture_metalllic);
-    textures.push_back(texture_roughness);
-    textures.push_back(texture_ao);
-    textures.push_back(texture_disp);
+    textures_plane.push_back(texture_diffuse);
+    textures_plane.push_back(texture_normal);
+    textures_plane.push_back(texture_metalllic);
+    textures_plane.push_back(texture_roughness);
+    textures_plane.push_back(texture_ao);
+    textures_plane.push_back(texture_disp);
 
     updateHitbox();
 }
@@ -210,6 +216,11 @@ void Plane::draw(Shader& shader, Camera& camera) {
     shader.SetVector3f("viewPos", viewPos);
     shader.SetFloat("pitch", camera.getPitch());
     shader.SetFloat("yaw", camera.getYaw());
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, getPosition());
+    //scale more big
+    model = glm::scale(model, scale);
+    shader.SetMatrix4("model", model);
 
     shader.SetInteger("texture_diffuse", 0);
     shader.SetInteger("texture_normal", 1);
@@ -219,16 +230,12 @@ void Plane::draw(Shader& shader, Camera& camera) {
     shader.SetInteger("texture_disp", 5);
 
     // Bind texture
-    for (unsigned int i = 0; i < textures.size(); i++) {
+    for (unsigned int i = 0; i < textures_plane.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, textures[i]);
+        glBindTexture(GL_TEXTURE_2D, textures_plane[i]);
     }
 
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, getPosition());
-    //scale more big
-    model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
-    shader.SetMatrix4("model", model);
+    
     //Materials
     shader.SetVector3f("material.ambient", material.ambient);
     shader.SetVector3f("material.diffuse", material.diffuse);

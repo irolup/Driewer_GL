@@ -73,9 +73,11 @@ void Cube::setup() {
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
+        textures_cube.push_back(texture_diffuse);
     } else {
         std::cout << "Failed to load texture diff" << std::endl;
     }
+    
     stbi_image_free(data);
 
     //texture normal
@@ -93,6 +95,7 @@ void Cube::setup() {
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
+        textures_cube.push_back(texture_normal);
     } else {
         std::cout << "Failed to load texture norm" << std::endl;
     }
@@ -110,7 +113,13 @@ void Cube::setup() {
     // Load image, create texture and generate mipmaps
     data = stbi_load("texture/PBR_textures_2/met.jpg", &width, &height, &nrChannels, 0);
     if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        if (nrChannels == 1) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+        } else if (nrChannels == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        } else if (nrChannels == 4) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        }
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         std::cout << "Failed to load texture met" << std::endl;
@@ -137,6 +146,7 @@ void Cube::setup() {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         }
         glGenerateMipmap(GL_TEXTURE_2D);
+        textures_cube.push_back(texture_roughness);
     } else {
         std::cout << "Failed to load texture rough" << std::endl;
     }
@@ -164,6 +174,7 @@ void Cube::setup() {
         }
 
         glGenerateMipmap(GL_TEXTURE_2D);
+        textures_cube.push_back(texture_ao);
     } else {
         std::cout << "Failed to load AO texture" << std::endl;
     }
@@ -190,19 +201,14 @@ void Cube::setup() {
         }
 
         glGenerateMipmap(GL_TEXTURE_2D);
+        textures_cube.push_back(texture_disp);
     } else {
         std::cout << "Failed to load AO texture" << std::endl;
     }
     stbi_image_free(data);
 
 
-    // Add textures to the vector
-    textures.push_back(texture_diffuse);
-    textures.push_back(texture_normal);
-    textures.push_back(texture_metalllic);
-    textures.push_back(texture_roughness);
-    textures.push_back(texture_ao);
-    textures.push_back(texture_disp);
+
 
 
     updateHitbox();
@@ -210,7 +216,13 @@ void Cube::setup() {
 
 void Cube::draw(Shader& shader, Camera& camera) {
     shader.Use();
+    
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, getPosition());
+    model = glm::scale(model, scale);
 
+    shader.SetMatrix4("model", model);
+    
     glm::mat4 projection = camera.GetProjectionMatrix();
     shader.SetMatrix4("projection", projection);
     
@@ -244,15 +256,10 @@ void Cube::draw(Shader& shader, Camera& camera) {
     shader.SetInteger("texture_disp", 5);
     
     // Bind texture
-    for (unsigned int i = 0; i < textures.size(); i++) {
+    for (unsigned int i = 0; i < textures_cube.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, textures[i]);
+        glBindTexture(GL_TEXTURE_2D, textures_cube[i]);
     }
-    // Set the model transformation matrix
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, getPosition());
-    shader.SetMatrix4("model", model);
-
     // Draw the cube using indices
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);

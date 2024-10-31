@@ -8,6 +8,8 @@
 #include <string>
 #include "../include/stb_image.h"
 
+class Collision; // Forward declaration
+
 class Player : public Primitives {
 public:
     glm::vec3 position;          // Player's position
@@ -23,7 +25,7 @@ public:
     Player(glm::vec3 position, glm::vec3 scale, Camera& camera); // Constructor
 
     void update(float deltaTime);  // Update player's position
-    void jump(GLFWwindow* window, float deltaTime, Terrain* terrain, std::vector<glm::vec3> vertices);
+    void jump(GLFWwindow* window, float deltaTime, Terrain* terrain, std::vector<glm::vec3> vertices, Collision &collision); // Jump function
     void applyGravity(float deltaTime, glm::vec3 gravity); // Apply gravity
 
     virtual void setup() override; // Setup function do nothing

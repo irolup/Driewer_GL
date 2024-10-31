@@ -18,6 +18,7 @@
 #include "../collision/collision.h"
 #include "../lights/lights.h"
 #include "antialiasing.h"
+#include "../models/modelLoader.h"
 
 // Represents the current state of the game
 enum GameState {
@@ -69,7 +70,8 @@ public:
     
     Collision collision;
 
-    Collision *collisionPtr;
+    ModelLoader modelLoader;
+    
     glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f); // Gravity force
     float deltaTime = 0.016f;
 

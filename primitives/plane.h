@@ -18,7 +18,7 @@ private:
     unsigned int VAO, VBO, EBO;
     unsigned int texture_diffuse, texture_normal, texture_metalllic, texture_roughness, texture_ao, texture_disp;
 
-    std::vector<unsigned int> textures;
+    std::vector<unsigned int> textures_plane;
     
     void setup() override;
 
@@ -26,10 +26,10 @@ private:
 
     static constexpr float plane_vertices[] = {
         // positions         // normals         // texture coords // tangents
-        -0.5f, 0.0f, -0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,  -1.0f, 0.0f, // Bottom-left
-         0.5f, 0.0f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  -1.0f, 0.0f, // Bottom-right
-         0.5f, 0.0f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,  -1.0f, 0.0f, // Top-right
-        -0.5f, 0.0f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,  -1.0f, 0.0f  // Top-left
+        -0.5f, 0.0f, -0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,  1.0f, 0.0f, // Bottom-left
+         0.5f, 0.0f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  1.0f, 0.0f, // Bottom-right
+         0.5f, 0.0f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,  1.0f, 0.0f, // Top-right
+        -0.5f, 0.0f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,  1.0f, 0.0f  // Top-left
     };
 
     // Indices for the plane (two triangles)

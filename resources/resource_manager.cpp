@@ -4,7 +4,7 @@
 #include <sstream>
 #include <fstream>
 
-#define STB_IMAGE_IMPLEMENTATION
+
 #include "../include/stb_image.h"
 #include "../texture/texture.h"
 

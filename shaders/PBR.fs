@@ -57,7 +57,6 @@ uniform sampler2D texture_occlusion;
 uniform sampler2D texture_disp;
 
 // Function declarations
-vec3 perturb_normal(vec3 N, vec3 V, vec2 texcoord);
 float trowbridge_reitz(vec3 N, vec3 H, float roughness);
 float schlick_beckmann(float cosTheta, float roughness);
 float smith(vec3 N, vec3 L, vec3 V, float roughness);
@@ -95,12 +94,7 @@ vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
     return finalTexCoords;
 }
 
-//vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
-//{
-//    float height =  texture(texture_disp, texCoords).r;    
-//    vec2 p = viewDir.xy / viewDir.z * (height * heightScale);
-//    return texCoords - p;  
-//}
+
 
 mat3 CotangentFrame(in vec3 N, in vec3 p, in vec2 uv) {
   vec3 dp1 = dFdx(p);
@@ -117,27 +111,26 @@ mat3 CotangentFrame(in vec3 N, in vec3 p, in vec2 uv) {
   return mat3(T * invmax, B * invmax, N);
 }
 
-vec3 getNormalFromMap(mat3 TBN, vec2 texCoords){
-    vec3 tangentNormal = texture(texture_normal, texCoords).xyz * 2.0 - 1.0;
+vec3 getNormalFromMap(vec2 texcoord){
+    vec3 tangentNormal = texture(texture_normal, texcoord).xyz * 2.0 - 1.0;
 
-    //vec3 T = normalize(Tangent - dot(Tangent, Normal) * Normal);
-    //vec3 B = cross(Normal, T);
-    //mat3 TBN = mat3(T, B, Normal);
+    vec3 T = normalize(Tangent - dot(Tangent, Normal) * Normal);
+    vec3 B = normalize(cross(Normal, T));
+    mat3 TBN = mat3(T, B, Normal);
 
     return normalize(TBN * tangentNormal);
 }
 
 
 // Perturb normal using normal map
-vec3 perturb_normal(vec3 N, vec3 V, vec2 texcoord)
+vec3 perturb_normal( vec3 N, vec3 V, vec2 texcoord )
 {
-  vec3 map = texture(texture_normal, texcoord).rgb;
-
-  map = map * 2.0 - 1.0;
-
-
-  mat3 TBN = CotangentFrame(N, -V, texcoord);
-  return normalize(TBN * map);
+    // assume N, the interpolated vertex normal and
+    // V, the view vector (vertex to eye)
+    vec3 map = texture(texture_normal, texcoord ).xyz;
+    map = map * 2.0 - 1.0;
+    mat3 TBN = CotangentFrame(N, -V, texcoord);
+    return normalize(TBN * map);
 }
 
 // Normal Distribution Function (NDF) - Trowbridge-Reitz GGX
@@ -259,24 +252,15 @@ void main()
 {
     // Normalize interpolated normal
     vec3 N = normalize(Normal);
-
+    
     // View direction
     vec3 V = normalize(viewPos - FragPos);
 
-    //calculate TBN matrix
-    vec3 T = normalize(Tangent - dot(Tangent, N) * N);
-    vec3 B = cross(N, T);
-    mat3 TBN = mat3(T, B, N);
-
     vec2 newTexCoords = TexCoords;
 
-
-    //newTexCoords = ParallaxMapping(TexCoords, V);
-
-
     //discard if outside the texture
-    if(newTexCoords.x > 1.0 || newTexCoords.y > 1.0 || newTexCoords.x < 0.0 || newTexCoords.y < 0.0)
-        discard;
+    //if(newTexCoords.x > 1.0 || newTexCoords.y > 1.0 || newTexCoords.x < 0.0 || newTexCoords.y < 0.0)
+    //    discard;
 
     // Retrieve material properties from textures
     vec3 albedo = texture(texture_diffuse, newTexCoords).rgb * material.diffuse;
@@ -288,8 +272,8 @@ void main()
     // Apply normal mapping if normal map is provided
     if (textureSize(texture_normal, 0).x > 0)
     {
-        N = perturb_normal(N, V, newTexCoords);
-        //N = getNormalFromMap(TBN, newTexCoords);
+        //N = normalize(perturb_normal(N, V, newTexCoords));
+        N = getNormalFromMap(newTexCoords);
     }
 
 
@@ -341,5 +325,7 @@ void main()
     color = pow(color, vec3(1.0 / 2.2)); // Apply gamma correction
 
     // Output final color
-    FragColor = vec4(color, 1.0);
+    //test the normal map texture
+    
+    FragColor = vec4((color), 1.0);
 }

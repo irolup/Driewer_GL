@@ -41,11 +41,16 @@ public:
 
     bool checkPlayerTerrainCollision(Player* player, Terrain* terrain, std::vector<glm::vec3> vertices);
 
+
+    bool getCollisionWithPlayerwithPrimitives();
+    bool getCollisionWithPlayerwithTerrain();
+
 private:
 
     glm::vec3 calculateNormal(Primitives* a, Primitives* b);
     void slideAlongSurface(Primitives* moving, glm::vec3 normal);
-    float Lerp(float a, float b, float t);
+    bool PlayerCollidingWithPrimitives;
+    bool PlayerCollidingWithTerrain;
 };
 
 #endif // COLLISION_H

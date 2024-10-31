@@ -18,7 +18,7 @@ public:
 private:
     unsigned int VAO, VBO, EBO;
     unsigned int texture1, texture2;
-    std::vector<unsigned int> textures;
+    std::vector<unsigned int> textures_sphere;
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
 

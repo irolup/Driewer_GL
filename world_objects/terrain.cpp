@@ -14,7 +14,7 @@ void Terrain::generateTerrain(float gridSize) {
     unsigned char* data = stbi_load("texture/terrain/disp.jpg", &width, &height, &nrChannels, 0);
     if (data) {
         float yScale = 32.0f / 255.0f;
-        float yShift = 0.0f;
+        float yShift = 15.0f;
         rez = gridSize;
         unsigned bytesPerPixel = nrChannels;
 

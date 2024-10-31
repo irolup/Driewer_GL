@@ -3,7 +3,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 // Constructor to initialize gravity and time step
-Collision::Collision(glm::vec3 g, float dt) : gravity(g), deltaTime(dt) {}
+Collision::Collision(glm::vec3 g, float dt) : gravity(g), deltaTime(dt), PlayerCollidingWithPrimitives(false) {}
 
 // Check for a collision between two primitives (using Axis-Aligned Bounding Box - AABB)
 bool Collision::checkCollision(Primitives* a, Primitives* b) {
@@ -154,14 +154,18 @@ bool Collision::checkPlayerCollision(Player* player, Primitives* primitive) {
 
     // Debugging output
     if (collisionDetected) {
-        std::cout << "Collision detected between Player and " << primitive->getInfo() << std::endl;
+        PlayerCollidingWithPrimitives = collisionDetected;
+        //std::cout << "Collision detected between Player and " << primitive->getInfo() << std::endl;
     }
+    PlayerCollidingWithPrimitives = collisionDetected; 
     return collisionDetected;
 }
 
 // Resolve the collision between the player and a primitive
 void Collision::resolvePlayerCollision(Player* player, Primitives* primitive) {
-    if (!checkPlayerCollision(player, primitive)) return;
+    if (!checkPlayerCollision(player, primitive)) {
+        return;  // No collision detected
+    }
 
     glm::vec3 overlap;
     // Use the hitboxes for calculations
@@ -279,18 +283,18 @@ bool Collision::checkPlayerTerrainCollision(Player* player, Terrain* terrain, st
             if (std::abs(deltaY) < collisionTolerance) {
                 player->position.y -= deltaY * 0.5f;  // Adjust position slightly to smooth it out
             }
-
+            PlayerCollidingWithTerrain = true;  // Collision detected
             return true;  // Collision detected
         }
     }
-
-    // Optional debug output
-    // std::cout << "Height: " << terrain->getHeightAt(player->position.x, player->position.z) 
-    //           << " Weight: " << weightSum << std::endl;
-
+    PlayerCollidingWithTerrain = false;  // Collision detected
     return false;  // No collision detected
 }
 
-float Collision::Lerp(float a, float b, float t) {
-    return a + t * (b - a);
+bool Collision::getCollisionWithPlayerwithPrimitives() {
+    return PlayerCollidingWithPrimitives;
+}
+
+bool Collision::getCollisionWithPlayerwithTerrain() {
+    return PlayerCollidingWithTerrain;
 }

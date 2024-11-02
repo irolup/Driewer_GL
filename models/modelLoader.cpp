@@ -1,6 +1,10 @@
 #include "modelLoader.h"
 
-ModelLoader::ModelLoader() : vao(0) {}
+ModelLoader::ModelLoader() : vao(0), hasAnimation(false) {
+    //animation duration and uration to 0
+
+
+}
 
 ModelLoader::~ModelLoader() {
     //for (auto& vbo : vbos) {
@@ -11,22 +15,16 @@ ModelLoader::~ModelLoader() {
 
 bool ModelLoader::loadModel(const char* filename) {
     tinygltf::TinyGLTF loader;
-    std::string err;
-    std::string warn;
+    std::string err, warn;
 
-    bool res = loader.LoadASCIIFromFile(&model, &err, &warn, filename);
-    if (!warn.empty()) {
-        std::cout << "WARN: " << warn << std::endl;
-    }
+    bool isBinary = std::string(filename).substr(std::string(filename).find_last_of(".") + 1) == "glb";
+    bool res = isBinary ? loader.LoadBinaryFromFile(&model, &err, &warn, filename) :
+                          loader.LoadASCIIFromFile(&model, &err, &warn, filename);
 
-    if (!err.empty()) {
-        std::cout << "ERR: " << err << std::endl;
-    }
-
-    if (!res)
-        std::cout << "Failed to load glTF: " << filename << std::endl;
-    else
-        std::cout << "Loaded glTF: " << filename << std::endl;
+    if (!warn.empty()) std::cout << "WARN: " << warn << std::endl;
+    if (!err.empty()) std::cout << "ERR: " << err << std::endl;
+    if (!res) std::cout << "Failed to load glTF: " << filename << std::endl;
+    else std::cout << "Loaded glTF: " << filename << std::endl;
 
     return res;
 }
@@ -200,6 +198,10 @@ void ModelLoader::drawModel(Shader& shader, Camera& camera) {
     model_ = glm::translate(model_, getPosition());  // Assuming getPosition() is a method that returns the model's position
     model_ = glm::scale(model_, scale);  // Use the appropriate scale for your model
 
+    //for (size_t i = 0; i < animation.boneTransforms.size(); ++i) {
+    //    model_ *= animation.boneTransforms[i];
+    //}
+
     //scale is 10 but even at 1 the texture strech
     shader.SetMatrix4("model", model_);
     
@@ -288,6 +290,109 @@ void ModelLoader::dbgModel() const {
         }
     }
 }
+
+void ModelLoader::loadAnimation(int index) {
+    if (model.animations.empty()) {
+        std::cout << "No animations found in model." << std::endl;
+        return;
+    }
+    
+    // Get the animation at index
+    const tinygltf::Animation& anim = model.animations[index];
+    float maxTime = 0.0f;
+    for (const auto& sampler : anim.samplers) {
+        const tinygltf::Accessor& inputAccessor = model.accessors[sampler.input];
+        const float* inputData = reinterpret_cast<const float*>(&model.buffers[inputAccessor.bufferView].data[inputAccessor.byteOffset]);
+        maxTime = std::max(maxTime, inputData[inputAccessor.count - 1]);
+    }
+    animation.duration = maxTime;
+
+    // Allocate memory for bone transforms based on the number of joints in the model
+    animation.boneTransforms.resize(model.nodes.size(), glm::mat4(1.0f));
+
+    // Initialize the current time to zero
+    animation.currentTime = 0.0f;
+    hasAnimation = true;
+
+    // Print animation information
+    std::cout << "Animation: " << anim.name << std::endl;
+    std::cout << "Duration: " << animation.duration << "s" << std::endl;
+    std::cout << "Nodes: " << model.nodes.size() << std::endl;
+    std::cout << "Samplers: " << anim.samplers.size() << std::endl;
+    std::cout << "Channels: " << anim.channels.size() << std::endl;
+}
+
+void ModelLoader::updateAnimation(float dt) {
+    if (!hasAnimation) {
+        return;
+    }
+
+    animation.currentTime += dt;
+    if (animation.currentTime > animation.duration) {
+        animation.currentTime = 0.0f;
+    }
+
+    // Update the bone transforms based on the current time
+    for (const auto& channel : model.animations[0].channels) {
+        const tinygltf::AnimationChannel& animChannel = channel;
+        const tinygltf::AnimationSampler& sampler = model.animations[0].samplers[animChannel.sampler];
+
+        // Get accessors for input (time) and output (value)
+        const tinygltf::Accessor& inputAccessor = model.accessors[sampler.input];
+        const tinygltf::Accessor& outputAccessor = model.accessors[sampler.output];
+        
+        const float* inputData = reinterpret_cast<const float*>(&model.buffers[inputAccessor.bufferView].data[inputAccessor.byteOffset]);
+        const float* outputData = reinterpret_cast<const float*>(&model.buffers[outputAccessor.bufferView].data[outputAccessor.byteOffset]);
+
+        const size_t inputCount = inputAccessor.count;
+        const size_t outputCount = outputAccessor.count;
+
+        // Find the time values that surround the current time
+        size_t index = 0;
+        while (index < inputCount - 1 && inputData[index + 1] < animation.currentTime) {
+            ++index;
+        }
+
+        // If index is the last input value, use the last output value
+        if (index >= outputCount) {
+            index = outputCount - 1;
+        }
+
+        // Interpolate the output value for the current time
+        float t = (animation.currentTime - inputData[index]) / (inputData[index + 1] - inputData[index]);
+        glm::vec3 outputValue;
+        if (outputAccessor.type == TINYGLTF_TYPE_VEC3) {
+            // If the output is a vec3 (translation, scale, etc.)
+            outputValue = glm::mix(
+                glm::make_vec3(&outputData[index * 3]),
+                glm::make_vec3(&outputData[(index + 1) * 3]),
+                t
+            );
+        } else if (outputAccessor.type == TINYGLTF_TYPE_VEC4) {
+            // If the output is a vec4 (rotation)
+            glm::vec4 rotationStart = glm::make_vec4(&outputData[index * 4]);
+            glm::vec4 rotationEnd = glm::make_vec4(&outputData[(index + 1) * 4]);
+            outputValue = glm::mix(rotationStart, rotationEnd, t);
+        }
+
+        // Apply the output value to the corresponding node
+        int nodeIndex = animChannel.target_node;
+        if (nodeIndex >= 0 && nodeIndex < animation.boneTransforms.size()) {
+            // Assuming translation for simplicity. Apply other transformations similarly.
+            if (animChannel.target_path == "translation") {
+                animation.boneTransforms[nodeIndex] = glm::translate(glm::mat4(1.0f), outputValue);
+            } else if (animChannel.target_path == "rotation") {
+                // Rotation needs to be converted from quaternion to mat4
+                glm::quat rotation = glm::normalize(glm::make_quat(&outputValue.x));
+                animation.boneTransforms[nodeIndex] = glm::mat4_cast(rotation);
+            } else if (animChannel.target_path == "scale") {
+                animation.boneTransforms[nodeIndex] = glm::scale(glm::mat4(1.0f), outputValue);
+            }
+        }
+    }
+}
+
+
 
 glm::vec3 ModelLoader::getPosition() const {
     return position;

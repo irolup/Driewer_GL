@@ -128,6 +128,8 @@ void Game::Init()
     {
         modelLoader.bindModel();
         std::cout << "Model loaded" << std::endl;
+        //load animation
+        //modelLoader.loadAnimation(0);
     }
     else
     {
@@ -135,6 +137,14 @@ void Game::Init()
     }
     //set position
     modelLoader.position = glm::vec3(0.8f, 0.5f, 0.8f);
+    //reduce scale
+    //modelLoader.scale = glm::vec3(0.1f, 0.1f, 0.1f);
+
+    //load with assimp
+    model_animation = Model("models/Rumba Dancing.fbx");
+    //Animation(const std::string& animationPath, Model* model)
+    animation = Animation("models/Rumba Dancing.fbx", &model_animation);
+    animator = Animator(&animation);
 
 }
 
@@ -145,6 +155,9 @@ void Game::Update(float dt)
 
     //update player
     player->update(dt);
+
+    //update animation
+    animator.UpdateAnimation(dt);
 
     std::cout << "PLayer colliding with primitives" << collision.getCollisionWithPlayerwithPrimitives() << std::endl;
     std::cout << "PLayer colliding with terrain" << collision.getCollisionWithPlayerwithTerrain() << std::endl;
@@ -168,6 +181,12 @@ void Game::Render()
         }
         modelLoader.drawModel(PBR, *myCamera);
         //modelLoader.dbgModel();
+        model_animation.Draw(PBR, *myCamera);
+        auto transforms = animator.GetFinalBoneMatrices();
+		//for loop transforms
+		//for (unsigned int i = 0; i < transforms.size(); i++){
+		//	PBR.SetMatrix4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), transforms[i]);
+		//}
     }
     else
     {
@@ -195,7 +214,7 @@ void Game::ProcessInput(float dt)
 {
     if (this->State == GAME_MENU)
     {
-        float cameraSpeed = 5.f * dt;
+        float cameraSpeed = 4.0f * dt;
         //myCamera->ProcessJump(dt, window);
         if (this->Keys[GLFW_KEY_W] ){
             //myCamera->ProcessKeyboard(Camera_Movement::FORWARD, cameraSpeed);

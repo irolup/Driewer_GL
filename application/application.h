@@ -19,6 +19,11 @@
 #include "../lights/lights.h"
 #include "antialiasing.h"
 #include "../models/modelLoader.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include "../models/assimp/animator.h"
+#include "../models/assimp/model_animation.h"
 
 // Represents the current state of the game
 enum GameState {
@@ -71,7 +76,12 @@ public:
     Collision collision;
 
     ModelLoader modelLoader;
-    
+    tinygltf::Model model_glb;
+
+    Model model_animation;
+    Animation animation;
+    Animator animator;
+
     glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f); // Gravity force
     float deltaTime = 0.016f;
 

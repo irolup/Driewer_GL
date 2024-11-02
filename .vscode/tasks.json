@@ -21,10 +21,12 @@
                 "${workspaceFolder}/lights/*.cpp",
                 "${workspaceFolder}/player/*.cpp",
                 "${workspaceFolder}/world_objects/*.cpp",
+                "${workspaceFolder}/models/*.cpp",
                 "-o",
                 "${workspaceFolder}/bin/${fileBasenameNoExtension}",
                 "-lGL",
-                "-lglfw"
+                "-lglfw",
+                "-lassimp"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"  // Ensure the current working directory is workspace root

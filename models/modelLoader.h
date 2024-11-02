@@ -20,11 +20,17 @@ public:
 
     glm::vec3 position = glm::vec3(0.0f);
     glm::vec3 scale = glm::vec3(10.0f);
+    //rotation
+    glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
     bool loadModel(const char* filename);
     void bindModel();
     void drawModel(Shader& shader, Camera& camera);
     void dbgModel() const;
+
+    //load animation
+    void loadAnimation(int index);
+    void updateAnimation(float dt);
 
 private:
     void bindMesh(tinygltf::Mesh& mesh);
@@ -37,8 +43,16 @@ private:
     GLuint vao;
     std::map<int, GLuint> vbos;
     std::vector<unsigned int> textures_model;
-    //store index of texture in vector
-    int diffuseIndex_;
+
+    struct Animation {
+        float duration;
+        float currentTime;
+        std::vector<glm::mat4> boneTransforms;
+    };
+
+    Animation animation;
+    bool hasAnimation;
+
 };
 
 #endif

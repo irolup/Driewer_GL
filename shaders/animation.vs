@@ -13,29 +13,32 @@ uniform mat4 view;
 uniform mat4 model;
 
 const int MAX_BONES = 100;
-const int MAX_BONE_INFLUENCE = 4;
+
 uniform mat4 finalBonesMatrices[MAX_BONES];
 
 out vec2 TexCoords;
+out vec3 Normal0;
+out vec3 WorldPos0;
 
 void main()
 {
-    vec4 totalPosition = vec4(0.0f);
-    for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
-    {
-        if(boneIds[i] == -1 || weights[i] == 0.0f) 
-            continue;
-        if(boneIds[i] >=MAX_BONES) 
-        {
-            totalPosition = vec4(pos,1.0f);
-            break;
-        }
-        vec4 localPosition = finalBonesMatrices[boneIds[i]] * vec4(pos,1.0f);
-        totalPosition += localPosition * weights[i];
-        //vec3 localNormal = mat3(finalBonesMatrices[boneIds[i]]) * norm;
-   }
-	
+    mat4 BoneTransform = mat4(0.0); // Initialize BoneTransform to zero
+
+    // Compute the BoneTransform matrix based on the weights and bone IDs
+    BoneTransform += finalBonesMatrices[boneIds[0]] * weights[0];
+    BoneTransform += finalBonesMatrices[boneIds[1]] * weights[1];
+    BoneTransform += finalBonesMatrices[boneIds[2]] * weights[2];
+    BoneTransform += finalBonesMatrices[boneIds[3]] * weights[3];
+
+    vec4 localPosition = BoneTransform * vec4(pos, 1.0);
+    
     mat4 viewModel = view * model;
-    gl_Position =  projection * viewModel * totalPosition;
-	TexCoords = tex;
+    gl_Position = projection * viewModel * localPosition;
+
+    TexCoords = tex;
+
+    // Compute the normal in world space
+    vec4 normalL = BoneTransform * vec4(norm, 0.0);
+    Normal0 = (model * normalL).xyz; // Use model matrix to transform the normal
+    WorldPos0 = (model * localPosition).xyz; // World position in world space
 }

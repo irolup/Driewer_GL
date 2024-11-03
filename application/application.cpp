@@ -146,9 +146,9 @@ void Game::Init()
     //modelLoader.scale = glm::vec3(0.1f, 0.1f, 0.1f);
 
     //load with assimp
-    model_animation = Model("models/Rumba Dancing.fbx");
-    //Animation(const std::string& animationPath, Model* model)
-    animation = Animation("models/Rumba Dancing.fbx", &model_animation);
+    model_animation = Model("models/michel.fbx");
+ 
+    animation = Animation("models/michel.fbx", &model_animation);
     animator = Animator(&animation);
     
 
@@ -188,7 +188,7 @@ void Game::Render()
         }
         modelLoader.drawModel(PBR, *myCamera);
 
-        //animation
+        //animation NEED TO PUT THOSE IN A FUNCTION INSIDE THE MODEL CLASS
         animationShader.Use();
         auto transforms = animator.GetFinalBoneMatrices();
 		//for loop transforms

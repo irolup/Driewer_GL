@@ -82,6 +82,8 @@ public:
         shader.SetMatrix4("view", view);
 
         shader.SetInteger("texture_diffuse", 0);
+        
+        //NEEDS SHADER AJUSTEMENTS FOR LIGHT AND PBR/SPECULAR IF NO PBR
 
 
         for(unsigned int i = 0; i < textures.size(); i++)
@@ -108,7 +110,9 @@ public:
                 number = std::to_string(heightNr++); // transfer unsigned int to string
             }
             // now set the sampler to the correct texture unit
-            glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
+            //glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
+            //cout name + number for debug
+            std::cout << "Name + number: " << name + number << std::endl;
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }

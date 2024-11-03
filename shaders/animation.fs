@@ -1,11 +1,13 @@
 #version 330 core
-out vec4 FragColor;
 
-in vec2 TexCoords;
+out vec4 FragColor; // Output color
 
-uniform sampler2D texture_diffuse;
+in vec2 TexCoords; // Texture coordinates from vertex shader
+
+uniform sampler2D texture1; // The texture to sample
 
 void main()
-{    
-    FragColor = texture(texture_diffuse, TexCoords);
+{
+    // Sample the texture using the texture coordinates
+    FragColor = texture(texture1, TexCoords);
 }

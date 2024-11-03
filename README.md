@@ -4,7 +4,7 @@ Engine developed exclusively with OpenGL
 
 ## Features:
 - Physically-Based Rendering (PBR)
-- Global illumination
+- Illumination with multiple lights 
 - Skeleton animation
 - Model importer (supports TinyGLTF and Assimp)
 - Terrain generation from height maps

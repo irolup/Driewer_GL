@@ -22,7 +22,7 @@
 #include "assimp_glm_helpers.h"
 #include "animdata.h"
 
-using namespace std;
+//using namespace std;
 
 class Model 
 {
@@ -49,8 +49,7 @@ public:
 		//for (unsigned int i = 0; i < transforms.size(); i++){
 		//	shader.SetMatrix4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), transforms[i]);
 		//}
-		
-		
+
 
 
         for(unsigned int i = 0; i < meshes.size(); i++){

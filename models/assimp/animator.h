@@ -19,7 +19,7 @@ public:
 		m_CurrentAnimation = nullptr;
 	}
 
-	Animator(Animation* animation)
+	Animator(Animation* animation) : m_CurrentAnimation(animation)
 	{
 		m_CurrentTime = 0.0;
 		m_CurrentAnimation = animation;

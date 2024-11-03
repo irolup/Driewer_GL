@@ -6,7 +6,7 @@
 #include <assimp/scene.h>
 #include <list>
 #include <glm/glm.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
+//#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include "assimp_glm_helpers.h"
 
@@ -79,13 +79,13 @@ public:
 		glm::mat4 scale = InterpolateScaling(animationTime);
 		m_LocalTransform = translation * rotation * scale;
 	}
-	glm::mat4 GetLocalTransform() { return m_LocalTransform; }
+	glm::mat4 GetLocalTransform() const { return m_LocalTransform; }
 	std::string GetBoneName() const { return m_Name; }
-	int GetBoneID() { return m_ID; }
+	int GetBoneID() const { return m_ID; }
 	
 
 
-	int GetPositionIndex(float animationTime)
+	int GetPositionIndex(float animationTime) const
 	{
 		for (int index = 0; index < m_NumPositions - 1; ++index)
 		{
@@ -95,7 +95,7 @@ public:
 		assert(0);
 	}
 
-	int GetRotationIndex(float animationTime)
+	int GetRotationIndex(float animationTime) const
 	{
 		for (int index = 0; index < m_NumRotations - 1; ++index)
 		{
@@ -105,7 +105,7 @@ public:
 		assert(0);
 	}
 
-	int GetScaleIndex(float animationTime)
+	int GetScaleIndex(float animationTime) const
 	{
 		for (int index = 0; index < m_NumScalings - 1; ++index)
 		{
@@ -118,7 +118,7 @@ public:
 
 private:
 
-	float GetScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTime)
+	float GetScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTime) const
 	{
 		float scaleFactor = 0.0f;
 		float midWayLength = animationTime - lastTimeStamp;

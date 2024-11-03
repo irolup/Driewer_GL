@@ -81,6 +81,7 @@ public:
     Model model_animation;
     Animation animation;
     Animator animator;
+    Shader animationShader;
 
     glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f); // Gravity force
     float deltaTime = 0.016f;

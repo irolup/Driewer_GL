@@ -81,15 +81,8 @@ public:
         glm::mat4 view = camera.GetViewMatrix();
         shader.SetMatrix4("view", view);
 
-        // Set the view position
-        glm::vec3 viewPos = camera.Position;
-        shader.SetVector3f("viewPos", viewPos);
         shader.SetInteger("texture_diffuse", 0);
-        shader.SetInteger("texture_normal", 1);
-        shader.SetInteger("texture_metallic", 2);
-        shader.SetInteger("texture_roughness", 3);
-        shader.SetInteger("texture_occlusion", 4);
-        shader.SetInteger("texture_disp", 5);
+
 
         for(unsigned int i = 0; i < textures.size(); i++)
         {
@@ -98,15 +91,15 @@ public:
             string number;
             string name = textures[i].type;
             //cout name
-            std::cout << "Texture type: " << name << std::endl;
+            //std::cout << "Texture type: " << name << std::endl;
 
             if(name == "texture_diffuse"){
                 number = std::to_string(diffuseNr++);
-                std::cout << "Texture number: " << number << std::endl;
+                //std::cout << "Texture number: " << number << std::endl;
             }
             else if(name == "texture_specular"){
                 number = std::to_string(specularNr++); // transfer unsigned int to string
-                std::cout << "Texture number: " << number << std::endl;
+                //std::cout << "Texture number: " << number << std::endl;
             }
             else if(name == "texture_normal"){
                 number = std::to_string(normalNr++); // transfer unsigned int to string
@@ -115,7 +108,7 @@ public:
                 number = std::to_string(heightNr++); // transfer unsigned int to string
             }
             // now set the sampler to the correct texture unit
-            //glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
+            glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }
@@ -169,11 +162,11 @@ private:
         glEnableVertexAttribArray(4);
         glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
 		// ids
-		glEnableVertexAttribArray(3);
+		glEnableVertexAttribArray(5);
 		glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, m_BoneIDs));
 
 		// weights
-		glEnableVertexAttribArray(4);
+		glEnableVertexAttribArray(6);
 		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));
         glBindVertexArray(0);
     }

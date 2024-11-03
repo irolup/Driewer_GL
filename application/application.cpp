@@ -5,6 +5,7 @@
 //#include "../include/stb_image_write.h"
 #include "../include/tiny_gltf.h"
 #include <unistd.h>
+#include <glm/gtx/string_cast.hpp>
 
 
 Game::Game(unsigned int width, unsigned int height) 
@@ -54,6 +55,10 @@ void Game::Init()
 
     ResourceManager::LoadShader("shaders/height.vs", "shaders/height.fs", nullptr, "height");
     terrainShader = ResourceManager::GetShader("height");
+
+    ResourceManager::LoadShader("shaders/animation.vs", "shaders/animation.fs", nullptr, "animation");
+    animationShader = ResourceManager::GetShader("animation");
+
 
     antialiasing = new Antialiasing(Width, Height, Antialiasing::Type::NONE);
 
@@ -145,6 +150,7 @@ void Game::Init()
     //Animation(const std::string& animationPath, Model* model)
     animation = Animation("models/Rumba Dancing.fbx", &model_animation);
     animator = Animator(&animation);
+    
 
 }
 
@@ -174,19 +180,23 @@ void Game::Render()
     if(texturesActive)
     {
         light.useLight(PBR, *myCamera);
+        
         terrain->draw(terrainShader, *myCamera);
         for (int i = 0; i < primitives.size(); i++)
         {
             primitives[i]->draw(PBR, *myCamera);
         }
         modelLoader.drawModel(PBR, *myCamera);
-        //modelLoader.dbgModel();
-        model_animation.Draw(PBR, *myCamera);
+
+        //animation
+        animationShader.Use();
         auto transforms = animator.GetFinalBoneMatrices();
 		//for loop transforms
-		//for (unsigned int i = 0; i < transforms.size(); i++){
-		//	PBR.SetMatrix4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), transforms[i]);
-		//}
+		for (unsigned int i = 0; i < transforms.size(); i++){
+			animationShader.SetMatrix4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), transforms[i]);
+		}
+        model_animation.Draw(animationShader, *myCamera);
+        
     }
     else
     {

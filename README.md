@@ -4,7 +4,7 @@ Engine developed exclusively with OpenGL
 
 ## Features:
 - Physically-Based Rendering (PBR)
-- Illumination with multiple lights 
+- Illumination with multiple lights (Local illumination)
 - Skeleton animation
 - Model importer (supports TinyGLTF and Assimp)
 - Terrain generation from height maps
@@ -15,3 +15,4 @@ Engine developed exclusively with OpenGL
 - Collision detection with imported items
 - Save/load functionality for custom levels
 - Enemy interactions with the player
+- Voxel Cone Tracing for global illumination

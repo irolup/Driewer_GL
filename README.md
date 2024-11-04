@@ -15,4 +15,4 @@ Engine developed exclusively with OpenGL
 - Collision detection with imported items
 - Save/load functionality for custom levels
 - Enemy interactions with the player
-- Voxel Cone Tracing for global illumination
+- Voxel Cone Tracing for global illumination or SSRT

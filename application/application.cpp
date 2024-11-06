@@ -172,6 +172,8 @@ void Game::Update(float dt)
 
 void Game::Render()
 {
+    //Bind gbuffer here
+
     if (fxaaActive)
     {
         antialiasing->BindFramebuffer();
@@ -206,6 +208,9 @@ void Game::Render()
             primitives[i]->draw(PBR_notext, *myCamera);
         }
     }
+
+    //render SSGI here with the RenderWithShaderfunction
+
     if (fxaaActive)
     {
         antialiasing->UpdateHistoryBuffer(*myCamera);
@@ -213,10 +218,6 @@ void Game::Render()
         antialiasing->RenderWithShader(fxaaShader, *myCamera);
         //antialiasing->RenderWithShader(smaaShader, *myCamera);
     }
-
-
-    
-
 
 }
 

@@ -191,7 +191,10 @@ vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo
     vec3 ambient = material.ambient * albedo * ao; 
 
     // Fresnel reflectance at normal incidence
-    vec3 F0 = mix(vec3(0.04), albedo, metallic);
+    vec3 F0 = material.fresnel_ior;
+
+    F0 = mix(F0, albedo, metallic);
+    //F0 = mix(vec3(0.04), albedo, metallic);
 
     // Light direction
     vec3 L;
@@ -222,6 +225,8 @@ vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo
     float NdotL = max(dot(N, L), 0.0);
     float denominator = 4.0 * NdotV * NdotL + 0.0001; // Avoid division by zero
     vec3 specular = numerator / denominator;
+
+    specular = specular * material.specular;
 
     // Diffuse reflection
     vec3 kD = vec3(1.0) - F; // Energy conservation
@@ -254,7 +259,7 @@ void main()
     vec3 N = normalize(Normal);
     
     // View direction
-    vec3 V = normalize(viewPos - FragPos);
+    vec3 V = normalize(viewPos - FragPos); //or -FragPos
 
     vec2 newTexCoords = TexCoords;
     //rotate texture 90 degrees
@@ -359,4 +364,5 @@ void main()
     //test the normal map texture
     
     FragColor = vec4((color), 1.0);
+
 }

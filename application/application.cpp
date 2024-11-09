@@ -110,7 +110,7 @@ void Game::Init()
 
 
     //Collsion test
-    player = new Player(glm::vec3(0.0f, 20.0f, 2.0f), glm::vec3(1.0f, 2.0f, 1.0f), *myCamera);
+    player = new Player(glm::vec3(0.0f, 10.0f, 2.0f), glm::vec3(1.0f, 2.0f, 1.0f), *myCamera);
     //primitives.push_back(player);
 
     //vertices for collision detection
@@ -173,6 +173,13 @@ void Game::Update(float dt)
 void Game::Render()
 {
     //Bind gbuffer here
+    // need to put a switch of if to shange the piple for Deferred Shading
+    //with gbuffers for Global Illumination with SSGI and PBR (need another PBR shader for that)
+
+    //1. geometry pass: render scene's geometry/color data into gbuffer
+    // 2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
+    // 2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
+    // 3. render lights on top of scene
 
     if (fxaaActive)
     {

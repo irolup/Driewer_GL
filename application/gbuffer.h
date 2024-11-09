@@ -24,7 +24,10 @@ private:
     GLuint framebuffer;
     GLuint positionTexture;
     GLuint normalTexture;
-    GLuint albedoTexture;
+    GLuint albedoMetallicTexture;
+    GLuint specularRoughnessTexture;
+    GLuint fresnelOcclusionTexture;
+    GLuint brightnessTexture;
     GLuint depthTexture;
     GLuint quadVAO, quadVBO;
 

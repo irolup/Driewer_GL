@@ -11,8 +11,8 @@ Engine developed exclusively with OpenGL
 - Collision detection between player, terrain, and world objects
 
 ## Features Currently in Development / Planned:
+- Screen Space Global Illumination (SSGI)
 - Player inventory system with item management
 - Collision detection with imported items
 - Save/load functionality for custom levels
 - Enemy interactions with the player
-- Voxel Cone Tracing for global illumination or SSRT

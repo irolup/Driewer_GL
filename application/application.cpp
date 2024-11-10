@@ -59,8 +59,15 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/animation.vs", "shaders/animation.fs", nullptr, "animation");
     animationShader = ResourceManager::GetShader("animation");
 
+    ResourceManager::LoadShader("shaders/SSGI/gbufferSSGI.vs", "shaders/SSGI/gbufferSSGI.fs", nullptr, "gbuffer");
+    Gbuffer_shader = ResourceManager::GetShader("gbuffer");
+
+    ResourceManager::LoadShader("shaders/SSGI/lightPass.vs", "shaders/SSGI/lightPass.fs", nullptr, "lightPass");
+    lightpass = ResourceManager::GetShader("lightPass");
 
     antialiasing = new Antialiasing(Width, Height, Antialiasing::Type::NONE);
+
+    GBuffer = new GBuffer(Width, Height, GBuffer::Type::NONE);
 
     //cam with width and height and position
     myCamera = new Camera(Width, Height, glm::vec3(0.0f, 20.0f, 2.0f));

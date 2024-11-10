@@ -24,6 +24,7 @@
 #include <assimp/postprocess.h>
 #include "../models/assimp/animator.h"
 #include "../models/assimp/model_animation.h"
+#include "gbuffer.h"
 
 // Represents the current state of the game
 enum GameState {
@@ -56,6 +57,10 @@ public:
     //terrain shader
     Shader          terrainShader;
     Antialiasing*   antialiasing;
+    GBuffer*        GBuffer;
+    //gbufer shader
+    Shader          Gbuffer_shader;
+    Shader          lightpass;
     Cube* cube;
     Plane* plane;
     Sphere* sphere;

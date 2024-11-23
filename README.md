@@ -12,7 +12,6 @@ Engine developed exclusively with OpenGL
 
 ## Features Currently in Development / Planned:
 - Screen Space Global Illumination (SSGI)
-- Use AVL tree for lights and pritives based on distance from camera
 - Player inventory system with item management
 - Collision detection with imported items
 - Save/load functionality for custom levels

@@ -4,12 +4,13 @@
 //#define STB_IMAGE_WRITE_IMPLEMENTATION
 //#include "../include/stb_image_write.h"
 #include "../include/tiny_gltf.h"
+#include "gbuffer.h"
 #include <unistd.h>
 #include <glm/gtx/string_cast.hpp>
 
 
 Game::Game(unsigned int width, unsigned int height) 
-    : State(GAME_MENU), Keys(), KeysProcessed(), Width(width), Height(height)
+    : State(GAME_MENU), Rendermode(DEFERRED_RENDERING), Keys(), KeysProcessed(), Width(width), Height(height)
 { 
 
 }
@@ -67,7 +68,8 @@ void Game::Init()
 
     antialiasing = new Antialiasing(Width, Height, Antialiasing::Type::NONE);
 
-    GBuffer = new GBuffer(Width, Height, GBuffer::Type::NONE);
+    //here we initialize all the textures
+    GBuffer_ = new GBuffer(Width, Height, GBuffer::Type::BASIC);
 
     //cam with width and height and position
     myCamera = new Camera(Width, Height, glm::vec3(0.0f, 20.0f, 2.0f));
@@ -157,7 +159,10 @@ void Game::Init()
  
     animation = Animation("models/michel.fbx", &model_animation);
     animator = Animator(&animation);
-    
+
+
+    //disable GL_BLEND
+    glDisable(GL_BLEND);
 
 }
 
@@ -187,50 +192,77 @@ void Game::Render()
     // 2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
     // 2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
     // 3. render lights on top of scene
+    
+    //if mode for deferred shading
+    if (this->Rendermode == FORWARD_RENDERING){
 
-    if (fxaaActive)
-    {
-        antialiasing->BindFramebuffer();
-    }
+        if (fxaaActive)
+        {
+            antialiasing->BindFramebuffer();
+        }
 
-    if(texturesActive)
-    {
-        light.useLight(PBR, *myCamera);
-        
-        terrain->draw(terrainShader, *myCamera);
+        if(texturesActive)
+        {
+            light.useLight(PBR, *myCamera);
+
+            terrain->draw(terrainShader, *myCamera);
+            for (int i = 0; i < primitives.size(); i++)
+            {
+                primitives[i]->draw(PBR, *myCamera);
+            }
+            modelLoader.drawModel(PBR, *myCamera);
+
+            //animation NEED TO PUT THOSE IN A FUNCTION INSIDE THE MODEL CLASS
+            animationShader.Use();
+            auto transforms = animator.GetFinalBoneMatrices();
+	    	//for loop transforms
+	    	for (unsigned int i = 0; i < transforms.size(); i++){
+	    		animationShader.SetMatrix4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), transforms[i]);
+	    	}
+            model_animation.Draw(animationShader, *myCamera);
+
+        }
+        else
+        {
+            light.useLight(PBR_notext, *myCamera);
+            for (int i = 0; i < primitives.size(); i++)
+            {
+                primitives[i]->draw(PBR_notext, *myCamera);
+            }
+        }
+
+        //render SSGI here with the RenderWithShaderfunction
+
+        if (fxaaActive)
+        {
+            antialiasing->UpdateHistoryBuffer(*myCamera);
+            //antialiasing->RenderWithShader(taaShader, *myCamera);
+            antialiasing->RenderWithShader(fxaaShader, *myCamera);
+            //antialiasing->RenderWithShader(smaaShader, *myCamera);
+        }
+
+    } else if (this->Rendermode == DEFERRED_RENDERING) {
+        //deferred rendering
+        //1. geometry pass: render scene's geometry/color data into gbuffer
+        GBuffer_->BindFramebuffer();
+        //draw scene
         for (int i = 0; i < primitives.size(); i++)
         {
-            primitives[i]->draw(PBR, *myCamera);
+            primitives[i]->draw(Gbuffer_shader, *myCamera);
         }
-        modelLoader.drawModel(PBR, *myCamera);
+        GBuffer_->UnbindFramebuffer();
+        //2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        light.useLight(lightpass, *myCamera);
+        GBuffer_->RenderWithShader(lightpass, *myCamera);
+        //2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
+        glBindBuffer(GL_READ_FRAMEBUFFER, GBuffer_->framebuffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        //animation NEED TO PUT THOSE IN A FUNCTION INSIDE THE MODEL CLASS
-        animationShader.Use();
-        auto transforms = animator.GetFinalBoneMatrices();
-		//for loop transforms
-		for (unsigned int i = 0; i < transforms.size(); i++){
-			animationShader.SetMatrix4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), transforms[i]);
-		}
-        model_animation.Draw(animationShader, *myCamera);
         
-    }
-    else
-    {
-        light.useLight(PBR_notext, *myCamera);
-        for (int i = 0; i < primitives.size(); i++)
-        {
-            primitives[i]->draw(PBR_notext, *myCamera);
-        }
-    }
 
-    //render SSGI here with the RenderWithShaderfunction
-
-    if (fxaaActive)
-    {
-        antialiasing->UpdateHistoryBuffer(*myCamera);
-        //antialiasing->RenderWithShader(taaShader, *myCamera);
-        antialiasing->RenderWithShader(fxaaShader, *myCamera);
-        //antialiasing->RenderWithShader(smaaShader, *myCamera);
     }
 
 }

@@ -33,6 +33,12 @@ enum GameState {
     GAME_WIN
 };
 
+//Render mode foward or deferred
+enum RenderMode {
+    FORWARD_RENDERING,
+    DEFERRED_RENDERING
+};
+
 // Game holds all game-related state and functionality.
 // Combines all game-related data into a single class for
 // easy access to each of the components and manageability.
@@ -41,6 +47,9 @@ class Game
 public:
     // game state
     GameState               State;
+
+    //render mode
+    RenderMode              Rendermode;
     // Game-related State data
 
     Player          *player;
@@ -57,7 +66,7 @@ public:
     //terrain shader
     Shader          terrainShader;
     Antialiasing*   antialiasing;
-    GBuffer*        GBuffer;
+    GBuffer*        GBuffer_;
     //gbufer shader
     Shader          Gbuffer_shader;
     Shader          lightpass;

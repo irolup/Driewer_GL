@@ -9,11 +9,11 @@ layout(location = 5) out vec4 gBrightness;
 layout(location = 6) out vec4 gDepth;
 
 in vec3 FragPos;
+in vec2 TexCoords;
 in vec3 Normal;
-in vec3 TexCoords;
 
 uniform sampler2D texture_diffuse;
-uniform sampler2D texture_normal
+uniform sampler2D texture_normal;
 uniform sampler2D texture_metallic;
 uniform sampler2D texture_roughness;
 uniform sampler2D texture_occlusion;
@@ -33,7 +33,7 @@ struct Material {
 uniform Material material;
 
 void main(){
-    gPosition = fragPos;
+    gPosition = FragPos;
 
     gNormal = normalize(Normal);
 

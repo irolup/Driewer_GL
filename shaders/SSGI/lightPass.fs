@@ -48,8 +48,10 @@ vec3 perturb_normal( vec3 N, vec3 V, vec2 texcoord )
 {
     // assume N, the interpolated vertex normal and
     // V, the view vector (vertex to eye)
-    vec3 map = texture(texture_normal, texcoord ).xyz;
-    map = map * 2.0 - 1.0;
+    //vec3 map = texture(texture_normal, texcoord ).xyz;
+    //map = map * 2.0 - 1.0;
+    //N is already a texture normal
+    vec3 map = N * 2.0 - 1.0;
     mat3 TBN = CotangentFrame(N, -V, texcoord);
     return normalize(TBN * map);
 }
@@ -63,6 +65,13 @@ float trowbridge_reitz(vec3 N, vec3 H, float roughness)
     return (a * a) / (PI * denom * denom + 0.0001); // Avoid division by zero
 }
 
+float schlick_beckmann(float NdotX, float roughness)
+{
+    float k = (roughness + 1.0);
+    k = (k * k) / 8.0;
+    return NdotX / (NdotX * (1.0 - k) + k + 0.0001); // Avoid division by zero
+}
+
 float smith(vec3 N, vec3 L, vec3 V, float roughness)
 {
     float NdotL = max(dot(N, L), 0.0);
@@ -72,15 +81,21 @@ float smith(vec3 N, vec3 L, vec3 V, float roughness)
     return ggx1 * ggx2;
 }
 
+// Schlick-Beckmann approximation for geometry function
+
+
 vec3 schlick_fresnel(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo, float metallic, float roughness, float ao){
+vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo, float metallic, float roughness, 
+                        float ao, vec3 fresnel, vec3 specular_, vec3 ambient, float brightness){
     //ambient is ambient with albedo * ao
 
-    vec3 ambient = albedo * ao * ambient;
+    //ambiant is a constant value
+
+    ambient = albedo * ao * ambient;
 
     //Fresnel at normal incidence from fresnel value
     vec3 F0 = fresnel;
@@ -183,7 +198,7 @@ bool Occluded(vec3 origin, vec3 direction, float maxDistance)
     float t = 0.0;
     while (t < maxDistance)
     {
-        float h = texture(gDepth, origin + direction * t).r;
+        float h = texture(gDepth, origin.xy + direction.xy * t).r; // Conversion explicite en vec2
         if (h > origin.z)
         {
             return true;
@@ -255,7 +270,7 @@ void main(){
     float depth = texture(gDepth, TexCoords).r;
 
     //hardcoded ambient light
-    vec3 ambient = vec3(0.03) * brightness;
+    vec3 ambient = vec3(0.03);
 
     //view direction
     vec3 V = normalize(viewPos - gPos);
@@ -279,10 +294,10 @@ void main(){
             lighting += ambient;
         } else if (light.type ==1) //Point light
         {
-            lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao);
+            lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, ambient, brightness);
         } else if (light.type == 2) //Directional light
         {
-            lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao);
+            lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, ambient, brightness);
         } else if (light.type == 3) //Spotlight
         {
             vec3 L = normalize(light.position - gPos);
@@ -292,7 +307,7 @@ void main(){
 
             if (intensity > 0.0)
             {
-                lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao) * intensity;
+                lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, ambient, brightness) * intensity;
             }
             
         }

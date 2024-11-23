@@ -114,18 +114,14 @@ void GBuffer::BindFramebuffer() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+void GBuffer::UnbindFramebuffer() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void GBuffer::RenderWithShader(Shader& shader, Camera& camera) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
     shader.Use();
-
-    shader.SetInteger("positionTexture", 0);
-    shader.SetInteger("normalTexture", 1);
-    shader.SetInteger("albedoMetallicTexture", 2);
-    shader.SetInteger("specularRoughnessTexture", 3);
-    shader.SetInteger("fresnelOcclusionTexture", 4);
-    shader.SetInteger("brightnessTexture", 5);
-    shader.SetInteger("depthTexture", 6);
 
     glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, positionTexture);
     glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, normalTexture);
@@ -135,10 +131,22 @@ void GBuffer::RenderWithShader(Shader& shader, Camera& camera) {
     glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, brightnessTexture);
     glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, depthTexture);
 
+    shader.SetInteger("gPosition", 0);
+    shader.SetInteger("gNormal", 1);
+    shader.SetInteger("gAlbedoMetallic", 2);
+    shader.SetInteger("gSpecularRoughness", 3);
+    shader.SetInteger("gFresnelOcclusion", 4);
+    shader.SetInteger("gBrightness", 5);
+    shader.SetInteger("gDepth", 6);
+
+    //view pos
+    shader.SetVector3f("viewPos", camera.Position);
+
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glBindVertexArray(0);
 
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
 }
 
 GLuint GBuffer::GetTexture(GLuint attachmentIndex) const {

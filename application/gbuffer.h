@@ -16,12 +16,14 @@ public:
     ~GBuffer();
 
     void BindFramebuffer();
+    void UnbindFramebuffer();
     void RenderWithShader(Shader& shader, Camera& camera);
     GLuint GetTexture(GLuint attachmentIndex) const;
     void Update(int width, int height);
+    GLuint framebuffer;
 
 private:
-    GLuint framebuffer;
+    
     GLuint positionTexture;
     GLuint normalTexture;
     GLuint albedoMetallicTexture;

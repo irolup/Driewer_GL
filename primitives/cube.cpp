@@ -248,6 +248,13 @@ void Cube::draw(Shader& shader, Camera& camera) {
     shader.SetFloat("material.brightness", material.brightness);
     shader.SetVector3f("material.fresnel_ior", material.fresnel_ior);
 
+    shader.SetInteger("texture_diffuse", 0);
+    shader.SetInteger("texture_normal", 1);
+    shader.SetInteger("texture_metallic", 2);
+    shader.SetInteger("texture_roughness", 3);
+    shader.SetInteger("texture_occlusion", 4);
+    shader.SetInteger("texture_disp", 5);
+
 for (unsigned int i = 0; i < textures_cube.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, textures_cube[i]);
@@ -255,12 +262,7 @@ for (unsigned int i = 0; i < textures_cube.size(); i++) {
 
 
     // Set the texture units
-    shader.SetInteger("texture_diffuse", 0);
-    shader.SetInteger("texture_normal", 1);
-    shader.SetInteger("texture_metallic", 2);
-    shader.SetInteger("texture_roughness", 3);
-    shader.SetInteger("texture_occlusion", 4);
-    shader.SetInteger("texture_disp", 5);
+    
     
     // Bind texture
     

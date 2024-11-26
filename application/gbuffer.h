@@ -20,6 +20,7 @@ public:
     void RenderWithShader(Shader& shader, Camera& camera);
     GLuint GetTexture(GLuint attachmentIndex) const;
     void Update(int width, int height);
+    void renderQuad();
     GLuint framebuffer;
 
 private:
@@ -29,7 +30,7 @@ private:
     GLuint albedoMetallicTexture;
     GLuint specularRoughnessTexture;
     GLuint fresnelOcclusionTexture;
-    GLuint brightnessTexture;
+    GLuint ambiantBrightnessTexture;
     GLuint depthTexture;
     GLuint quadVAO, quadVBO;
 
@@ -38,4 +39,5 @@ private:
     void InitFramebuffer(int width, int height);
     void InitQuad();
     void Resize(int width, int height);
+    
 };

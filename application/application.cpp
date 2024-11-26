@@ -164,6 +164,7 @@ void Game::Init()
     //disable GL_BLEND
     glDisable(GL_BLEND);
 
+
 }
 
 void Game::Update(float dt)
@@ -253,8 +254,11 @@ void Game::Render()
         GBuffer_->UnbindFramebuffer();
         //2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        light.useLight(lightpass, *myCamera);
         GBuffer_->RenderWithShader(lightpass, *myCamera);
+        light.useLight(lightpass, *myCamera);
+        //render quad
+        //GBuffer_->renderQuad();
+        
         //2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
         glBindBuffer(GL_READ_FRAMEBUFFER, GBuffer_->framebuffer);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -370,6 +374,15 @@ void Game::ProcessInput(float dt)
         if (this->Keys[GLFW_KEY_2]){
             fxaaActive = false;
             std::cout << "FXAA is disabled" << std::endl;
+        }
+        //0 for forward rendering and 9 for deferred rendering
+        if (this->Keys[GLFW_KEY_0]){
+            Rendermode = FORWARD_RENDERING;
+            std::cout << "Forward Rendering" << std::endl;
+        }
+        if (this->Keys[GLFW_KEY_9]){
+            Rendermode = DEFERRED_RENDERING;
+            std::cout << "Deferred Rendering" << std::endl;
         }
 
     }

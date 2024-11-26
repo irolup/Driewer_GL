@@ -11,7 +11,7 @@ uniform sampler2D gNormal;
 uniform sampler2D gAlbedoMetallic;
 uniform sampler2D gSpecularRoughness;
 uniform sampler2D gFresnelOcclusion;
-uniform sampler2D gBrightness;
+uniform sampler2D gAmbiantBrightness;
 uniform sampler2D gDepth;
 
 // Light struct
@@ -28,33 +28,6 @@ const int MAX_LIGHTS = 32;
 
 uniform Light lights[MAX_LIGHTS];
 uniform vec3 viewPos;
-
-mat3 CotangentFrame(in vec3 N, in vec3 p, in vec2 uv) {
-  vec3 dp1 = dFdx(p);
-  vec3 dp2 = dFdy(p);
-  vec2 duv1 = dFdx(uv);
-  vec2 duv2 = dFdy(uv);
-
-  vec3 dp2perp = cross(dp2, N);
-  vec3 dp1perp = cross(N, dp1);
-  vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
-  vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
-
-  float invmax = inversesqrt(max(dot(T, T), dot(B, B)));
-  return mat3(T * invmax, B * invmax, N);
-}
-
-vec3 perturb_normal( vec3 N, vec3 V, vec2 texcoord )
-{
-    // assume N, the interpolated vertex normal and
-    // V, the view vector (vertex to eye)
-    //vec3 map = texture(texture_normal, texcoord ).xyz;
-    //map = map * 2.0 - 1.0;
-    //N is already a texture normal
-    vec3 map = N * 2.0 - 1.0;
-    mat3 TBN = CotangentFrame(N, -V, texcoord);
-    return normalize(TBN * map);
-}
 
 // Normal Distribution Function (NDF) - Trowbridge-Reitz GGX
 float trowbridge_reitz(vec3 N, vec3 H, float roughness)
@@ -90,12 +63,12 @@ vec3 schlick_fresnel(float cosTheta, vec3 F0)
 }
 
 vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo, float metallic, float roughness, 
-                        float ao, vec3 fresnel, vec3 specular_, vec3 ambient, float brightness){
+                        float ao, vec3 fresnel, vec3 specular_, float brightness){
     //ambient is ambient with albedo * ao
 
-    //ambiant is a constant value
+    //ambiant is from the material
 
-    ambient = albedo * ao * ambient;
+    vec3 ambient = albedo * ao * texture(gAmbiantBrightness, TexCoords).rgb;
 
     //Fresnel at normal incidence from fresnel value
     vec3 F0 = fresnel;
@@ -264,20 +237,19 @@ void main(){
     float ao = gFresnel.a;
 
     //get brightness
-    float brightness = texture(gBrightness, TexCoords).r;
+    float brightness = texture(gAmbiantBrightness, TexCoords).a;
 
     //get depth
     float depth = texture(gDepth, TexCoords).r;
 
     //hardcoded ambient light
-    vec3 ambient = vec3(0.03);
+    vec3 ambient_mat_color = texture(gAmbiantBrightness, TexCoords).rgb;
 
     //view direction
     vec3 V = normalize(viewPos - gPos);
 
     //apply normal mapping with perturb_normal
     vec3 N = normalize(gNorm);
-    N = perturb_normal(N, V, TexCoords);
 
     vec3 lighting = vec3(0.0);
 
@@ -290,14 +262,14 @@ void main(){
         if (light.type == 0)
         {
             //ambient is ambient color with ambient intensity with albedo
-            ambient += light.color.rgb * light.intensity * albedo;
+            vec3 ambient = ambient_mat_color * albedo * light.color.rgb * light.intensity;
             lighting += ambient;
         } else if (light.type ==1) //Point light
         {
-            lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, ambient, brightness);
+            lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, brightness);
         } else if (light.type == 2) //Directional light
         {
-            lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, ambient, brightness);
+            lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, brightness);
         } else if (light.type == 3) //Spotlight
         {
             vec3 L = normalize(light.position - gPos);
@@ -307,15 +279,15 @@ void main(){
 
             if (intensity > 0.0)
             {
-                lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, ambient, brightness) * intensity;
+                lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, brightness) * intensity;
             }
             
         }
     }
 
     //SSGI
-    vec3 ssgi = SampleSSGIKernel(N, V, gPos, ao);
-    lighting += ssgi;
+    //vec3 ssgi = SampleSSGIKernel(N, V, gPos, ao);
+    //lighting += ssgi;
 
 
     //tone mapping ace filmic
@@ -323,6 +295,12 @@ void main(){
 
     //gamma correction
     color = pow(color, vec3(1.0/2.2));
+
+    //test only albedo
+    //color = albedo;
+
+    //test only normal
+    //color = N;
 
     FragColor = vec4(color, 1.0);
 }

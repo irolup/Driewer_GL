@@ -74,7 +74,9 @@ void main(){
 
     vec3 normal = normalize(Normal);
     if (textureSize(texture_normal, 0).x > 0) {
-        normal = perturb_normal(normal, normalize(FragPos - viewPos), TexCoords);
+        //normal = perturb_normal(normal, normalize(FragPos - viewPos), TexCoords);
+        //only use texture normal
+        normal = texture(texture_normal, TexCoords).xyz * 2.0 - 1.0;
     }
     gNormal = normal;
 

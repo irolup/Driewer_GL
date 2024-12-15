@@ -12,6 +12,7 @@ in vec3 FragPos;
 in vec2 TexCoords;
 in vec3 Normal;
 in vec3 Tangent;
+in mat3 TBN;
 
 uniform sampler2D texture_diffuse;
 uniform sampler2D texture_normal;
@@ -74,9 +75,9 @@ void main(){
 
     vec3 normal = normalize(Normal);
     if (textureSize(texture_normal, 0).x > 0) {
-        //normal = perturb_normal(normal, normalize(FragPos - viewPos), TexCoords);
-        //only use texture normal
+
         normal = texture(texture_normal, TexCoords).xyz * 2.0 - 1.0;
+        normal = normalize(TBN * normal);
     }
     gNormal = normal;
 

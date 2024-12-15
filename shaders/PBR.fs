@@ -44,6 +44,7 @@ in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
 in vec3 Tangent;
+in mat3 TBN;
 
 // Output to framebuffer
 out vec4 FragColor;
@@ -303,10 +304,10 @@ void main()
     if (textureSize(texture_normal, 0).x > 0)
     {
         //if no tangent is provided use perturb_normal
-        if (Tangent == vec3(0.0))
+        //if (Tangent == vec3(0.0))
             N = normalize(perturb_normal(N, V, newTexCoords));
-        else
-            N = getNormalFromMap(newTexCoords);
+        //else
+        //    N = getNormalFromMap(newTexCoords);
 
         //N = normalize(perturb_normal(N, V, newTexCoords));
         //N = getNormalFromMap(newTexCoords);

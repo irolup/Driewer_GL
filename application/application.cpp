@@ -87,7 +87,7 @@ void Game::Init()
     plane = new Plane();
     plane->collisionEnabled = true;
     plane->isStatic = true;
-    plane->setScale(glm::vec3(10.0f, 0.0f, 10.0f));
+    plane->setScale(glm::vec3(10.0f, 1.0f, 10.0f));
     plane->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
     primitives.push_back(plane);
     
@@ -185,16 +185,7 @@ void Game::Update(float dt)
 
 void Game::Render()
 {
-    //Bind gbuffer here
-    // need to put a switch of if to shange the piple for Deferred Shading
-    //with gbuffers for Global Illumination with SSGI and PBR (need another PBR shader for that)
 
-    //1. geometry pass: render scene's geometry/color data into gbuffer
-    // 2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
-    // 2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
-    // 3. render lights on top of scene
-    
-    //if mode for deferred shading
     if (this->Rendermode == FORWARD_RENDERING){
 
         if (fxaaActive)

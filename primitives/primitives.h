@@ -62,8 +62,8 @@ public:
     virtual std::string getInfo() const = 0;
 
     void updateHitbox() {
-        hitbox.min = position - (scale / 2.0f);  // Calculate the min point of the bounding box
-        hitbox.max = position + (scale / 2.0f);  // Calculate the max point of the bounding box
+        hitbox.min = position - (scale);  // Calculate the min point of the bounding box
+        hitbox.max = position + (scale);  // Calculate the max point of the bounding box
     }
 
     // Set the color of the primitive

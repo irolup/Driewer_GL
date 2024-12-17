@@ -59,6 +59,7 @@ public:
     Shader          PBR;
     Shader          PBR_notext;
     Shader          fxaaShader;
+    Shader          defaultShader;
     //taa shader
     Shader          taaShader;
     Shader          msaaShader;

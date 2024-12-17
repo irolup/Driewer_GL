@@ -212,7 +212,7 @@ void Terrain::draw(Shader& shader, Camera& camera) {
     glBindVertexArray(VAO);
     // Bind textures before drawing
     //glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_diffuse);
+    //glBindTexture(GL_TEXTURE_2D, texture_diffuse);
     for (unsigned int i = 0; i < textures.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, textures[i]);
@@ -241,6 +241,10 @@ void Terrain::draw(Shader& shader, Camera& camera) {
     for (unsigned strip = 0; strip < numStrips; strip++) {
         glDrawElements(GL_TRIANGLE_STRIP, numTrisPerStrip + 2, GL_UNSIGNED_INT, 
                        (void*)(sizeof(unsigned) * (numTrisPerStrip + 2) * strip)); // Offset to starting index
+    }
+    for (unsigned int i = 0; i < textures.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 }
 

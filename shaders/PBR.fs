@@ -243,7 +243,7 @@ vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo
     {
         float distance = length(light.position - fragPos);
         float attenuation = 1.0 / (distance * distance); // Simple attenuation
-        radiance = light.color.rgb * attenuation * light.intensity;
+        radiance = light.color.rgb * attenuation * light.intensity *50.0;
     }
 
     // Final reflected light
@@ -263,8 +263,6 @@ void main()
     vec3 V = normalize(viewPos - FragPos); //or -FragPos
 
     vec2 newTexCoords = TexCoords;
-    //rotate texture 90 degrees
-    newTexCoords.y = 1.0 - newTexCoords.y;
 
     //discard if outside the texture
     //if(newTexCoords.x > 1.0 || newTexCoords.y > 1.0 || newTexCoords.x < 0.0 || newTexCoords.y < 0.0)

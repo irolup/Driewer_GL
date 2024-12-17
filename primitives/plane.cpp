@@ -60,6 +60,12 @@ void Plane::setup() {
     bitangent2.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
     bitangent2.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
 
+    //cout normal, tangent
+    std::cout << "Normal: " << nm.x << " " << nm.y << " " << nm.z << std::endl;
+    std::cout << "Tangent1: " << tangent1.x << " " << tangent1.y << " " << tangent1.z << std::endl;
+    std::cout << "Tangent2: " << tangent2.x << " " << tangent2.y << " " << tangent2.z << std::endl;
+    
+
     float plane_vertices[] = {
         pos1.x, pos1.y, pos1.z,   nm.x, nm.y, nm.z,  uv1.x, uv1.y,      tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
         pos2.x, pos2.y, pos2.z,   nm.x, nm.y, nm.z,  uv2.x, uv2.y,      tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,

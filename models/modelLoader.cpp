@@ -128,6 +128,19 @@ void ModelLoader::bindMesh(tinygltf::Mesh& mesh) {
                         textures_model.push_back(texid); // Store texture IDs
                         tinygltf::Image& image = model.images[tex.source];
 
+                        // Flip the image vertically
+                        int rowSize = image.width * image.component; // Row size in bytes
+                        for (int y = 0; y < image.height / 2; ++y) {
+                            // Pointers to the rows to be swapped
+                            unsigned char* topRow = &image.image[y * rowSize];
+                            unsigned char* bottomRow = &image.image[(image.height - 1 - y) * rowSize];
+                
+                            // Swap the rows
+                            for (int x = 0; x < rowSize; ++x) {
+                                std::swap(topRow[x], bottomRow[x]);
+                            }
+                        }
+
 
                         glBindTexture(GL_TEXTURE_2D, texid);
                         //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

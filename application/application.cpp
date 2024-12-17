@@ -66,6 +66,9 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/SSGI/lightPass.vs", "shaders/SSGI/lightPass.fs", nullptr, "lightPass");
     lightpass = ResourceManager::GetShader("lightPass");
 
+    ResourceManager::LoadShader("shaders/default.vs", "shaders/default.fs", nullptr, "default");
+    defaultShader = ResourceManager::GetShader("default");
+
     antialiasing = new Antialiasing(Width, Height, Antialiasing::Type::NONE);
 
     //here we initialize all the textures
@@ -115,7 +118,7 @@ void Game::Init()
 
     light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
     
-    light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 20.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
+    light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
 
 
     //Collsion test
@@ -187,7 +190,7 @@ void Game::Render()
 {
 
     if (this->Rendermode == FORWARD_RENDERING){
-
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         if (fxaaActive)
         {
             antialiasing->BindFramebuffer();
@@ -238,6 +241,16 @@ void Game::Render()
         //1. geometry pass: render scene's geometry/color data into gbuffer
         GBuffer_->BindFramebuffer();
         //draw scene
+
+        terrain->draw(terrainShader, *myCamera);
+        //modelLoader.drawModel(PBR, *myCamera);
+        //animationShader.Use();
+        //auto transforms = animator.GetFinalBoneMatrices();
+        //for (unsigned int i = 0; i < transforms.size(); i++){
+	    //		animationShader.SetMatrix4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), transforms[i]);
+	    //	}
+        //model_animation.Draw(animationShader, *myCamera);
+
         for (int i = 0; i < primitives.size(); i++)
         {
             primitives[i]->draw(Gbuffer_shader, *myCamera);

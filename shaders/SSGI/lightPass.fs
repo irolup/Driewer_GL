@@ -78,11 +78,13 @@ vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo
 
     //light direction
     vec3 L;
-    if (light.type == 1) //point light or spotlight
+    if (light.type == 2) // Directional light
+    {
+        L = normalize(-light.direction);
+    }
+    else // Point light or Spotlight
     {
         L = normalize(light.position - fragPos);
-    } else {
-        L = normalize(-light.direction); //directional light
     }
 
     //halfway vector
@@ -111,13 +113,15 @@ vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo
 
     //Light radiance
     vec3 radiance;
-    if (light.type == 1) //point light or spotlight
+    if (light.type == 2) // Directional light
+    {
+        radiance = light.color.rgb * light.intensity;
+    }
+    else // Point light or Spotlight
     {
         float distance = length(light.position - fragPos);
-        float attenuation = 1.0 / (distance * distance);
-        radiance = light.color.rgb * light.intensity * attenuation;
-    } else {
-        radiance = light.color.rgb * light.intensity;
+        float attenuation = 1.0 / (distance * distance); // Simple attenuation
+        radiance = light.color.rgb * attenuation * light.intensity * 50.0;
     }
 
     //final reflectred light
@@ -165,18 +169,16 @@ vec3 RandomHemisphereDirection(vec3 normal, float randomX, float randomY) {
     return normalize(randomDir);
 }
 
-//check if sample is occluded by geometry
-bool Occluded(vec3 origin, vec3 direction, float maxDistance)
-{
+// Check if sample is occluded by geometry
+bool Occluded(vec3 origin, vec3 direction, float maxDistance) {
     float t = 0.0;
-    while (t < maxDistance)
-    {
-        float h = texture(gDepth, origin.xy + direction.xy * t).r; // Conversion explicite en vec2
-        if (h > origin.z)
-        {
-            return true;
+    // Check occlusion along the ray in larger steps (increase step size to reduce performance cost)
+    while (t < maxDistance) {
+        float h = texture(gDepth, origin.xy + direction.xy * t).r;
+        if (h > origin.z) {
+            return true; // Geometry occluded the sample
         }
-        t += 0.1;
+        t += 0.5; // Increase step size for fewer checks
     }
     return false;
 }
@@ -186,32 +188,42 @@ vec3 SampleSSGIKernel(vec3 N, vec3 V, vec3 P, float ao)
 {
     vec3 result = vec3(0.0);
     float totalWeight = 0.0;
-    for (int i = 0; i < 64; i++) //64 is the number of samples
-    {
+    int sampleCount = 16;  // Reduced number of samples to improve performance
+
+    // Perform fewer samples to reduce computational cost
+    for (int i = 0; i < sampleCount; i++) {
         float randomX = Hash(vec2(float(i), 0.0));
         float randomY = Hash(vec2(float(i), 1.0));
+        
+        // Generate random direction based on the normal
         vec3 L = RandomHemisphereDirection(N, randomX, randomY);
-        if (dot(L, N) < 0.0)
-        {
-            L = -L;
+
+        // Skip rays that are facing the wrong direction
+        if (dot(L, N) < 0.0 || dot(L, V) < 0.0) {
+            continue; // Skip if not facing valid direction
         }
-        if (dot(L, V) < 0.0)
-        {
-            L = -L;
-        }
+
         float weight = max(0.0, dot(L, N));
-        if (weight > 0.0)
-        {
+        if (weight > 0.0) {
             float occlusion = 1.0;
-            if (Occluded(P, L, 10.0))
-            {
-                occlusion = 0.0;
+            if (Occluded(P, L, 10.0)) {
+                occlusion = 0.0; // Geometry occludes the light
             }
             result += weight * occlusion;
             totalWeight += weight;
         }
     }
-    return result / totalWeight;
+
+    // Avoid division by zero
+    if (totalWeight > 0.0) {
+        result /= totalWeight; // Normalize the result
+    }
+
+    // Scale down the indirect lighting to prevent overexposure
+    float indirectStrength = 0.1; // Adjust this value to scale down indirect light intensity
+    result *= indirectStrength;
+
+    return result;
 }
 
 void main(){
@@ -286,8 +298,18 @@ void main(){
     }
 
     //SSGI
-    //vec3 ssgi = SampleSSGIKernel(N, V, gPos, ao);
-    //lighting += ssgi;
+    //vec3 indirectLighting = vec3(0.0);
+    //indirectLighting = SampleSSGIKernel(N, V, gPos, ao);
+
+    //// Appliquer une force d'atténuation sur l'éclairage indirect pour éviter l'exposition excessive
+    //float indirectStrength = 0.3; // Ajuste cette valeur selon tes besoins
+    //indirectLighting *= indirectStrength;
+
+    //// Ajouter l'éclairage indirect à l'éclairage direct
+    //lighting += indirectLighting;
+
+    //// Clamp de l'éclairage final pour éviter les valeurs excessives
+    //lighting = clamp(lighting, 0.0, 1.0); // Empêcher l'exposition excessive
 
 
     //tone mapping ace filmic
@@ -295,12 +317,6 @@ void main(){
 
     //gamma correction
     color = pow(color, vec3(1.0/2.2));
-
-    //test only albedo
-    //color = albedo;
-
-    //test only normal
-    //color = N;
 
     FragColor = vec4(color, 1.0);
 }

@@ -35,40 +35,6 @@ struct Material {
 // Uniforms
 uniform Material material;
 
-//camera position
-uniform vec3 viewPos;
-
-mat3 CotangentFrame(in vec3 N, in vec3 p, in vec2 uv) {
-  vec3 dp1 = dFdx(p);
-  vec3 dp2 = dFdy(p);
-  vec2 duv1 = dFdx(uv);
-  vec2 duv2 = dFdy(uv);
-
-  vec3 dp2perp = cross(dp2, N);
-  vec3 dp1perp = cross(N, dp1);
-  vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
-  vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
-
-  float invmax = inversesqrt(max(dot(T, T), dot(B, B)));
-  return mat3(T * invmax, B * invmax, N);
-}
-
-vec3 perturb_normal(vec3 N, vec3 V, vec2 texcoord)
-{
-    vec3 map = texture(texture_normal, texcoord).xyz;
-    map = map * 2.0 - 1.0; // Convert from [0,1] to [-1,1]
-
-    mat3 TBN;
-    if (length(Tangent) > 0.0) {
-        // Use provided Tangent to construct the TBN matrix
-        vec3 B = normalize(cross(N, Tangent)); // Binormal
-        TBN = mat3(Tangent, B, N);
-    } else {
-        // Compute TBN using the cotangent frame method
-        TBN = CotangentFrame(N, -V, texcoord);
-    }
-    return normalize(TBN * map);
-}
 
 void main(){
     gPosition = FragPos;

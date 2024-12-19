@@ -9,6 +9,7 @@ Engine developed exclusively with OpenGL
 - Model importer (supports TinyGLTF and Assimp)
 - Terrain generation from height maps
 - Collision detection between player, terrain, and world objects
+- ImGui
 
 ## Features Currently in Development / Planned:
 - SSAO

@@ -104,6 +104,7 @@ int main()
 
     // Cleanup
     // ... (cleanup code)
+    game.cleanup();
     
     glfwTerminate();
     return 0;

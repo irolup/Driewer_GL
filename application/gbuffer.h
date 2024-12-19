@@ -17,7 +17,7 @@ public:
 
     void BindFramebuffer();
     void UnbindFramebuffer();
-    void RenderWithShader(Shader& shader, Camera& camera);
+    void RenderWithShader(Shader& shader, Camera& camera, float ao);
     GLuint GetTexture(GLuint attachmentIndex) const;
     void Update(int width, int height);
     void renderQuad();

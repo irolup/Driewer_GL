@@ -155,10 +155,9 @@ void Light::setIntensity(float intensity) {
 }
 
 // Set the positions of the lights
-void Light::setPosition(glm::vec3 position) {
-    for (LightData* light : lights) {
-        light->position = position;
-    }
+void Light::setPosition(glm::vec3 position, int i) {
+    //set position of the light i 
+    lights[i]->position = position;
 }
 
 // Set the directions of the lights
@@ -180,4 +179,14 @@ void Light::setOuterCutOff(float outerCutOff) {
     for (LightData* light : lights) {
         light->outerCutOff = outerCutOff;
     }
+}
+
+//get lights vector and take the int i
+Light::LightData* Light::getLight(int i) {
+    return lights[i];
+}
+
+//get position of the light i
+glm::vec3 Light::getPosition(int i) {
+    return lights[i]->position;
 }

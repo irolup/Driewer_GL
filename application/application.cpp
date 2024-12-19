@@ -128,14 +128,6 @@ void Game::Init()
     //vertices for collision detection
     vertices_terrain = terrain->getVertices();
 
-
-    char cwd[1024];
-    if (getcwd(cwd, sizeof(cwd)) != nullptr) {
-        std::cout << "Current working dir: " << cwd << std::endl;
-    } else {
-        perror("getcwd() error");
-    }
-
     //make string from ../models/wooden_axe_02_1k.gltf
     //std::string filename = "models/wooden_axe_02_1k.gltf";
     //load lemon
@@ -164,8 +156,17 @@ void Game::Init()
     animator = Animator(&animation);
 
 
-    //disable GL_BLEND
-    glDisable(GL_BLEND);
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    
+    // Setup Platform/Renderer backends
+     // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init();
 
 
 }
@@ -188,6 +189,53 @@ void Game::Update(float dt)
 
 void Game::Render()
 {
+    //imgui
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    //ImGui::ShowDemoWindow();
+    ImGui::Begin("Main Window", &mainwindow, ImGuiWindowFlags_MenuBar);
+    ImGui::Text("Menu");
+    //butoon for forward rendering or deferred rendering
+    if (ImGui::Button("Forward Rendering")){
+        Rendermode = FORWARD_RENDERING;
+    }
+    if (ImGui::Button("Deferred Rendering")){
+        Rendermode = DEFERRED_RENDERING;
+    }
+    int i = 0;
+    //move spot light with ->setPosition
+    if (ImGui::SliderFloat("Move Spot Light", &sliderx, -5.0f, 5.0f)){
+        
+        float posx = light.getPosition(i).x;
+        float posy = light.getPosition(i).y;
+        float posz = light.getPosition(i).z;
+
+        light.setPosition(glm::vec3(sliderx, posy, posz), i);
+        //text for position of the light x, y, z
+    }
+    //move in z
+    if (ImGui::SliderFloat("Move Spot Light Z", &sliderz, -5.0f, 5.0f)){
+        
+        float posx = light.getPosition(i).x;
+        float posy = light.getPosition(i).y;
+        float posz = light.getPosition(i).z;
+
+        light.setPosition(glm::vec3(posx, posy, sliderz), i);
+        //text for position of the light x, y, z
+    }
+
+
+
+    ImGui::Text("Position of the light x: %f y: %f z: %f", light.getPosition(i).x, light.getPosition(i).y, light.getPosition(i).z);
+
+    //slider for sample radius
+    if (ImGui::SliderFloat("Sample ao", &aoSlider, 0.0f, 1.0f)){
+        ao = aoSlider;
+    }
+
+    //end
+    ImGui::End();
 
     if (this->Rendermode == FORWARD_RENDERING){
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -258,7 +306,7 @@ void Game::Render()
         GBuffer_->UnbindFramebuffer();
         //2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        GBuffer_->RenderWithShader(lightpass, *myCamera);
+        GBuffer_->RenderWithShader(lightpass, *myCamera, ao);
         light.useLight(lightpass, *myCamera);
         //render quad
         //GBuffer_->renderQuad();
@@ -272,6 +320,10 @@ void Game::Render()
         
 
     }
+
+    //imgui
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 }
 
@@ -447,4 +499,11 @@ void Game::SetCameraWindowSize(unsigned int width, unsigned int height) {
     myCamera->Width = width;
     myCamera->Height = height;
     antialiasing->Update(width, height);
+}
+
+void Game::cleanup()
+{
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 }

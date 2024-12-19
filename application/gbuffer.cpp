@@ -118,7 +118,7 @@ void GBuffer::UnbindFramebuffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void GBuffer::RenderWithShader(Shader& shader, Camera& camera) {
+void GBuffer::RenderWithShader(Shader& shader, Camera& camera, float ao) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //glDisable(GL_DEPTH_TEST);
     shader.Use();
@@ -130,6 +130,7 @@ void GBuffer::RenderWithShader(Shader& shader, Camera& camera) {
     shader.SetInteger("gFresnelOcclusion", 4);
     shader.SetInteger("gAmbiantBrightness", 5);
     shader.SetInteger("gDepth", 6);
+    shader.SetFloat("ao_slider", ao);
 
     
 

@@ -14,6 +14,9 @@ uniform sampler2D gFresnelOcclusion;
 uniform sampler2D gAmbiantBrightness;
 uniform sampler2D gDepth;
 
+//uniform for indirect lighting
+uniform float ao_slider;
+
 // Light struct
 struct Light {
     int type; // 0: ambient light, 1: point light, 2: directional light, 3: spotlight
@@ -152,19 +155,19 @@ vec3 tone_mapping_aces_filmic(vec3 color)
 
 // Utility function to generate a random value between 0.0 and 1.0
 float Hash(vec2 p) {
-    p = fract(p * 0.1031); // Prime number multiplier for better randomness
-    p += dot(p, p + 33.333);
+    p = fract(p * vec2(0.1031, 0.1030)); // Slightly different multiplier for x and y
+    p += dot(p, p + vec2(33.333, 33.331));
     return fract(p.x * p.y);
 }
 
 // Generate random direction in the hemisphere based on normal
 vec3 RandomHemisphereDirection(vec3 normal, float randomX, float randomY) {
+    float theta = acos(sqrt(randomY)); // Cosine-weighted sampling
     float phi = 2.0 * 3.14159265359 * randomX;
-    float theta = acos(2.0 * randomY - 1.0);  // In range [0, pi]
-    
+
     vec3 tangent1 = normalize(cross(abs(normal.x) > 0.1 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0), normal));
     vec3 tangent2 = cross(normal, tangent1);
-    
+
     vec3 randomDir = sin(theta) * cos(phi) * tangent1 + sin(theta) * sin(phi) * tangent2 + cos(theta) * normal;
     return normalize(randomDir);
 }
@@ -188,26 +191,33 @@ vec3 SampleSSGIKernel(vec3 N, vec3 V, vec3 P, float ao)
 {
     vec3 result = vec3(0.0);
     float totalWeight = 0.0;
-    int sampleCount = 16;  // Reduced number of samples to improve performance
+    int sampleCount = 8;  // Reduced number of samples to improve performance
 
     // Perform fewer samples to reduce computational cost
     for (int i = 0; i < sampleCount; i++) {
-        float randomX = Hash(vec2(float(i), 0.0));
-        float randomY = Hash(vec2(float(i), 1.0));
-        
-        // Generate random direction based on the normal
+    // Divide the sample space into strata
+        float stratumX = float(i) / float(sampleCount);
+        float stratumY = fract(float(i) * 0.618034); // Use golden ratio for better stratification
+    
+        // Add jitter within the strata
+        float randomX = stratumX + Hash(vec2(float(i), 0.0)) / float(sampleCount);
+        float randomY = stratumY + Hash(vec2(float(i), 1.0)) / float(sampleCount);
+    
+        // Generate random direction
         vec3 L = RandomHemisphereDirection(N, randomX, randomY);
-
-        // Skip rays that are facing the wrong direction
+    
+        // Skip invalid rays
         if (dot(L, N) < 0.0 || dot(L, V) < 0.0) {
-            continue; // Skip if not facing valid direction
+            continue;
         }
-
+    
+        // Add contribution with fa
         float weight = max(0.0, dot(L, N));
         if (weight > 0.0) {
-            float occlusion = 1.0;
+            //float occlusion = 1.0;
+            float occlusion = ao_slider;
             if (Occluded(P, L, 10.0)) {
-                occlusion = 0.0; // Geometry occludes the light
+                occlusion = 0.0;
             }
             result += weight * occlusion;
             totalWeight += weight;
@@ -298,18 +308,15 @@ void main(){
     }
 
     //SSGI
-    //vec3 indirectLighting = vec3(0.0);
-    //indirectLighting = SampleSSGIKernel(N, V, gPos, ao);
-
-    //// Appliquer une force d'atténuation sur l'éclairage indirect pour éviter l'exposition excessive
-    //float indirectStrength = 0.3; // Ajuste cette valeur selon tes besoins
-    //indirectLighting *= indirectStrength;
-
-    //// Ajouter l'éclairage indirect à l'éclairage direct
-    //lighting += indirectLighting;
-
-    //// Clamp de l'éclairage final pour éviter les valeurs excessives
-    //lighting = clamp(lighting, 0.0, 1.0); // Empêcher l'exposition excessive
+    vec3 indirectLighting = vec3(0.0);
+    indirectLighting = SampleSSGIKernel(N, V, gPos, ao);
+    // Appliquer une force d'atténuation sur l'éclairage indirect pour éviter l'exposition excessive
+    float indirectStrength = 0.3; // Ajuste cette valeur selon tes besoins
+    indirectLighting *= indirectStrength;
+    // Ajouter l'éclairage indirect à l'éclairage direct
+    lighting += indirectLighting;
+    // Clamp de l'éclairage final pour éviter les valeurs excessives
+    lighting = clamp(lighting, 0.0, 1.0); // Empêcher l'exposition excessive
 
 
     //tone mapping ace filmic

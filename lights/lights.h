@@ -44,14 +44,18 @@ public:
     void setColor(glm::vec4 color);
     //set the intensity of the light
     void setIntensity(float intensity);
-    //set the position of the light
-    void setPosition(glm::vec3 position);
+    //set the position of the light take position and int i
+    void setPosition(glm::vec3 position, int i);
     //set the direction of the light
     void setDirection(glm::vec3 direction);
     //set the cut off of the light
     void setCutOff(float cutOff);
     //set the outer cut off of the light
     void setOuterCutOff(float outerCutOff);
+    //get lights vector and take the int i
+    LightData* getLight(int i);
+    //get position of the light i
+    glm::vec3 getPosition(int i);
 
 private:
     std::vector<LightData*> lights;  // Vector of pointers to LightData

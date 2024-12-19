@@ -26,6 +26,10 @@
 #include "../models/assimp/model_animation.h"
 #include "gbuffer.h"
 
+#include "../include/imgui/imgui.h"
+#include "../include/imgui/backends/imgui_impl_glfw.h"
+#include "../include/imgui/backends/imgui_impl_opengl3.h"
+
 // Represents the current state of the game
 enum GameState {
     GAME_ACTIVE,
@@ -120,6 +124,13 @@ public:
     bool texturesActive = true;
     bool fxaaActive = false;
 
+    //imgui
+    bool mainwindow = true;
+    float sliderx = 0.0f;
+    float sliderz = 0.0f;
+
+    float ao = 0.0f;
+    float aoSlider = 0.0f;
     //audio
 
     // constructor/destructor
@@ -133,6 +144,7 @@ public:
     void Update(float dt);
     void Render();
     void SetWindow(GLFWwindow* window);
+    void cleanup();
 
     //Collision detection
     

@@ -11,6 +11,7 @@ Engine developed exclusively with OpenGL
 - Collision detection between player, terrain, and world objects
 
 ## Features Currently in Development / Planned:
+- SSAO
 - Screen Space Global Illumination (SSGI)
 - Player inventory system with item management
 - Collision detection with imported items

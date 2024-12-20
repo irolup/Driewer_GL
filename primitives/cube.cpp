@@ -287,3 +287,55 @@ void Cube::setPosition(glm::vec3 pos) {
 std::string Cube::getInfo() const {
     return "Cube";
 }
+
+void Cube::drawVoxel(Shader& shader, Camera& camera){
+ shader.Use();
+    
+    // Set model transformation matrix
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, getPosition());
+    model = glm::scale(model, scale);
+    shader.SetMatrix4("model", model);
+    
+    // Set view and projection matrices from the camera
+    glm::mat4 projection = camera.GetProjectionMatrix();
+    shader.SetMatrix4("projection", projection);
+    
+    glm::mat4 view = camera.GetViewMatrix();
+    shader.SetMatrix4("view", view);
+
+    // Set camera position
+    glm::vec3 viewPos = camera.Position;
+    shader.SetVector3f("viewPos", viewPos);
+
+    // Set camera pitch and yaw for voxel alignment or lighting effects
+    shader.SetFloat("pitch", camera.getPitch());
+    shader.SetFloat("yaw", camera.getYaw());
+
+    // Set material properties
+    shader.SetVector3f("material.ambient", material.ambient);
+    shader.SetVector3f("material.diffuse", material.diffuse);
+    shader.SetVector3f("material.specular", material.specular);
+    shader.SetFloat("material.metallic", material.metallic);
+    shader.SetFloat("material.roughness", material.roughness);
+    shader.SetFloat("material.occlusion", material.occlusion);
+    shader.SetFloat("material.brightness", material.brightness);
+    shader.SetVector3f("material.fresnel_ior", material.fresnel_ior);
+
+    // Bind VAO for the cube
+    glBindVertexArray(VAO);
+
+    // Set textures if any are used in the shader
+    for (unsigned int i = 0; i < textures_cube.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, textures_cube[i]);
+    }
+
+    // Draw cube using element buffer
+    glDrawElements(GL_TRIANGLES, sizeof(cube_indices) / sizeof(cube_indices[0]), GL_UNSIGNED_INT, 0);
+
+    // Unbind VAO and textures
+    glBindVertexArray(0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}

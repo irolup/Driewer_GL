@@ -14,6 +14,8 @@ class Cube : public Primitives {
 public:
     Cube();
     void draw(Shader& shader, Camera& camera) override;
+    //draw with voxel shader
+    void drawVoxel(Shader& shader, Camera& camera);
     void setPosition(glm::vec3 pos);
 
 private:

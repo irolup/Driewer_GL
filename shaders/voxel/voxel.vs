@@ -1,4 +1,4 @@
-#version 330
+#version 460
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
@@ -20,5 +20,5 @@ void main() {
     vs_out.normal = mat3(transpose(inverse(model))) * inNormal;
     vs_out.texCoord = inTexCoord;
 
-    gl_Position = worldPos; // Pass-through for geometry shader
+    gl_Position = worldPos * view * projection;
 }

@@ -1,4 +1,4 @@
-#version 330
+#version 460
 
 // Input from the geometry shader
 in GS_OUT {
@@ -8,7 +8,7 @@ in GS_OUT {
 } fs_in;
 
 // Base texture and structured buffer
-uniform sampler2D baseTexture;
+uniform sampler2D texture_diffuse;
 layout(binding = 0, r32ui) uniform uimageBuffer voxelGrid;
 
 // Voxel grid parameters
@@ -65,7 +65,7 @@ void main() {
     int flattenedIndex = voxelIndex.x + voxelIndex.y * voxelResolution + voxelIndex.z * voxelResolution * voxelResolution;
 
     // Sample the base texture
-    vec3 baseColor = texture(baseTexture, fs_in.texCoord).rgb;
+    vec3 baseColor = texture(texture_diffuse, fs_in.texCoord).rgb;
 
     // Compute lighting
     vec3 diffuseLighting = computeDiffuseLighting(fs_in.worldPosition, normalize(fs_in.normal));
@@ -78,5 +78,6 @@ void main() {
     imageAtomicMax(voxelGrid, flattenedIndex, packedColor);
 
     // Debug visualization: output the voxel color
-    fragColor = vec4(voxelColor, 1.0);
+    //fragColor = vec4(voxelColor, 1.0);
+    fragColor = vec4(baseColor, 1.0);
 }

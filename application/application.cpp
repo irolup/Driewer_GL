@@ -71,6 +71,9 @@ void Game::Init()
 
     antialiasing = new Antialiasing(Width, Height, Antialiasing::Type::NONE);
 
+    ResourceManager::LoadShader("shaders/voxel/voxel.vs", "shaders/voxel/voxel.fs", "shaders/voxel/voxel.gs", "voxel");
+    geometryShader = ResourceManager::GetShader("voxel");
+
     //here we initialize all the textures
     GBuffer_ = new GBuffer(Width, Height, GBuffer::Type::BASIC);
 
@@ -182,8 +185,8 @@ void Game::Update(float dt)
     //update animation
     animator.UpdateAnimation(dt);
 
-    std::cout << "PLayer colliding with primitives" << collision.getCollisionWithPlayerwithPrimitives() << std::endl;
-    std::cout << "PLayer colliding with terrain" << collision.getCollisionWithPlayerwithTerrain() << std::endl;
+    //std::cout << "PLayer colliding with primitives" << collision.getCollisionWithPlayerwithPrimitives() << std::endl;
+    //std::cout << "PLayer colliding with terrain" << collision.getCollisionWithPlayerwithTerrain() << std::endl;
 
 }
 
@@ -202,6 +205,9 @@ void Game::Render()
     }
     if (ImGui::Button("Deferred Rendering")){
         Rendermode = DEFERRED_RENDERING;
+    }
+    if (ImGui::Button("Voxel Rendering")){
+        Rendermode = VOXEL_RENDERING;
     }
     int i = 0;
     //move spot light with ->setPosition
@@ -319,6 +325,21 @@ void Game::Render()
 
         
 
+    } else if (this->Rendermode == VOXEL_RENDERING) {
+        geometryShader.Use();
+        //geometryShader take:
+        //uniform vec3 voxelGridCenter;  // g_xWorld_VoxelRadianceDataCenter
+        //uniform float voxelGridSize;  // g_xWorld_VoxelRadianceDataSize
+        //uniform int voxelResolution;  // g_xWorld_VoxelRadianceDataRes
+        geometryShader.SetVector3f("voxelGridCenter", glm::vec3(0.0f, 0.0f, 0.0f));
+        geometryShader.SetFloat("voxelGridSize", 10.0f);
+        geometryShader.SetInteger("voxelResolution", 128);
+
+        //voxel rendering
+        for (int i = 0; i < primitives.size(); i++)
+            {
+                primitives[i]->draw(geometryShader, *myCamera);
+            }
     }
 
     //imgui

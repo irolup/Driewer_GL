@@ -40,7 +40,8 @@ enum GameState {
 //Render mode foward or deferred
 enum RenderMode {
     FORWARD_RENDERING,
-    DEFERRED_RENDERING
+    DEFERRED_RENDERING,
+    VOXEL_RENDERING
 };
 
 // Game holds all game-related state and functionality.
@@ -101,6 +102,9 @@ public:
     Animation animation;
     Animator animator;
     Shader animationShader;
+
+    //geometry shader
+    Shader geometryShader;
 
     glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f); // Gravity force
     float deltaTime = 0.016f;

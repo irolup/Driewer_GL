@@ -25,6 +25,7 @@
 #include "../models/assimp/animator.h"
 #include "../models/assimp/model_animation.h"
 #include "gbuffer.h"
+#include "ssaobuffer.h"
 
 #include "../include/imgui/imgui.h"
 #include "../include/imgui/backends/imgui_impl_glfw.h"
@@ -41,7 +42,7 @@ enum GameState {
 enum RenderMode {
     FORWARD_RENDERING,
     DEFERRED_RENDERING,
-    VOXEL_RENDERING
+    OTHER
 };
 
 // Game holds all game-related state and functionality.
@@ -76,6 +77,9 @@ public:
     //gbufer shader
     Shader          Gbuffer_shader;
     Shader          lightpass;
+    Shader          ssaoshader;
+    Shader          ssaoblurshader;
+
     Cube* cube;
     Plane* plane;
     Sphere* sphere;
@@ -102,9 +106,6 @@ public:
     Animation animation;
     Animator animator;
     Shader animationShader;
-
-    //geometry shader
-    Shader geometryShader;
 
     glm::vec3 gravity = glm::vec3(0.0f, -9.8f, 0.0f); // Gravity force
     float deltaTime = 0.016f;
@@ -153,7 +154,7 @@ public:
     //Collision detection
     
     private:
-
+        ssaoBuffer* ssao;
 
 };
 

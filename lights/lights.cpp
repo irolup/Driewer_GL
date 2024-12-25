@@ -92,7 +92,7 @@ void Light::useLight(Shader& shader, Camera& camera) {
     shader.Use();
 
     // Set the view position
-    shader.SetVector3f("viewPos", camera.Position);
+    //shader.SetVector3f("viewPos", camera.Position);
     // Set the number of lights
     shader.SetInteger("lightCount", static_cast<int>(lights.size()));
     //log number of lights

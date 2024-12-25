@@ -13,6 +13,7 @@ uniform sampler2D gSpecularRoughness;
 uniform sampler2D gFresnelOcclusion;
 uniform sampler2D gAmbiantBrightness;
 uniform sampler2D gDepth;
+uniform sampler2D gSSAO;
 
 //uniform for indirect lighting
 uniform float ao_slider;
@@ -264,8 +265,11 @@ void main(){
     //get depth
     float depth = texture(gDepth, TexCoords).r;
 
+    //ssao
+    float ssao = texture(gSSAO, TexCoords).r;
+
     //hardcoded ambient light
-    vec3 ambient_mat_color = texture(gAmbiantBrightness, TexCoords).rgb;
+    vec3 ambient_mat_color = texture(gAmbiantBrightness, TexCoords).rgb * ssao;
 
     //view direction
     vec3 V = normalize(viewPos - gPos);
@@ -308,15 +312,15 @@ void main(){
     }
 
     //SSGI
-    vec3 indirectLighting = vec3(0.0);
-    indirectLighting = SampleSSGIKernel(N, V, gPos, ao);
-    // Appliquer une force d'atténuation sur l'éclairage indirect pour éviter l'exposition excessive
-    float indirectStrength = 0.3; // Ajuste cette valeur selon tes besoins
-    indirectLighting *= indirectStrength;
-    // Ajouter l'éclairage indirect à l'éclairage direct
-    lighting += indirectLighting;
-    // Clamp de l'éclairage final pour éviter les valeurs excessives
-    lighting = clamp(lighting, 0.0, 1.0); // Empêcher l'exposition excessive
+    //vec3 indirectLighting = vec3(0.0);
+    //indirectLighting = SampleSSGIKernel(N, V, gPos, ao);
+    //// Appliquer une force d'atténuation sur l'éclairage indirect pour éviter l'exposition excessive
+    //float indirectStrength = 0.3; // Ajuste cette valeur selon tes besoins
+    //indirectLighting *= indirectStrength;
+    //// Ajouter l'éclairage indirect à l'éclairage direct
+    //lighting += indirectLighting;
+    //// Clamp de l'éclairage final pour éviter les valeurs excessives
+    //lighting = clamp(lighting, 0.0, 1.0); // Empêcher l'exposition excessive
 
 
     //tone mapping ace filmic

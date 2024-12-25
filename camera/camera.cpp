@@ -184,3 +184,33 @@ float Camera::getYaw()
 {
     return Yaw;
 }
+
+//get front vector
+glm::vec3 Camera::GetFront()
+{
+    return Front;
+}
+
+//get up vector
+glm::vec3 Camera::GetUp()
+{
+    return Up;
+}
+
+//get aspect ratio
+float Camera::GetAspectRatio()
+{
+    return static_cast<float>(Width) / static_cast<float>(Height);
+}
+
+//get near plane
+float Camera::GetNearPlane()
+{
+    return DEFAULT_NEAR_PLANE;
+}
+
+//get far plane
+float Camera::GetFarPlane()
+{
+    return DEFAULT_FAR_PLANE;
+}

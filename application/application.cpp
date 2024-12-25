@@ -69,18 +69,22 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/default.vs", "shaders/default.fs", nullptr, "default");
     defaultShader = ResourceManager::GetShader("default");
 
+    ResourceManager::LoadShader("shaders/SSGI/ssao.vs", "shaders/SSGI/ssao.fs", nullptr, "ssao");
+    ssaoshader = ResourceManager::GetShader("ssao");
+
+    ResourceManager::LoadShader("shaders/SSGI/ssao_blur.vs", "shaders/SSGI/ssao_blur.fs", nullptr, "ssao_blur");
+    ssaoblurshader = ResourceManager::GetShader("ssao_blur");
+
     antialiasing = new Antialiasing(Width, Height, Antialiasing::Type::NONE);
 
-    ResourceManager::LoadShader("shaders/voxel/voxel.vs", "shaders/voxel/voxel.fs", "shaders/voxel/voxel.gs", "voxel");
-    geometryShader = ResourceManager::GetShader("voxel");
 
     //here we initialize all the textures
     GBuffer_ = new GBuffer(Width, Height, GBuffer::Type::BASIC);
+    ssao = new ssaoBuffer(Width, Height);
 
     //cam with width and height and position
     myCamera = new Camera(Width, Height, glm::vec3(0.0f, 20.0f, 2.0f));
 
-    //myCamera = new Camera(glm::vec3(0.0f, 2.0f, 2.0f));
 
     //Cube object
     cube = new Cube();
@@ -206,8 +210,8 @@ void Game::Render()
     if (ImGui::Button("Deferred Rendering")){
         Rendermode = DEFERRED_RENDERING;
     }
-    if (ImGui::Button("Voxel Rendering")){
-        Rendermode = VOXEL_RENDERING;
+    if (ImGui::Button("Other Rendering")){
+        Rendermode = OTHER;
     }
     int i = 0;
     //move spot light with ->setPosition
@@ -325,21 +329,35 @@ void Game::Render()
 
         
 
-    } else if (this->Rendermode == VOXEL_RENDERING) {
-        geometryShader.Use();
-        //geometryShader take:
-        //uniform vec3 voxelGridCenter;  // g_xWorld_VoxelRadianceDataCenter
-        //uniform float voxelGridSize;  // g_xWorld_VoxelRadianceDataSize
-        //uniform int voxelResolution;  // g_xWorld_VoxelRadianceDataRes
-        geometryShader.SetVector3f("voxelGridCenter", glm::vec3(0.0f, 0.0f, 0.0f));
-        geometryShader.SetFloat("voxelGridSize", 10.0f);
-        geometryShader.SetInteger("voxelResolution", 128);
+    } else if (this->Rendermode == OTHER) {
+        GBuffer_->BindFramebuffer();
+        //draw scene
 
-        //voxel rendering
+        terrain->draw(terrainShader, *myCamera);
+
         for (int i = 0; i < primitives.size(); i++)
-            {
-                primitives[i]->draw(geometryShader, *myCamera);
-            }
+        {
+            primitives[i]->draw(Gbuffer_shader, *myCamera);
+        }
+        GBuffer_->UnbindFramebuffer();
+
+        //generate ssao texture
+        ssao->RenderWithSSAO(ssaoshader, *myCamera);
+
+        //blur ssao texture
+        ssao->RenderWithSSAOBlur(ssaoblurshader, *myCamera);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GBuffer_->RenderWithShaderSSAO(lightpass, *myCamera, ssao->getSSAOTexture());
+        light.useLight(lightpass, *myCamera);
+        //render quad
+        //GBuffer_->renderQuad();
+        
+        //2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
+        glBindBuffer(GL_READ_FRAMEBUFFER, GBuffer_->framebuffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     //imgui

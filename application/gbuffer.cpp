@@ -160,6 +160,49 @@ void GBuffer::RenderWithShader(Shader& shader, Camera& camera, float ao) {
     //glEnable(GL_DEPTH_TEST);
 }
 
+
+void GBuffer::RenderWithShaderSSAO(Shader& shader, Camera& camera, unsigned int ssaoTexture) {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glDisable(GL_DEPTH_TEST);
+    shader.Use();
+
+    shader.SetInteger("gPosition", 0);
+    shader.SetInteger("gNormal", 1);
+    shader.SetInteger("gAlbedoMetallic", 2);
+    shader.SetInteger("gSpecularRoughness", 3);
+    shader.SetInteger("gFresnelOcclusion", 4);
+    shader.SetInteger("gAmbiantBrightness", 5);
+    shader.SetInteger("gDepth", 6);
+    shader.SetInteger("gSSAO", 7);
+    
+
+    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, positionTexture);
+    glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, normalTexture);
+    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, albedoMetallicTexture);
+    glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, specularRoughnessTexture);
+    glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, fresnelOcclusionTexture);
+    glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, ambiantBrightnessTexture);
+    glActiveTexture(GL_TEXTURE6); glBindTexture(GL_TEXTURE_2D, depthTexture);
+    glActiveTexture(GL_TEXTURE7); glBindTexture(GL_TEXTURE_2D, ssaoTexture);
+
+    shader.SetVector3f("viewPos", camera.Position);
+
+    //view pos
+    
+
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+
+    //unbind textures
+    for (unsigned int i = 0; i < 8; i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    //glEnable(GL_DEPTH_TEST);
+}
+
 GLuint GBuffer::GetTexture(GLuint attachmentIndex) const {
     switch (attachmentIndex) {
         case 0: return positionTexture;

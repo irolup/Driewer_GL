@@ -113,6 +113,11 @@ public:
         return position;
     }
 
+    //get scale
+    glm::vec3 getScale() const {
+        return scale;
+    }
+
     virtual ~Primitives() {}
 };
 

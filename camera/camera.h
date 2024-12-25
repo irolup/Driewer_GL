@@ -110,6 +110,21 @@ public:
     //Get camera yaw angle
     float getYaw();
 
+    //get front vector
+    glm::vec3 GetFront();
+
+    //get up vector
+    glm::vec3 GetUp();
+
+    //get aspect ratio
+    float GetAspectRatio();
+
+    //get near plane
+    float GetNearPlane();
+
+    //get far plane
+    float GetFarPlane();
+
 private:
     // Updates camera vectors based on Euler angles
     void updateCameraVectors();

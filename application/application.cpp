@@ -75,12 +75,22 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/SSGI/ssao_blur.vs", "shaders/SSGI/ssao_blur.fs", nullptr, "ssao_blur");
     ssaoblurshader = ResourceManager::GetShader("ssao_blur");
 
+    ResourceManager::LoadShader("shaders/SSGI/lightPass.vs", "shaders/SSGI/lightPass_ssao.fs", nullptr, "lightPassSSAO");
+    lightpassSSAO = ResourceManager::GetShader("lightPassSSAO");
+
+    //shadows
+    ResourceManager::LoadShader("shaders/shadows/shadow_mapping_depth.vs", "shaders/shadows/shadow_mapping_depth.fs", nullptr, "shadowdepth");
+    simpleDepthShader = ResourceManager::GetShader("shadowdepth");
+
+    ResourceManager::LoadShader("shaders/shadows/pbr_shadows.vs", "shaders/shadows/pbr_shadows.fs", nullptr, "pbr_shadows");
+    pbr_shadows = ResourceManager::GetShader("pbr_shadows");
+
     antialiasing = new Antialiasing(Width, Height, Antialiasing::Type::NONE);
 
 
     //here we initialize all the textures
     GBuffer_ = new GBuffer(Width, Height, GBuffer::Type::BASIC);
-    ssao = new ssaoBuffer(Width, Height);
+    ssao = new ssaoBuffer(Width, Height, ssaoshader, ssaoblurshader);
 
     //cam with width and height and position
     myCamera = new Camera(Width, Height, glm::vec3(0.0f, 20.0f, 2.0f));
@@ -212,6 +222,9 @@ void Game::Render()
     }
     if (ImGui::Button("Other Rendering")){
         Rendermode = OTHER;
+    }
+    if (ImGui::Button("Shadows")){
+        Rendermode = SHADOWS;
     }
     int i = 0;
     //move spot light with ->setPosition
@@ -348,8 +361,8 @@ void Game::Render()
         ssao->RenderWithSSAOBlur(ssaoblurshader, *myCamera);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        GBuffer_->RenderWithShaderSSAO(lightpass, *myCamera, ssao->getSSAOTexture());
-        light.useLight(lightpass, *myCamera);
+        GBuffer_->RenderWithShaderSSAO(lightpassSSAO, *myCamera, ssao->getSSAOTexture());
+        light.useLight(lightpassSSAO, *myCamera);
         //render quad
         //GBuffer_->renderQuad();
         
@@ -358,6 +371,49 @@ void Game::Render()
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glBlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    } else if (this->Rendermode == SHADOWS) {
+        
+        // 1. render depth of scene to texture (from light's perspective)
+        // - Get light projection/view matrix.
+        shadows.renderDepthBuffer(lightShader, *myCamera, light.getLights());
+
+        // 2. render scene as normal using the generated depth/shadow map
+        terrain->draw(simpleDepthShader, *myCamera);
+        for (int i = 0; i < primitives.size(); i++)
+        {
+            primitives[i]->draw(simpleDepthShader, *myCamera);
+        }
+        modelLoader.drawModel(simpleDepthShader, *myCamera);
+        //animation NEED TO PUT THOSE IN A FUNCTION INSIDE THE MODEL CLASS
+        //animationShader.Use();
+        //auto transforms = animator.GetFinalBoneMatrices();
+	    ////for loop transforms
+	    //for (unsigned int i = 0; i < transforms.size(); i++){
+	    //	animationShader.SetMatrix4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), transforms[i]);
+	    //}
+        //model_animation.Draw(animationShader, *myCamera);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        //reset viewport
+        glViewport(0, 0, Width, Height);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //render the scene using the shadow map
+        pbr_shadows.Use();
+        //set projection and view matrix
+        pbr_shadows.SetMatrix4("projection", myCamera->GetProjectionMatrix());
+        pbr_shadows.SetMatrix4("view", myCamera->GetViewMatrix());
+        //loop over the lights
+        light.useLight(pbr_shadows, *myCamera);
+        //loop over the lightSpaceMatrix
+        shadows.renderShader(pbr_shadows, *myCamera, light.getLights());
+        //render the scene
+        terrain->draw(PBR, *myCamera);
+        for (int i = 0; i < primitives.size(); i++)
+        {
+            primitives[i]->draw(pbr_shadows, *myCamera);
+        }
+
+
+
     }
 
     //imgui

@@ -8,6 +8,7 @@
 #include "../shaders/shader.h"
 #include <vector>
 #include "primitives.h"
+#include "../lights/lights.h"
 
 class Plane : public Primitives {
 public:
@@ -24,6 +25,7 @@ private:
 
     std::string getInfo() const override;
 
+    void drawWithShadow(Shader& shader, Camera& camera, std::vector<Light::LightData*> lights, unsigned int depthMap);
 
 
 

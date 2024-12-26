@@ -1,11 +1,20 @@
 #include "ssaobuffer.h"
 
-ssaoBuffer::ssaoBuffer(int width, int height)
+ssaoBuffer::ssaoBuffer(int width, int height, Shader& ssao, Shader& ssaoBlur)
 {
     InitFramebuffer(width, height);
     InitQuad();
     ssaoKernel = getSSAOKernel();
     ssaoNoise = getSSAONoise();
+    //set uniforms
+    ssao.Use();
+    ssao.SetInteger("gPosition", 0);
+    ssao.SetInteger("gNormal", 1);
+    ssao.SetInteger("texNoise", 2);
+
+    ssaoBlur.Use();
+    ssaoBlur.SetInteger("ssaoInput", 0);
+
 }
 
 ssaoBuffer::~ssaoBuffer(){
@@ -193,8 +202,6 @@ void ssaoBuffer::bindBlurFBO(){
 void ssaoBuffer::RenderWithSSAO(Shader& shader, Camera& camera){
     bindFBO();
 
-    bindUniformsSSAO(shader);
-
     
     for (unsigned int i = 0; i < 64; ++i)
     {
@@ -217,8 +224,6 @@ void ssaoBuffer::RenderWithSSAO(Shader& shader, Camera& camera){
 
 void ssaoBuffer::RenderWithSSAOBlur(Shader& shader, Camera& camera){
     bindBlurFBO();
-
-    bindUniformsSSAOBlur(shader);
 
 
     glActiveTexture(GL_TEXTURE0);

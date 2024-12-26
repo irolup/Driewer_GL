@@ -26,6 +26,7 @@
 #include "../models/assimp/model_animation.h"
 #include "gbuffer.h"
 #include "ssaobuffer.h"
+#include "../lights/shadows.h"
 
 #include "../include/imgui/imgui.h"
 #include "../include/imgui/backends/imgui_impl_glfw.h"
@@ -42,7 +43,8 @@ enum GameState {
 enum RenderMode {
     FORWARD_RENDERING,
     DEFERRED_RENDERING,
-    OTHER
+    OTHER,
+    SHADOWS
 };
 
 // Game holds all game-related state and functionality.
@@ -79,6 +81,9 @@ public:
     Shader          lightpass;
     Shader          ssaoshader;
     Shader          ssaoblurshader;
+    Shader          lightpassSSAO;
+    Shader          simpleDepthShader;
+    Shader          pbr_shadows;
 
     Cube* cube;
     Plane* plane;
@@ -92,6 +97,7 @@ public:
     std::vector<Primitives*> primitives;
 
     Light light;
+    Shadows shadows;
     
     //vector of lights
     std::vector<Light*> lights;

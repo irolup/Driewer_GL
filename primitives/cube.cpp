@@ -278,6 +278,72 @@ for (unsigned int i = 0; i < textures_cube.size(); i++) {
     }
 }
 
+void Cube::drawWithShadow(Shader& shader, Camera& camera, std::vector<Light::LightData*> lights, unsigned int depthMap){
+shader.Use();
+    
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, getPosition());
+    model = glm::scale(model, scale);
+
+    shader.SetMatrix4("model", model);
+    
+    glm::mat4 projection = camera.GetProjectionMatrix();
+    shader.SetMatrix4("projection", projection);
+    
+    glm::mat4 view = camera.GetViewMatrix();
+    shader.SetMatrix4("view", view);
+
+    // Set the view position
+    glm::vec3 viewPos = camera.Position;
+    shader.SetVector3f("viewPos", viewPos);
+
+    //pitch
+    shader.SetFloat("pitch", camera.getPitch());
+    shader.SetFloat("yaw", camera.getYaw());
+
+    //material
+    shader.SetVector3f("material.ambient", material.ambient);
+    shader.SetVector3f("material.diffuse", material.diffuse);
+    shader.SetVector3f("material.specular", material.specular);
+    shader.SetFloat("material.metallic", material.metallic);
+    shader.SetFloat("material.roughness", material.roughness);
+    shader.SetFloat("material.occlusion", material.occlusion);
+    shader.SetFloat("material.brightness", material.brightness);
+    shader.SetVector3f("material.fresnel_ior", material.fresnel_ior);
+
+    shader.SetInteger("texture_diffuse", 0);
+    shader.SetInteger("texture_normal", 1);
+    shader.SetInteger("texture_metallic", 2);
+    shader.SetInteger("texture_roughness", 3);
+    shader.SetInteger("texture_occlusion", 4);
+    shader.SetInteger("texture_disp", 5);
+
+for (unsigned int i = 0; i < textures_cube.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, textures_cube[i]);
+    }
+    //bind depth map
+    //glActiveTexture(GL_TEXTURE0 + textures_cube.size());
+    //glBindTexture(GL_TEXTURE_2D, depthMap);
+
+
+    // Set the texture units
+    
+    
+    // Bind texture
+    
+    // Draw the cube using indices
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    // Unbind the textures
+    for (unsigned int i = 0; i < textures_cube.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+}
+
 //set pos
 void Cube::setPosition(glm::vec3 pos) {
     position = pos;

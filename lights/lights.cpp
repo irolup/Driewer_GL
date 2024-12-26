@@ -190,3 +190,8 @@ Light::LightData* Light::getLight(int i) {
 glm::vec3 Light::getPosition(int i) {
     return lights[i]->position;
 }
+
+//get the light vector
+std::vector<Light::LightData*> Light::getLights() {
+    return lights;
+}

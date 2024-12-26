@@ -11,7 +11,7 @@ class ssaoBuffer
 {
 
 public:
-    ssaoBuffer(int width, int height);
+    ssaoBuffer(int width, int height, Shader& ssao, Shader& ssaoBlur);
     ~ssaoBuffer();
 
     void BindFramebuffer();

@@ -13,6 +13,7 @@ uniform sampler2D gSpecularRoughness;
 uniform sampler2D gFresnelOcclusion;
 uniform sampler2D gAmbiantBrightness;
 uniform sampler2D gDepth;
+uniform sampler2D gSSAO;
 
 //uniform for indirect lighting
 uniform float ao_slider;
@@ -66,12 +67,18 @@ vec3 schlick_fresnel(float cosTheta, vec3 F0)
 }
 
 vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo, float metallic, float roughness, 
-                        float ao, vec3 fresnel, vec3 specular_, float brightness){
+                        float ao, vec3 fresnel, vec3 specular_, float brightness, float ssao){
     //ambient is ambient with albedo * ao
 
     //ambiant is from the material
 
-    vec3 ambient = albedo * ao * texture(gAmbiantBrightness, TexCoords).rgb;
+    //if ssao is empty
+    if (ssao == 0.0)
+    {
+        ssao = 1.0;
+    }
+
+    vec3 ambient = albedo * ao * ssao * texture(gAmbiantBrightness, TexCoords).rgb;
 
     //Fresnel at normal incidence from fresnel value
     vec3 F0 = fresnel;
@@ -264,6 +271,8 @@ void main(){
     //get depth
     float depth = texture(gDepth, TexCoords).r;
 
+    //ssao
+    float ssao = texture(gSSAO, TexCoords).r;
 
     //hardcoded ambient light
     vec3 ambient_mat_color = texture(gAmbiantBrightness, TexCoords).rgb;
@@ -289,10 +298,10 @@ void main(){
             lighting += ambient;
         } else if (light.type ==1) //Point light
         {
-            lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, brightness);
+            lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, brightness, ssao);
         } else if (light.type == 2) //Directional light
         {
-            lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, brightness);
+            lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, brightness, ssao);
         } else if (light.type == 3) //Spotlight
         {
             vec3 L = normalize(light.position - gPos);
@@ -302,7 +311,7 @@ void main(){
 
             if (intensity > 0.0)
             {
-                lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, brightness) * intensity;
+                lighting += CalculateLightingPBR(light, N, V, gPos, albedo, metallic, roughness, ao, fresnel, specular_, brightness, ssao) * intensity;
             }
             
         }
@@ -327,4 +336,5 @@ void main(){
     color = pow(color, vec3(1.0/2.2));
 
     FragColor = vec4(color, 1.0);
+    
 }

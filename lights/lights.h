@@ -56,6 +56,8 @@ public:
     LightData* getLight(int i);
     //get position of the light i
     glm::vec3 getPosition(int i);
+    //get the light vector
+    std::vector<LightData*> getLights();
 
 private:
     std::vector<LightData*> lights;  // Vector of pointers to LightData

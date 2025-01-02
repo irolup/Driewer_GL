@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>  // For vec3 and vec4 types
 #include "../shaders/shader.h"
 #include "../camera/camera.h"
+#include "shadows.h"
 
 class Light {
 public:
@@ -23,6 +24,10 @@ public:
         // Spotlight-specific properties
         float cutOff;
         float outerCutOff;
+        //lightSpaceMatrix
+        glm::mat4 lightSpaceMatrix;
+        //depth map
+        unsigned int depthMap;
     };
 
     Light();
@@ -31,12 +36,14 @@ public:
     // Methods to add various types of lights
     void addAmbientLight(const glm::vec4& color, float intensity);
     void addPointLight(const glm::vec3& position, const glm::vec4& color, float intensity);
-    void addDirectionalLight(const glm::vec3& direction, const glm::vec4& color, float intensity);
+    void addDirectionalLight(const glm::vec3& position, const glm::vec3& target, const glm::vec4& color, float intensity);
     void addSpotlight(const glm::vec3& position, const glm::vec3& direction, const glm::vec4& color, float intensity, float cutOff, float outerCutOff);
 
     void printLightInfo() const;  // Method for testing and debugging
 
     void useLight(Shader& shader, Camera& camera);
+
+    void renderDepthBuffer(Shader& shader, Camera& camera);
 
     //set the type of light
     void setType(LightType type);
@@ -59,9 +66,34 @@ public:
     //get the light vector
     std::vector<LightData*> getLights();
 
+    //get lightSpaceMatrix
+    glm::mat4 getLightSpaceMatrix(int i, Camera& camera);
+    unsigned int getDepthMapFBO();
+    void useOneLight(Shader& shader, Camera& camera, int i);
+
+    unsigned int create_depth_map(unsigned int width, unsigned int height);
+
+    float shadowWidth;
+    float shadowHeight;
+
+    float near_plane;
+    float far_plane;
+
+    void setShadowWidth(float width);
+    void setShadowHeight(float height);
+
+    void setNearPlane(float near);
+    void setFarPlane(float far);
+
 private:
     std::vector<LightData*> lights;  // Vector of pointers to LightData
 
     // Helper method for creating a new light and adding it to the vector
     LightData* createLight(LightType type, const glm::vec4& color, float intensity);
+
+    glm::mat4 lightProjectionViewDirect(glm::vec3 lightPos, glm::vec3 lightDir, float near_plane, float far_plane, float width, float height);
+    glm::mat4 lightProjectionViewSpot(glm::vec3 lightPos, glm::vec3 lightDir, float cutOff, float outerCutOff, float near_plane, float far_plane);
+
+    unsigned int depthMapFBO;
+    //unsigned int depthMap;
 };

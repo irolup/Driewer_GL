@@ -15,18 +15,55 @@ out vec4 FragPosLightSpace;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
-uniform mat4 lightSpaceMatrices[16];
-uniform int numberOflightSpaceMatrices;
+
+#define MAX_LIGHTS 5 // Adjust as needed
+
+struct Light {
+    int type; // 0: ambient light, 1: point light, 2: directional light, 3: spotlight
+    vec3 position;
+    vec3 direction;
+    vec4 color;
+    float intensity;
+    float cutOff;
+    float outerCutOff;
+    mat4 lightSpaceMatrix;
+};
+uniform Light lights[MAX_LIGHTS];
+
+uniform int lightCount; //lightCount
+
 
 //uniform lightSpaceMatrix
 
 void main()
 {
-
-    for (int i = 0; i < numberOflightSpaceMatrices; i++)
+    for (int i = 0; i < lightCount; i++)
     {
-        FragPosLightSpace = lightSpaceMatrices[i] * model * vec4(aPos, 1.0);
+        Light light = lights[i];
+
+        if (light.type == 0) // Ambient light
+        {
+            //do nothing
+        }
+        else if (light.type == 1) // Point light
+        {
+            //do nothing atm
+            //FragPosLightSpace = light.lightSpaceMatrix * model * vec4(aPos, 1.0);
+        }
+        else if (light.type == 2) // Directional light
+        {
+            FragPosLightSpace = light.lightSpaceMatrix * model * vec4(aPos, 1.0);   
+        }
+        else if (light.type == 3) // Spotlight
+        {
+            FragPosLightSpace = light.lightSpaceMatrix * model * vec4(aPos, 1.0);
+        }
     }
+
+    //for (int i = 0; i < MAX_LIGHTS; i++)
+    //{
+    //    FragPosLightSpace = lightSpaceMatrices[i] * model * vec4(aPos, 1.0);
+    //}
 
     vec4 worldPos = model * vec4(aPos, 1.0);
     FragPos = worldPos.xyz;

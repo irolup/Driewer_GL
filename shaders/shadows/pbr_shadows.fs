@@ -17,6 +17,7 @@ struct Light {
     float intensity;
     float cutOff;
     float outerCutOff;
+    mat4 lightSpaceMatrix;
 };
 
 // Material struct
@@ -38,6 +39,9 @@ uniform int lightCount; // Total number of lights
 uniform vec3 viewPos;   // Camera position
 uniform float pitch;
 uniform float yaw;
+uniform float near_plane;
+uniform float far_plane;
+
 
 // Inputs from vertex shader
 in vec3 FragPos;
@@ -105,7 +109,11 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 Normal, vec3 lightPos)
     return shadow;
 }
 
-
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // Back to NDC 
+    return (2.0 * near_plane * far_plane) / (far_plane + near_plane - z * (far_plane - near_plane));
+}
 
 vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
 { 
@@ -278,7 +286,11 @@ vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo
     vec3 radiance;
     if (light.type == 2) // Directional light
     {
-        radiance = light.color.rgb * light.intensity;
+        vec3 lightDir = normalize(light.position - fragPos);
+        float NdotL = max(dot(N, lightDir), 0.0);    // Angle between normal and light direction
+    
+        // Radiance depends on light color, intensity, and NdotL
+        radiance = light.color.rgb * light.intensity * NdotL;
     }
     else // Point light or Spotlight
     {
@@ -376,7 +388,7 @@ void main()
         else if (light.type == 2) // Directional light
         {
             // For directional lights, direction is used instead of position
-            float shadow = ShadowCalculation(FragPosLightSpace, N, light.position);
+            float shadow = ShadowCalculation(FragPosLightSpace, Normal, light.position);
             lighting += CalculateLightingPBR(light, N, V, FragPos, albedo, metallic, roughness, ao, shadow);
         }
         else if (light.type == 3) // Spotlight
@@ -408,6 +420,10 @@ void main()
     // Output final color
     //test the normal map texture
     
-    FragColor = vec4((color), 1.0);
+    //FragColor = vec4((color), 1.0);
+    //trie debug with only shadows
+    
+    float depthValue = texture(shadowMap, FragPosLightSpace.xy).r;
+    FragColor = vec4(vec3(depthValue), 1.0);
 
 }

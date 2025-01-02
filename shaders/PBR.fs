@@ -235,9 +235,14 @@ vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo
 
     // Light radiance
     vec3 radiance;
-    if (light.type == 2) // Directional light
+    if (light.type == 2) // Directional light have pos and dir
     {
-        radiance = light.color.rgb * light.intensity;
+        // Ensure light direction is normalized
+        vec3 lightDir = normalize( light.position - fragPos );
+        float NdotL = max(dot(N, lightDir), 0.0);    // Angle between normal and light direction
+    
+        // Radiance depends on light color, intensity, and NdotL
+        radiance = light.color.rgb * light.intensity * NdotL;
     }
     else // Point light or Spotlight
     {

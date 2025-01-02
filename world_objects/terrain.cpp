@@ -248,6 +248,45 @@ void Terrain::draw(Shader& shader, Camera& camera) {
     }
 }
 
+void Terrain::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) {
+    shader.Use();
+    glBindVertexArray(VAO);
+    // Bind textures before drawing
+    //glActiveTexture(GL_TEXTURE0);
+    //glBindTexture(GL_TEXTURE_2D, texture_diffuse);
+    for (unsigned int i = 0; i < textures.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, textures[i]);
+    }
+    // Set shader uniforms
+
+    glm::mat4 model = glm::mat4(1.0f);
+    shader.SetMatrix4("model", model);
+    glm::mat4 view = camera.GetViewMatrix();
+    shader.SetMatrix4("view", view);
+    glm::mat4 projection = camera.GetProjectionMatrix();
+    shader.SetMatrix4("projection", projection);
+
+    shader.SetInteger("texture_diffuse", 0);
+
+    glBindVertexArray(VAO);
+
+    //if wireframe is enabled
+    if (wireframe) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    } else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+    for (unsigned strip = 0; strip < numStrips; strip++) {
+        glDrawElements(GL_TRIANGLE_STRIP, numTrisPerStrip + 2, GL_UNSIGNED_INT, 
+                       (void*)(sizeof(unsigned) * (numTrisPerStrip + 2) * strip)); // Offset to starting index
+    }
+    for (unsigned int i = 0; i < textures.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+}
+
 std::string Terrain::getInfo() const {
     return "Terrain with heightmap and PBR textures.";
 }

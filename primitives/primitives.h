@@ -8,6 +8,9 @@
 #include "../shaders/shader.h"
 #include "../camera/camera.h"
 #include "geometryUtils.h"
+#include "../lights/lights.h"
+
+class Light;
 
 class Primitives {
 public:
@@ -57,6 +60,7 @@ public:
     // Pure virtual function for drawing
     virtual void draw(Shader& shader, Camera& camera) = 0;
 
+    virtual void drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) = 0;
 
     // Get information about the primitive
     virtual std::string getInfo() const = 0;

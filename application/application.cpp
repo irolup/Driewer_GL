@@ -133,9 +133,20 @@ void Game::Init()
     //terrain
     terrain = new Terrain(1.0f);
 
-    light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
-    
-    light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
+    //light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
+    ////
+    //light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
+
+    //directional light pointing at the cube at position 0,0,0
+    light.addDirectionalLight(glm::vec3(-6.0f, 8.0f, -6.0f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 20.0f);
+
+    //add cube primitive to indicate the directionnal light but one behind the light
+    //cube = new Cube();
+    //cube->collisionEnabled = false;
+    //cube->isStatic = true;
+    //cube->setPosition(glm::vec3(-2.0f, 4.0f, -1.0f));
+    //cube->setScale(glm::vec3(1.0f, 1.0f, 1.0f));
+    //primitives.push_back(cube);
 
 
     //Collsion test
@@ -252,9 +263,34 @@ void Game::Render()
 
     ImGui::Text("Position of the light x: %f y: %f z: %f", light.getPosition(i).x, light.getPosition(i).y, light.getPosition(i).z);
 
+    //Position of the camera
+    ImGui::Text("Position of the player x: %f y: %f z: %f", myCamera->Position.x, myCamera->Position.y, myCamera->Position.z);
+
     //slider for sample radius
     if (ImGui::SliderFloat("Sample ao", &aoSlider, 0.0f, 1.0f)){
         ao = aoSlider;
+    }
+
+    //slider for shadow width and height
+    if (ImGui::SliderFloat("Shadow Width", &light_width, -50.0f, 50.0f)){
+        //set the width of the shadow
+        light.setShadowWidth(light_width);
+    }
+
+    if (ImGui::SliderFloat("Shadow Height", &light_height, -50.0f, 50.0f)){
+        //set the height of the shadow
+        light.setShadowHeight(light_height);
+    }
+
+    //slider for shadow near plane and far plane
+    if (ImGui::SliderFloat("Near Plane", &light.near_plane, 0.0f, 20.0f)){
+        //set the near plane of the shadow
+        light.setNearPlane(light.near_plane);
+    }
+
+    if (ImGui::SliderFloat("Far Plane", &light.far_plane, 0.0f, 20.0f)){
+        //set the far plane of the shadow
+        light.setFarPlane(light.far_plane);
     }
 
     //end
@@ -375,41 +411,55 @@ void Game::Render()
         
         // 1. render depth of scene to texture (from light's perspective)
         // - Get light projection/view matrix.
-        shadows.renderDepthBuffer(lightShader, *myCamera, light.getLights());
+        //for each light we need to render the scene to the depth map
+        for (int i = 0; i < light.getLights().size(); i++) {
+            //send light count to the shader
+            simpleDepthShader.Use();
+            simpleDepthShader.SetInteger("lightCount", static_cast<int>(light.getLights().size()));
 
-        // 2. render scene as normal using the generated depth/shadow map
-        terrain->draw(simpleDepthShader, *myCamera);
-        for (int i = 0; i < primitives.size(); i++)
-        {
-            primitives[i]->draw(simpleDepthShader, *myCamera);
+            // get the glm::mat4 lightSpaceMatrix
+            light.useOneLight(simpleDepthShader, *myCamera, i);
+            //get depth map
+            //unsigned int depthMap = light.getDepthMap();
+            unsigned int depthMapFBO = light.getDepthMapFBO();
+            glViewport(0, 0, 1024, 1024);
+            glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            //loop over the primitives
+            for (int j = 0; j < primitives.size(); j++) {
+                //draw the scene
+                primitives[j]->draw(simpleDepthShader, *myCamera);
+            }
+            //unbind framebuffer
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
-        modelLoader.drawModel(simpleDepthShader, *myCamera);
-        //animation NEED TO PUT THOSE IN A FUNCTION INSIDE THE MODEL CLASS
-        //animationShader.Use();
-        //auto transforms = animator.GetFinalBoneMatrices();
-	    ////for loop transforms
-	    //for (unsigned int i = 0; i < transforms.size(); i++){
-	    //	animationShader.SetMatrix4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), transforms[i]);
-	    //}
-        //model_animation.Draw(animationShader, *myCamera);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         //reset viewport
         glViewport(0, 0, Width, Height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //render the scene using the shadow map
+
         pbr_shadows.Use();
         //set projection and view matrix
         pbr_shadows.SetMatrix4("projection", myCamera->GetProjectionMatrix());
         pbr_shadows.SetMatrix4("view", myCamera->GetViewMatrix());
-        //loop over the lights
-        light.useLight(pbr_shadows, *myCamera);
-        //loop over the lightSpaceMatrix
-        shadows.renderShader(pbr_shadows, *myCamera, light.getLights());
-        //render the scene
-        terrain->draw(PBR, *myCamera);
-        for (int i = 0; i < primitives.size(); i++)
-        {
-            primitives[i]->draw(pbr_shadows, *myCamera);
+
+        pbr_shadows.SetInteger("lightCount", static_cast<int>(light.getLights().size()));
+        //camera near and far plane
+        pbr_shadows.SetFloat("near_plane", myCamera->GetNearPlane());
+        pbr_shadows.SetFloat("far_plane", myCamera->GetFarPlane());
+
+        for (int i = 0; i < light.getLights().size(); i++) {
+            //render one light
+            light.useOneLight(pbr_shadows, *myCamera, i);
+            //render the scene
+            for (int j = 0; j < primitives.size(); j++) {
+                unsigned int shadowMap = light.getLight(i)->depthMap;
+                primitives[j]->drawWithShadow(pbr_shadows, *myCamera, shadowMap);
+                //cout debug
+                std::cout << "Tried to draw with shadow" << std::endl;
+                //cout id of map to see if it is the same
+                std::cout << "Depth map id: " << shadowMap << std::endl;
+            }
         }
 
 

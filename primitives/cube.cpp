@@ -278,8 +278,8 @@ for (unsigned int i = 0; i < textures_cube.size(); i++) {
     }
 }
 
-void Cube::drawWithShadow(Shader& shader, Camera& camera, std::vector<Light::LightData*> lights, unsigned int depthMap){
-shader.Use();
+void Cube::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap){
+    shader.Use();
     
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, getPosition());
@@ -317,13 +317,14 @@ shader.Use();
     shader.SetInteger("texture_roughness", 3);
     shader.SetInteger("texture_occlusion", 4);
     shader.SetInteger("texture_disp", 5);
+    //shader.SetInteger("depthMap", 6);
 
 for (unsigned int i = 0; i < textures_cube.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, textures_cube[i]);
     }
     //bind depth map
-    //glActiveTexture(GL_TEXTURE0 + textures_cube.size());
+    //glActiveTexture(GL_TEXTURE6);
     //glBindTexture(GL_TEXTURE_2D, depthMap);
 
 
@@ -342,6 +343,9 @@ for (unsigned int i = 0; i < textures_cube.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
+    // Unbind the depth map
+    //glActiveTexture(GL_TEXTURE6);
+    //glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 //set pos

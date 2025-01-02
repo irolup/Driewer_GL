@@ -38,39 +38,71 @@ void Shadows::init(unsigned int width, unsigned int height)
 
 }
 
-void Shadows::renderDepthBuffer(Shader& shader, Camera& camera, std::vector<Light::LightData*> lights)
-{
-    // Render the shadow map
-    shader.Use();
-    //set int for shadow mapping
-    calculateLightSpaceMatrix(lights);
-    
-    int numberOflightSpaceMatrices = lightSpaceMatrices.size();
-    shader.SetInteger("numberOflightSpaceMatrices", numberOflightSpaceMatrices);
+//void Shadows::renderDepthBuffer(Shader& shader, Camera& camera, std::vector<Light*> lights, std::vector<Primitives*> primitives)
+//{
+//    shader.Use();
+//    //lightCount
+//    shader.SetInteger("lightCount", static_cast<int>(lights.size()));
+//    for (unsigned int i = 0; i < lights.size(); i++) {
+//        //check if the light is a directional light or a spotlight
+//        if (lights[i]->type == Light::LightType::DIRECTIONAL) {
+//            //add to vector
+//            lightSpaceMatrices.push_back(lightProjectionViewDirect(lights[i]->position, lights[i]->direction, camera.GetFarPlane(), camera.GetFarPlane()));
+//            shader.SetMatrix4(("lightSpaceMatrix[" + std::to_string(i) + "]").c_str(), lightSpaceMatrices[i]);
+//
+//            //loop over the primitives
+//            for (unsigned int j = 0; j < primitives.size(); j++) {
+//                glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+//                glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+//                glClear(GL_DEPTH_BUFFER_BIT);
+//                primitives[j]->draw(shader, camera);
+//                glBindBuffer(GL_FRAMEBUFFER, 0);
+//            }
+//        } if (lights[i]->type == Light::LightType::SPOTLIGHT) {
+//            //add to vector
+//            lightSpaceMatrices.push_back(lightProjectionViewSpot(lights[i]->position, lights[i]->direction, lights[i]->cutOff, lights[i]->outerCutOff, camera.GetFarPlane(), camera.GetFarPlane()));
+//            shader.SetMatrix4(("lightSpaceMatrix[" + std::to_string(i) + "]").c_str(), lightSpaceMatrices[i]);
+//            //loop over the primitives
+//            for (unsigned int j = 0; j < primitives.size(); j++) {
+//                glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+//                glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+//                glClear(GL_DEPTH_BUFFER_BIT);
+//                primitives[j]->draw(shader, camera);
+//                glBindBuffer(GL_FRAMEBUFFER, 0);
+//            }
+//        } if (lights[i]->type == Light::LightType::POINT) {
+//            //lightSpaceMatrices.push_back(lightProjectionViewPoint(lights[i]->position));
+//        }
+//    }
+//}
 
-    for (unsigned int i = 0; i < lightSpaceMatrices.size(); i++) {
-        //set the lightSpaceMatrix // Send the array of matrices
-        shader.SetMatrix4(("lightSpaceMatrices[" + std::to_string(i) + "]").c_str(), lightSpaceMatrices[i]);
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
-
-    }
-}
-
-void Shadows::renderShader(Shader& shader, Camera& camera, std::vector<Light::LightData*> lights){
-    shader.Use();
-    calculateLightSpaceMatrix(lights);
-    int numberOflightSpaceMatrices = lightSpaceMatrices.size();
-    shader.SetInteger("numberOflightSpaceMatrices", numberOflightSpaceMatrices);
-    for (unsigned int i = 0; i < lightSpaceMatrices.size(); i++) {
-        //set the lightSpaceMatrix // Send the array of matrices
-        shader.SetMatrix4(("lightSpaceMatrices[" + std::to_string(i) + "]").c_str(), lightSpaceMatrices[i]);
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, depthMap);
-    }
-
-}
+//void Shadows::renderShader(Shader& shader, Camera& camera, std::vector<Light::LightData*> lights, std::vector<Primitives*> primitives){
+//    shader.Use();
+//    //loop over the lights
+//    for (unsigned int i = 0; i < lights.size(); i++) {
+//        //check if the light is a directional light or a spotlight
+//        if (lights[i]->type == Light::LightType::DIRECTIONAL) {
+//            //add to vector
+//            lightSpaceMatrices.push_back(lightProjectionViewDirect(lights[i]->position, lights[i]->direction, camera.GetFarPlane(), camera.GetFarPlane()));
+//            shader.SetMatrix4("lightSpaceMatrix", lightSpaceMatrices[i]);
+//
+//            //loop over the primitives
+//            for (unsigned int j = 0; j < primitives.size(); j++) {
+//                glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+//                glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+//                glClear(GL_DEPTH_BUFFER_BIT);
+//                primitives[j]->draw(shader, camera);
+//                glBindBuffer(GL_FRAMEBUFFER, 0);
+//            }
+//        } if (lights[i]->type == Light::LightType::SPOTLIGHT) {
+//            //add to vector
+//            lightSpaceMatrices.push_back(lightProjectionViewSpot(lights[i]->position, lights[i]->direction, lights[i]->cutOff, lights[i]->outerCutOff, camera.GetFarPlane(), camera.GetFarPlane()));
+//            shader.SetMatrix4("lightSpaceMatrix", lightSpaceMatrices[i]);
+//        } if (lights[i]->type == Light::LightType::POINT) {
+//            //lightSpaceMatrices.push_back(lightProjectionViewPoint(lights[i]->position));
+//        }
+//    }
+//}
 
 void Shadows::update()
 {
@@ -90,7 +122,7 @@ void Shadows::setNearFar(float near, float far)
     far_plane = far;
 }
 
-glm::mat4 Shadows::lightProjectionView(glm::vec3 lightPos, glm::vec3 lightDir)
+glm::mat4 Shadows::lightProjectionViewDirect(glm::vec3 lightPos, glm::vec3 lightDir, float near_plane, float far_plane)
 {
     // Calculate the light's projection and view matrices
     lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
@@ -99,16 +131,16 @@ glm::mat4 Shadows::lightProjectionView(glm::vec3 lightPos, glm::vec3 lightDir)
     return lightSpaceMatrix;
 }
 
-void Shadows::calculateLightSpaceMatrix(std::vector<Light::LightData*> lights)
+glm::mat4 Shadows::lightProjectionViewSpot(glm::vec3 lightPos, glm::vec3 lightDir, float cutOff, float outerCutOff, float near_plane, float far_plane)
 {
-    // Calculate the light space matrix
-    for (unsigned int i = 0; i < lights.size(); i++) {
-        //check if the light is a directional light or a spotlight
-        if (lights[i]->type == Light::LightType::DIRECTIONAL || lights[i]->type == Light::LightType::SPOTLIGHT) {
-            lightSpaceMatrices.push_back(lightProjectionView(lights[i]->position, lights[i]->direction));
-        }
-    }
+    // Calculate the light's projection and view matrices
+    lightProjection = glm::perspective(glm::radians(outerCutOff * 2), 1.0f, near_plane, far_plane);
+    lightView = glm::lookAt(lightPos, lightPos + lightDir, glm::vec3(0.0f, 1.0f, 0.0f));
+    lightSpaceMatrix = lightProjection * lightView;
+    return lightSpaceMatrix;
 }
+
+
 
 unsigned int Shadows::getDepthMap()
 {

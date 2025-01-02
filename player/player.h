@@ -31,6 +31,7 @@ public:
     virtual void setup() override; // Setup function do nothing
 
     virtual void draw(Shader& shader, Camera& camera) override; // Draw function do nothing
+    virtual void drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) override; // Draw with shadow function do nothing
 
     virtual std::string getInfo() const override; // Get information about the player
 

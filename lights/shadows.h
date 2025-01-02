@@ -5,7 +5,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "lights.h"
+#include "../primitives/primitives.h"
+#include <iostream>
 
+class Light;
 
 class Shadows
 {
@@ -15,8 +18,8 @@ class Shadows
         ~Shadows();
 
         void init(unsigned int width, unsigned int height);
-        void renderDepthBuffer(Shader& shader, Camera& camera, std::vector<Light::LightData*> lights);
-        void renderShader(Shader& shader, Camera& camera, std::vector<Light::LightData*> lights);
+        //void renderDepthBuffer(Shader& shader, Camera& camera, std::vector<Light::LightData*> lights, std::vector<Primitives*> primitives);
+        //void renderShader(Shader& shader, Camera& camera, std::vector<Light::LightData*> lights, std::vector<Primitives*> primitives);
         void update();
         void setNearFar(float near, float far);
         //get depth map
@@ -30,8 +33,9 @@ class Shadows
         //border color
         float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
-        //set vector of light
-
+        
+        glm::mat4 lightProjectionViewDirect(glm::vec3 lightPos, glm::vec3 lightDir, float near_plane, float far_plane);
+        glm::mat4 lightProjectionViewSpot(glm::vec3 lightPos, glm::vec3 lightDir, float cutOff, float outerCutOff, float near_plane, float far_plane);
 
     private:
     //float aspect = (float)SHADOW_WIDTH/(float)SHADOW_HEIGHT;
@@ -41,8 +45,7 @@ class Shadows
     //set uniform for shadow mapping
     void setUniforms(Shader& shader, Camera& camera);
 
-    glm::mat4 lightProjectionView(glm::vec3 lightPos, glm::vec3 lightDir);
-    void calculateLightSpaceMatrix(std::vector<Light::LightData*> lights);
+    
     glm::mat4 lightProjection, lightView;
     glm::mat4 lightSpaceMatrix;
     float near_plane, far_plane;

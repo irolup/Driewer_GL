@@ -93,6 +93,8 @@ public:
 
     //cube light
     Sphere* sphere_light;
+    float light_width;
+    float light_height;
 
     std::vector<Primitives*> primitives;
 

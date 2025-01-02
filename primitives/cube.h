@@ -17,7 +17,7 @@ public:
     void draw(Shader& shader, Camera& camera) override;
     //draw with voxel shader
     void setPosition(glm::vec3 pos);
-    void drawWithShadow(Shader& shader, Camera& camera, std::vector<Light::LightData*> lights, unsigned int depthMap);
+    void drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) override;
 
 private:
     unsigned int VAO, VBO, EBO;

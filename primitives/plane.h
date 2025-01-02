@@ -14,6 +14,8 @@ class Plane : public Primitives {
 public:
     Plane();
     void draw(Shader& shader, Camera& camera) override;
+    void drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) override;
+
     
 private:
     unsigned int VAO, VBO;
@@ -25,8 +27,7 @@ private:
 
     std::string getInfo() const override;
 
-    void drawWithShadow(Shader& shader, Camera& camera, std::vector<Light::LightData*> lights, unsigned int depthMap);
-
+    
 
 
 };

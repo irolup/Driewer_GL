@@ -18,7 +18,7 @@ Plane::Plane() {
 
 void Plane::setup() {
 
-    // positions for plane facing up
+    // positions at 25 and 0 for y
     glm::vec3 pos1(-1.0f, 0.0f, -1.0f);
     glm::vec3 pos2(1.0f, 0.0f, -1.0f);
     glm::vec3 pos3(1.0f, 0.0f, 1.0f);
@@ -309,4 +309,74 @@ void Plane::draw(Shader& shader, Camera& camera) {
 
 std::string Plane::getInfo() const {
     return "Plane";
+}
+
+void Plane::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap){
+    shader.Use();
+    
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, getPosition());
+    model = glm::scale(model, scale);
+
+    shader.SetMatrix4("model", model);
+    
+    glm::mat4 projection = camera.GetProjectionMatrix();
+    shader.SetMatrix4("projection", projection);
+    
+    glm::mat4 view = camera.GetViewMatrix();
+    shader.SetMatrix4("view", view);
+
+    // Set the view position
+    glm::vec3 viewPos = camera.Position;
+    shader.SetVector3f("viewPos", viewPos);
+
+    //pitch
+    shader.SetFloat("pitch", camera.getPitch());
+    shader.SetFloat("yaw", camera.getYaw());
+
+    //material
+    shader.SetVector3f("material.ambient", material.ambient);
+    shader.SetVector3f("material.diffuse", material.diffuse);
+    shader.SetVector3f("material.specular", material.specular);
+    shader.SetFloat("material.metallic", material.metallic);
+    shader.SetFloat("material.roughness", material.roughness);
+    shader.SetFloat("material.occlusion", material.occlusion);
+    shader.SetFloat("material.brightness", material.brightness);
+    shader.SetVector3f("material.fresnel_ior", material.fresnel_ior);
+
+    shader.SetInteger("texture_diffuse", 0);
+    shader.SetInteger("texture_normal", 1);
+    shader.SetInteger("texture_metallic", 2);
+    shader.SetInteger("texture_roughness", 3);
+    shader.SetInteger("texture_occlusion", 4);
+    shader.SetInteger("texture_disp", 5);
+    shader.SetInteger("shadowMap", 6);
+
+    for (unsigned int i = 0; i < textures_plane.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, textures_plane[i]);
+    }
+    //bind depth map
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+
+
+    // Set the texture units
+    
+    
+    // Bind texture
+    
+    // Draw the cube using indices
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+
+    // Unbind the textures
+    for (unsigned int i = 0; i < textures_plane.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    // Unbind the depth map
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }

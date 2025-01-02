@@ -65,6 +65,11 @@ void Player::draw(Shader& shader, Camera& camera) {
     // This function is intentionally left empty
 }
 
+void Player::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) {
+    // Draw the player with shadows
+    // This function is intentionally left empty
+}
+
 std::string Player::getInfo() const {
     return "Player";
 }

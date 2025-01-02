@@ -11,9 +11,12 @@ Engine developed exclusively with OpenGL
 - Collision detection between player, terrain, and world objects
 - ImGui
 
-## Features Currently in Development / Planned:
+## Features Currently in Development:
+- Shadow Mapping / Omnidirectional Shadow Maps
 - SSAO
 - Screen Space Global Illumination (SSGI)
+
+## Features Planned:
 - Player inventory system with item management
 - Collision detection with imported items
 - Save/load functionality for custom levels

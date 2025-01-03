@@ -66,8 +66,6 @@ public:
     //get the light vector
     std::vector<LightData*> getLights();
 
-    //get lightSpaceMatrix
-    glm::mat4 getLightSpaceMatrix(int i, Camera& camera);
     unsigned int getDepthMapFBO();
     void useOneLight(Shader& shader, Camera& camera, int i);
 

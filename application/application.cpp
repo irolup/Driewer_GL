@@ -138,7 +138,7 @@ void Game::Init()
     //light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
 
     //directional light pointing at the cube at position 0,0,0
-    light.addDirectionalLight(glm::vec3(-6.0f, 8.0f, -6.0f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 20.0f);
+    light.addDirectionalLight(glm::vec3(-6.0f, 8.0f, -6.0f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec4(3.0f, 3.0f, 3.0f, 3.0f), 30.0f);
 
     //add cube primitive to indicate the directionnal light but one behind the light
     //cube = new Cube();
@@ -271,27 +271,6 @@ void Game::Render()
         ao = aoSlider;
     }
 
-    //slider for shadow width and height
-    if (ImGui::SliderFloat("Shadow Width", &light_width, -50.0f, 50.0f)){
-        //set the width of the shadow
-        light.setShadowWidth(light_width);
-    }
-
-    if (ImGui::SliderFloat("Shadow Height", &light_height, -50.0f, 50.0f)){
-        //set the height of the shadow
-        light.setShadowHeight(light_height);
-    }
-
-    //slider for shadow near plane and far plane
-    if (ImGui::SliderFloat("Near Plane", &light.near_plane, 0.0f, 20.0f)){
-        //set the near plane of the shadow
-        light.setNearPlane(light.near_plane);
-    }
-
-    if (ImGui::SliderFloat("Far Plane", &light.far_plane, 0.0f, 20.0f)){
-        //set the far plane of the shadow
-        light.setFarPlane(light.far_plane);
-    }
 
     //end
     ImGui::End();
@@ -425,11 +404,13 @@ void Game::Render()
             glViewport(0, 0, 1024, 1024);
             glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
             glClear(GL_DEPTH_BUFFER_BIT);
+            glCullFace(GL_FRONT);
             //loop over the primitives
             for (int j = 0; j < primitives.size(); j++) {
                 //draw the scene
                 primitives[j]->draw(simpleDepthShader, *myCamera);
             }
+            glCullFace(GL_BACK);
             //unbind framebuffer
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }

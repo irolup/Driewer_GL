@@ -180,8 +180,8 @@ void Light::renderDepthBuffer(Shader& shader, Camera& camera)
 glm::mat4 Light::lightProjectionViewDirect(glm::vec3 lightPos, glm::vec3 lightDir, float near_plane, float far_plane, float width, float height)
 {
     // Calculate the light's projection and view matrices
-    glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, width);
-    glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 20.f);
+    glm::mat4 lightView = glm::lookAt(lightPos, lightPos + lightDir, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
     return lightSpaceMatrix;
 }
@@ -189,7 +189,7 @@ glm::mat4 Light::lightProjectionViewDirect(glm::vec3 lightPos, glm::vec3 lightDi
 glm::mat4 Light::lightProjectionViewSpot(glm::vec3 lightPos, glm::vec3 lightDir, float cutOff, float outerCutOff, float near_plane, float far_plane)
 {
     // Calculate the light's projection and view matrices
-    glm::mat4 lightProjection = glm::perspective(glm::radians(outerCutOff * 2), 1.0f, near_plane, far_plane);
+    glm::mat4 lightProjection = glm::perspective(glm::radians(outerCutOff * 2), 1.0f, 1.0f, 20.f);
     glm::mat4 lightView = glm::lookAt(lightPos, lightPos + lightDir, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
     return lightSpaceMatrix;
@@ -288,19 +288,6 @@ std::vector<Light::LightData*> Light::getLights() {
     return lights;
 }
 
-//get lightSpaceMatrix
-glm::mat4 Light::getLightSpaceMatrix(int i, Camera& camera) {
-    if (lights[i]->type == LightType::POINT) {
-        //nothing
-    }
-    else if (lights[i]->type == LightType::SPOTLIGHT) {
-        lights[i]->lightSpaceMatrix = lightProjectionViewSpot(lights[i]->position, lights[i]->direction, lights[i]->cutOff, lights[i]->outerCutOff, camera.GetNearPlane(), camera.GetFarPlane());
-    }
-    else if (lights[i]->type == LightType::DIRECTIONAL) {
-        lights[i]->lightSpaceMatrix = lightProjectionViewDirect(lights[i]->position, lights[i]->direction, camera.GetNearPlane(), camera.GetFarPlane(), shadowWidth, shadowHeight);
-    }
-    return lights[i]->lightSpaceMatrix;
-}
 
 
 
@@ -350,7 +337,7 @@ void Light::useOneLight(Shader& shader, Camera& camera, int i) {
         shader.SetMatrix4(lightSpaceMatrix.c_str(), lights[i]->lightSpaceMatrix);
     } else if (lights[i]->type == LightType::SPOTLIGHT) {
         //add to vector
-        lights[i]->lightSpaceMatrix = lightProjectionViewSpot(lights[i]->position, lights[i]->direction, lights[i]->cutOff, lights[i]->outerCutOff, camera.GetNearPlane(), camera.GetFarPlane());
+        lights[i]->lightSpaceMatrix = lightProjectionViewSpot(lights[i]->position, lights[i]->direction, lights[i]->cutOff, lights[i]->outerCutOff, near_plane, far_plane);
         shader.SetMatrix4(lightSpaceMatrix.c_str(), lights[i]->lightSpaceMatrix);
     }
 }

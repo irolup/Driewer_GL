@@ -10,9 +10,10 @@ Engine developed exclusively with OpenGL
 - Terrain generation from height maps
 - Collision detection between player, terrain, and world objects
 - ImGui
+- Shadow Mapping
 
 ## Features Currently in Development:
-- Shadow Mapping / Omnidirectional Shadow Maps
+- Omnidirectional Shadow Maps
 - SSAO
 - Screen Space Global Illumination (SSGI)
 

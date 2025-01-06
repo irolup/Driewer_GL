@@ -26,7 +26,7 @@ public:
         float outerCutOff;
         //lightSpaceMatrix
         glm::mat4 lightSpaceMatrix;
-        //depth map
+        unsigned int depthMapFBO;
         unsigned int depthMap;
     };
 
@@ -66,10 +66,9 @@ public:
     //get the light vector
     std::vector<LightData*> getLights();
 
-    unsigned int getDepthMapFBO();
     void useOneLight(Shader& shader, Camera& camera, int i);
 
-    unsigned int create_depth_map(unsigned int width, unsigned int height);
+    unsigned int create_depth_map(unsigned int width, unsigned int height, unsigned int& depthMapFBO);
 
     float shadowWidth;
     float shadowHeight;
@@ -91,7 +90,4 @@ private:
 
     glm::mat4 lightProjectionViewDirect(glm::vec3 lightPos, glm::vec3 lightDir, float near_plane, float far_plane, float width, float height);
     glm::mat4 lightProjectionViewSpot(glm::vec3 lightPos, glm::vec3 lightDir, float cutOff, float outerCutOff, float near_plane, float far_plane);
-
-    unsigned int depthMapFBO;
-    //unsigned int depthMap;
 };

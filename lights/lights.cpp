@@ -29,7 +29,9 @@ Light::LightData* Light::createLight(LightType type, const glm::vec4& color, flo
     unsigned int width = 1024, height = 1024;
 
     //create depth map
-    newLight->depthMap = create_depth_map(width, height);
+    unsigned int depthMapFBO;
+    newLight->depthMap = create_depth_map(width, height, depthMapFBO);
+    newLight->depthMapFBO = depthMapFBO;
 
     lights.push_back(newLight);
     std::cout << "Light added" << std::endl;
@@ -189,14 +191,14 @@ glm::mat4 Light::lightProjectionViewDirect(glm::vec3 lightPos, glm::vec3 lightDi
 glm::mat4 Light::lightProjectionViewSpot(glm::vec3 lightPos, glm::vec3 lightDir, float cutOff, float outerCutOff, float near_plane, float far_plane)
 {
     // Calculate the light's projection and view matrices
-    glm::mat4 lightProjection = glm::perspective(glm::radians(outerCutOff * 2), 1.0f, 1.0f, 20.f);
+    glm::mat4 lightProjection = glm::perspective(45.0f, 1.0f, 1.0f, 20.f);
     glm::mat4 lightView = glm::lookAt(lightPos, lightPos + lightDir, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
     return lightSpaceMatrix;
 }
 
 //create_depth_map
-unsigned int Light::create_depth_map(unsigned int width, unsigned int height)
+unsigned int Light::create_depth_map(unsigned int width, unsigned int height, unsigned int& depthMapFBO)
 {
     //need to create a texture for the depth map for the light
     //create a framebuffer
@@ -288,13 +290,6 @@ std::vector<Light::LightData*> Light::getLights() {
     return lights;
 }
 
-
-
-
-// Get the depth map FBO
-unsigned int Light::getDepthMapFBO() {
-    return depthMapFBO;
-}
 
 // Use one light
 void Light::useOneLight(Shader& shader, Camera& camera, int i) {

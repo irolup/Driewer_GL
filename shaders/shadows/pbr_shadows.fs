@@ -109,6 +109,57 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 lightPos)
     return shadow;
 }
 
+float ShadowCalculationSpot(vec4 fragPosLightSpace, vec3 lightPos, vec3 spotlightDir, float cutoffAngle, float outerCutoffAngle)
+{
+    // Perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    
+    // Transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    
+    // Check if fragment is outside the spotlight's frustum
+    if (projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0)
+        return 0.0; // Not in shadow since it's outside the light's view frustum
+
+    // Spotlight attenuation
+    vec3 fragToLight = normalize(lightPos - FragPos);
+    float theta = dot(fragToLight, normalize(-spotlightDir));
+    float epsilon = cutoffAngle - outerCutoffAngle;
+    float attenuation = clamp((theta - outerCutoffAngle) / epsilon, 0.0, 1.0);
+
+    if (attenuation <= 0.0)
+        return 0.0; // Fragment is outside the spotlight's influence
+
+    // Get closest depth value from shadow map
+    float closestDepth = texture(shadowMap, projCoords.xy).r; 
+    
+    // Get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    
+    // Calculate bias (based on depth map resolution and slope)
+    vec3 normal = normalize(Normal);
+    vec3 lightDir = normalize(lightPos - FragPos);
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+
+    // PCF (Percentage Closer Filtering)
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for (int x = -1; x <= 1; ++x)
+    {
+        for (int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 9.0;
+
+    // Scale shadow by spotlight attenuation
+    shadow *= attenuation;
+
+    return shadow;
+}
+
 float LinearizeDepth(float depth)
 {
     float z = depth * 2.0 - 1.0; // Back to NDC 
@@ -402,7 +453,7 @@ void main()
 
             if (intensity > 0.0)
             {
-                float shadow = ShadowCalculation(FragPosLightSpace, light.position);
+                float shadow = ShadowCalculationSpot(FragPosLightSpace, light.position, light.direction, light.cutOff, light.outerCutOff);
                 vec3 spotlightRadiance = CalculateLightingPBR(light, N, V, FragPos, albedo, metallic, roughness, ao, shadow) * intensity;
                 lighting += spotlightRadiance;
             }

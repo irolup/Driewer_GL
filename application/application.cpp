@@ -120,7 +120,7 @@ void Game::Init()
     sphere_light = new Sphere();
     sphere_light->collisionEnabled = false;
     sphere_light->isStatic = true;
-    sphere_light->setPosition(glm::vec3(-5.0f, 5.0f, 0.0f));
+    sphere_light->setPosition(glm::vec3(-5.0f, 5.0f, -5.0));
     primitives.push_back(sphere_light);
 
     //for spotlight
@@ -135,7 +135,10 @@ void Game::Init()
 
     //light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
     ////
-    //light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
+    light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
+
+    //add another spotlight pointing at the cube
+    //light.addSpotlight(glm::vec3(-5.0f, 5.0f, -5.0f), glm::normalize(glm::vec3(1.0f, -1.0f, 0.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
 
     //directional light pointing at the cube at position 0,0,0
     light.addDirectionalLight(glm::vec3(-6.0f, 8.0f, -6.0f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec4(3.0f, 3.0f, 3.0f, 3.0f), 30.0f);
@@ -398,9 +401,8 @@ void Game::Render()
 
             // get the glm::mat4 lightSpaceMatrix
             light.useOneLight(simpleDepthShader, *myCamera, i);
-            //get depth map
-            //unsigned int depthMap = light.getDepthMap();
-            unsigned int depthMapFBO = light.getDepthMapFBO();
+
+            unsigned int depthMapFBO = light.getLight(i)->depthMapFBO;
             glViewport(0, 0, 1024, 1024);
             glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
             glClear(GL_DEPTH_BUFFER_BIT);
@@ -440,6 +442,8 @@ void Game::Render()
                 std::cout << "Tried to draw with shadow" << std::endl;
                 //cout id of map to see if it is the same
                 std::cout << "Depth map id: " << shadowMap << std::endl;
+                //check fbos
+                std::cout << "Depth map fbo: " << light.getLight(i)->depthMapFBO << std::endl;
             }
         }
 

@@ -82,6 +82,9 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/shadows/shadow_mapping_depth.vs", "shaders/shadows/shadow_mapping_depth.fs", nullptr, "shadowdepth");
     simpleDepthShader = ResourceManager::GetShader("shadowdepth");
 
+    ResourceManager::LoadShader("shaders/shadows/point_shadows_depth.vs", "shaders/shadows/point_shadows_depth.fs", "shaders/shadows/point_shadows_depth.gs", "simpleDepthShaderPoint");
+    simpleDepthShaderPoint = ResourceManager::GetShader("simpleDepthShaderPoint");
+
     ResourceManager::LoadShader("shaders/shadows/pbr_shadows.vs", "shaders/shadows/pbr_shadows.fs", nullptr, "pbr_shadows");
     pbr_shadows = ResourceManager::GetShader("pbr_shadows");
 
@@ -135,13 +138,16 @@ void Game::Init()
 
     //light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
     ////
-    light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
+    //light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
 
     //add another spotlight pointing at the cube
     //light.addSpotlight(glm::vec3(-5.0f, 5.0f, -5.0f), glm::normalize(glm::vec3(1.0f, -1.0f, 0.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
 
     //directional light pointing at the cube at position 0,0,0
-    light.addDirectionalLight(glm::vec3(-6.0f, 8.0f, -6.0f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec4(3.0f, 3.0f, 3.0f, 3.0f), 30.0f);
+    //light.addDirectionalLight(glm::vec3(-6.0f, 8.0f, -6.0f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec4(3.0f, 3.0f, 3.0f, 3.0f), 30.0f);
+
+    //point light
+    light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
 
     //add cube primitive to indicate the directionnal light but one behind the light
     //cube = new Cube();
@@ -399,8 +405,14 @@ void Game::Render()
             simpleDepthShader.Use();
             simpleDepthShader.SetInteger("lightCount", static_cast<int>(light.getLights().size()));
 
-            // get the glm::mat4 lightSpaceMatrix
-            light.useOneLight(simpleDepthShader, *myCamera, i);
+            std::vector<glm::mat4> shadowTransforms;
+            if(light.getLight(i)->type == Light::LightType::POINT)
+            {
+                light.useOneLightPoint(simpleDepthShaderPoint, *myCamera, i);
+                shadowTransforms = light.getLightSpaceMatricesFromPointLight(i);
+            } else {
+                light.useOneLight(simpleDepthShader, *myCamera, i);
+            }
 
             unsigned int depthMapFBO = light.getLight(i)->depthMapFBO;
             glViewport(0, 0, 1024, 1024);
@@ -408,10 +420,25 @@ void Game::Render()
             glClear(GL_DEPTH_BUFFER_BIT);
             glCullFace(GL_FRONT);
             //loop over the primitives
-            for (int j = 0; j < primitives.size(); j++) {
-                //draw the scene
-                primitives[j]->draw(simpleDepthShader, *myCamera);
+            if(light.getLight(i)->type == Light::LightType::POINT)
+            {
+                simpleDepthShaderPoint.Use();
+                for (int j = 0; j < shadowTransforms.size(); j++) {
+                    
+                    simpleDepthShaderPoint.SetMatrix4(("shadowMatrices[" + std::to_string(j) + "]").c_str(), shadowTransforms[j]);
+                }
+                for (int j = 0; j < primitives.size(); j++) {
+                    //draw the scene
+                    primitives[j]->draw(simpleDepthShaderPoint, *myCamera);
+                }
+            } else {
+                for (int j = 0; j < primitives.size(); j++) {
+                    //draw the scene
+                    primitives[j]->draw(simpleDepthShader, *myCamera);
+                }
             }
+
+            
             glCullFace(GL_BACK);
             //unbind framebuffer
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -437,7 +464,15 @@ void Game::Render()
             //render the scene
             for (int j = 0; j < primitives.size(); j++) {
                 unsigned int shadowMap = light.getLight(i)->depthMap;
-                primitives[j]->drawWithShadow(pbr_shadows, *myCamera, shadowMap);
+                //if pointlight
+                if(light.getLight(i)->type == Light::LightType::POINT)
+                {
+                    primitives[j]->drawWithShadow(pbr_shadows, *myCamera, shadowMap, true);
+                } else{
+                    primitives[j]->drawWithShadow(pbr_shadows, *myCamera, shadowMap, false);
+                }
+
+                
                 //cout debug
                 std::cout << "Tried to draw with shadow" << std::endl;
                 //cout id of map to see if it is the same

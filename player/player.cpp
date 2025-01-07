@@ -65,7 +65,7 @@ void Player::draw(Shader& shader, Camera& camera) {
     // This function is intentionally left empty
 }
 
-void Player::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) {
+void Player::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap, bool pointLight) {
     // Draw the player with shadows
     // This function is intentionally left empty
 }

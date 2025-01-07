@@ -248,7 +248,7 @@ void Terrain::draw(Shader& shader, Camera& camera) {
     }
 }
 
-void Terrain::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) {
+void Terrain::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap, bool pointLight) {
     shader.Use();
     glBindVertexArray(VAO);
     // Bind textures before drawing

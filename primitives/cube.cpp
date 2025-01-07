@@ -278,7 +278,7 @@ for (unsigned int i = 0; i < textures_cube.size(); i++) {
     }
 }
 
-void Cube::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap){
+void Cube::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap, bool pointLight) {
     shader.Use();
     
     glm::mat4 model = glm::mat4(1.0f);

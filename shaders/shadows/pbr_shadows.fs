@@ -62,6 +62,7 @@ uniform sampler2D texture_roughness;
 uniform sampler2D texture_occlusion;
 uniform sampler2D texture_disp;
 uniform sampler2D shadowMap;
+uniform samplerCube shadowMapCube;
 
 // Function declarations
 float trowbridge_reitz(vec3 N, vec3 H, float roughness);
@@ -71,6 +72,15 @@ vec3 schlick_fresnel(float cosTheta, vec3 F0);
 vec3 tone_mapping_reinhard(vec3 color);
 vec3 tone_mapping_aces_filmic(vec3 color);
 vec3 CalculateLightingPBR(Light light, vec3 N, vec3 V, vec3 fragPos, vec3 albedo, float metallic, float roughness, float ao);
+
+vec3 gridSamplingDisk[20] = vec3[]
+(
+   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
+   vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+   vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
+   vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
+   vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+);
 
 //takes the fragPosLightSpace, normal and the light position
 float ShadowCalculation(vec4 fragPosLightSpace, vec3 lightPos)
@@ -158,6 +168,30 @@ float ShadowCalculationSpot(vec4 fragPosLightSpace, vec3 lightPos, vec3 spotligh
     shadow *= attenuation;
 
     return shadow;
+}
+
+float ShadowCalculationPoint(vec3 lightPos, float far_plane, vec3 gridSamplingDisk[20])
+{
+    // get vector between fragment position and light position
+    vec3 fragToLight = FragPos - lightPos;
+    float currentDepth = length(fragToLight);
+
+    float shadow = 0.0;
+    float bias = 0.15;
+    int samples = 20;
+    float viewDistance = length(viewPos - FragPos);
+    float diskRadius = (1.0 + (viewDistance / far_plane)) / 25.0;
+    for(int i = 0; i < samples; ++i)
+    {
+        float closestDepth = texture(shadowMapCube, fragToLight + gridSamplingDisk[i] * diskRadius).r;
+        closestDepth *= far_plane;   // undo mapping [0;1]
+        if(currentDepth - bias > closestDepth)
+            shadow += 1.0;
+    }
+    shadow /= float(samples);
+        
+    return shadow;
+
 }
 
 float LinearizeDepth(float depth)
@@ -436,6 +470,8 @@ void main()
         }
         else if (light.type == 1) // Point light
         {
+            // Calculate shadow
+            float shadow = ShadowCalculationPoint(light.position, far_plane, gridSamplingDisk);
             lighting += CalculateLightingPBR(light, N, V, FragPos, albedo, metallic, roughness, ao, 0.0);
         }
         else if (light.type == 2) // Directional light

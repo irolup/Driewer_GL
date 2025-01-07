@@ -30,8 +30,14 @@ Light::LightData* Light::createLight(LightType type, const glm::vec4& color, flo
 
     //create depth map
     unsigned int depthMapFBO;
-    newLight->depthMap = create_depth_map(width, height, depthMapFBO);
-    newLight->depthMapFBO = depthMapFBO;
+    if (type == LightType::POINT) {
+        newLight->depthMap = create_depth_map_point(width, height, depthMapFBO);
+        newLight->depthMapFBO = depthMapFBO;
+
+    } else {
+        newLight->depthMap = create_depth_map(width, height, depthMapFBO);
+        newLight->depthMapFBO = depthMapFBO;
+    }
 
     lights.push_back(newLight);
     std::cout << "Light added" << std::endl;
@@ -227,6 +233,30 @@ unsigned int Light::create_depth_map(unsigned int width, unsigned int height, un
     return depthMap;
 }
 
+    unsigned int Light::create_depth_map_point(unsigned int width, unsigned int height, unsigned int& depthMapFBO)
+    {
+        glGenFramebuffers(1, &depthMapFBO);
+        // create depth cubemap texture
+        unsigned int depthCubemap;
+        glGenTextures(1, &depthCubemap);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+        for (unsigned int i = 0; i < 6; ++i)
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        // attach depth texture as FBO's depth buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        return depthCubemap;
+    }
+
+
 // Set the types of lights
 void Light::setType(LightType type) {
     for (LightData* light : lights) {
@@ -335,6 +365,45 @@ void Light::useOneLight(Shader& shader, Camera& camera, int i) {
         lights[i]->lightSpaceMatrix = lightProjectionViewSpot(lights[i]->position, lights[i]->direction, lights[i]->cutOff, lights[i]->outerCutOff, near_plane, far_plane);
         shader.SetMatrix4(lightSpaceMatrix.c_str(), lights[i]->lightSpaceMatrix);
     }
+}
+
+void Light::useOneLightPoint(Shader& shader, Camera& camera, int i) {
+    shader.Use();
+    std::string lightType = "lights[" + std::to_string(i) + "].type";
+    std::string lightColor = "lights[" + std::to_string(i) + "].color";
+    std::string lightPosition = "lights[" + std::to_string(i) + "].position";
+    std::string lightDirection = "lights[" + std::to_string(i) + "].direction";
+    std::string lightIntensity = "lights[" + std::to_string(i) + "].intensity";
+    std::string lightCutOff = "lights[" + std::to_string(i) + "].cutOff";
+    std::string lightOuterCutOff = "lights[" + std::to_string(i) + "].outerCutOff";
+    //lightSpaceMatrix
+    std::string lightSpaceMatrix = "lights[" + std::to_string(i) + "].lightSpaceMatrix";
+    // Update the type casting to match the new enum values
+    shader.SetInteger(lightType.c_str(), static_cast<int>(lights[i]->type));
+    // Send light color, position, direction, intensity, and cutoff values
+    shader.SetVector4f(lightColor.c_str(), lights[i]->color);
+    
+    // Set position and direction only for applicable light types
+    shader.SetVector3f(lightPosition.c_str(), lights[i]->position);
+    shader.SetFloat(lightIntensity.c_str(), lights[i]->intensity);
+    //far plane
+    shader.SetFloat("far_plane", far_plane);
+    
+}
+
+std::vector<glm::mat4> Light::getLightSpaceMatricesFromPointLight(int i) {
+    float near_plane = 1.0f;
+    float far_plane = 20.0f;
+    float aspect = (float)shadowWidth / (float)shadowHeight;
+    glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), 1.0f, near_plane, far_plane);
+    std::vector<glm::mat4> shadowTransforms;
+    shadowTransforms.push_back(shadowProj * glm::lookAt(lights[i]->position, lights[i]->position + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+    shadowTransforms.push_back(shadowProj * glm::lookAt(lights[i]->position, lights[i]->position + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+    shadowTransforms.push_back(shadowProj * glm::lookAt(lights[i]->position, lights[i]->position + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+    shadowTransforms.push_back(shadowProj * glm::lookAt(lights[i]->position, lights[i]->position + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)));
+    shadowTransforms.push_back(shadowProj * glm::lookAt(lights[i]->position, lights[i]->position + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+    shadowTransforms.push_back(shadowProj * glm::lookAt(lights[i]->position, lights[i]->position + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+    return shadowTransforms;
 }
 
 //setshadowweight

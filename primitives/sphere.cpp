@@ -179,7 +179,7 @@ void Sphere::draw(Shader& shader, Camera& camera) {
 }
 
 
-void Sphere::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap){
+void Sphere::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap, bool pointLight) {
     shader.Use();
     
     glm::mat4 model = glm::mat4(1.0f);

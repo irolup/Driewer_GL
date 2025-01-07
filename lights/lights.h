@@ -67,14 +67,17 @@ public:
     std::vector<LightData*> getLights();
 
     void useOneLight(Shader& shader, Camera& camera, int i);
+    void useOneLightPoint(Shader& shader, Camera& camera, int i);
+    std::vector<glm::mat4> getLightSpaceMatricesFromPointLight(int i);
 
     unsigned int create_depth_map(unsigned int width, unsigned int height, unsigned int& depthMapFBO);
+    unsigned int create_depth_map_point(unsigned int width, unsigned int height, unsigned int& depthMapFBO);
 
     float shadowWidth;
     float shadowHeight;
 
-    float near_plane;
-    float far_plane;
+    float near_plane = 1.0f;
+    float far_plane = 50.0f;
 
     void setShadowWidth(float width);
     void setShadowHeight(float height);

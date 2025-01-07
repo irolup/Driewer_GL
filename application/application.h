@@ -83,6 +83,7 @@ public:
     Shader          ssaoblurshader;
     Shader          lightpassSSAO;
     Shader          simpleDepthShader;
+    Shader          simpleDepthShaderPoint;
     Shader          pbr_shadows;
 
     Cube* cube;

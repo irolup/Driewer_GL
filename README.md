@@ -10,6 +10,7 @@ Engine developed exclusively with OpenGL
 - Terrain generation from height maps
 - Collision detection between player, terrain, and world objects
 - ImGui
+- Forward and Deferred Rendering
 - Shadow Mapping
 
 ## Features Currently in Development:

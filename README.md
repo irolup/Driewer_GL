@@ -18,6 +18,15 @@ Engine developed exclusively with OpenGL
 - SSAO
 - Screen Space Global Illumination (SSGI)
 
+## Shadow Mapping
+![Shadow Mapping](https://github.com/irolup/Driewer_GL/raw/main/shadow.png)
+
+## GLTF Model Loading
+![GLTF Model](https://github.com/irolup/Driewer_GL/raw/main/gltf.png)
+
+## Animated Demo
+![Demo Animation](https://github.com/irolup/Driewer_GL/raw/main/demo_ani.gif)
+
 ## Features Planned:
 - Player inventory system with item management
 - Collision detection with imported items

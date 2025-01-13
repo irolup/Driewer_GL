@@ -311,7 +311,7 @@ std::string Plane::getInfo() const {
     return "Plane";
 }
 
-void Plane::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap, bool pointLight) {
+void Plane::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) {
     shader.Use();
     
     glm::mat4 model = glm::mat4(1.0f);
@@ -358,14 +358,10 @@ void Plane::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap
         glBindTexture(GL_TEXTURE_2D, textures_plane[i]);
     }
     //bind depth map
-    if(pointLight) {
-        glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap);
-    } else {
-        glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D, depthMap);
-    }
-
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap);
 
     // Set the texture units
     
@@ -383,11 +379,10 @@ void Plane::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     // Unbind the depth map
-    if (pointLight) {
-        glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-    } else {
-        glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
+
+void Plane::drawTest(Shader& shader, Camera& camera) {}

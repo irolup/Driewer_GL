@@ -85,6 +85,7 @@ public:
     Shader          simpleDepthShader;
     Shader          simpleDepthShaderPoint;
     Shader          pbr_shadows;
+    bool            shadowsActive = false;
 
     Cube* cube;
     Plane* plane;

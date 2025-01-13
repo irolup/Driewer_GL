@@ -14,8 +14,8 @@ class Plane : public Primitives {
 public:
     Plane();
     void draw(Shader& shader, Camera& camera) override;
-    void drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap, bool pointLight = false) override;
-
+    void drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) override;
+    void drawTest(Shader& shader, Camera& camera) override;
     
 private:
     unsigned int VAO, VBO;

@@ -179,7 +179,7 @@ void Sphere::draw(Shader& shader, Camera& camera) {
 }
 
 
-void Sphere::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap, bool pointLight) {
+void Sphere::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) {
     shader.Use();
     
     glm::mat4 model = glm::mat4(1.0f);
@@ -218,14 +218,17 @@ void Sphere::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMa
     shader.SetInteger("texture_roughness", 3);
     shader.SetInteger("texture_occlusion", 4);
     shader.SetInteger("texture_disp", 5);
+    shader.SetInteger("shadowMap", 6);
+    shader.SetInteger("shadowMapCube", 7);
 
-for (unsigned int i = 0; i < textures_sphere.size(); i++) {
+    for (unsigned int i = 0; i < textures_sphere.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, textures_sphere[i]);
     }
-    //bind depth map
-    //glActiveTexture(GL_TEXTURE0 + textures_cube.size());
-    //glBindTexture(GL_TEXTURE_2D, depthMap);
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap);
 
 
 
@@ -238,8 +241,14 @@ for (unsigned int i = 0; i < textures_sphere.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
+        glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
 std::string Sphere::getInfo() const {
     return "Sphere";
 }
+
+void Sphere::drawTest(Shader& shader, Camera& camera) {}    

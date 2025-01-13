@@ -18,6 +18,7 @@ struct Light {
     float cutOff;
     float outerCutOff;
     mat4 lightSpaceMatrix;
+    float far_plane;
 };
 
 // Material struct
@@ -39,8 +40,6 @@ uniform int lightCount; // Total number of lights
 uniform vec3 viewPos;   // Camera position
 uniform float pitch;
 uniform float yaw;
-uniform float near_plane;
-uniform float far_plane;
 
 
 // Inputs from vertex shader
@@ -63,6 +62,8 @@ uniform sampler2D texture_occlusion;
 uniform sampler2D texture_disp;
 uniform sampler2D shadowMap;
 uniform samplerCube shadowMapCube;
+
+uniform bool shadows_enabled;
 
 // Function declarations
 float trowbridge_reitz(vec3 N, vec3 H, float roughness);
@@ -140,8 +141,6 @@ float ShadowCalculationSpot(vec4 fragPosLightSpace, vec3 lightPos, vec3 spotligh
     if (attenuation <= 0.0)
         return 0.0; // Fragment is outside the spotlight's influence
 
-    // Get closest depth value from shadow map
-    float closestDepth = texture(shadowMap, projCoords.xy).r; 
     
     // Get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
@@ -170,7 +169,7 @@ float ShadowCalculationSpot(vec4 fragPosLightSpace, vec3 lightPos, vec3 spotligh
     return shadow;
 }
 
-float ShadowCalculationPoint(vec3 lightPos, float far_plane, vec3 gridSamplingDisk[20])
+float ShadowCalculationPoint(vec3 lightPos, float far_plane)
 {
     // get vector between fragment position and light position
     vec3 fragToLight = FragPos - lightPos;
@@ -181,24 +180,23 @@ float ShadowCalculationPoint(vec3 lightPos, float far_plane, vec3 gridSamplingDi
     int samples = 20;
     float viewDistance = length(viewPos - FragPos);
     float diskRadius = (1.0 + (viewDistance / far_plane)) / 25.0;
+    float closestDepth = 0.0;
     for(int i = 0; i < samples; ++i)
     {
-        float closestDepth = texture(shadowMapCube, fragToLight + gridSamplingDisk[i] * diskRadius).r;
+        closestDepth = texture(shadowMapCube, fragToLight + gridSamplingDisk[i] * diskRadius).r;
         closestDepth *= far_plane;   // undo mapping [0;1]
-        if(currentDepth - bias > closestDepth)
+        if(currentDepth - bias > closestDepth){
             shadow += 1.0;
+        }
     }
     shadow /= float(samples);
+
+    //FragColor = vec4(vec3(closestDepth / far_plane), 1.0);
         
     return shadow;
 
 }
 
-float LinearizeDepth(float depth)
-{
-    float z = depth * 2.0 - 1.0; // Back to NDC 
-    return (2.0 * near_plane * far_plane) / (far_plane + near_plane - z * (far_plane - near_plane));
-}
 
 vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
 { 
@@ -458,7 +456,6 @@ void main()
 
     // Accumulate lighting
     vec3 lighting = vec3(0.0);
-
     for (int i = 0; i < lightCount; i++)
     {
         Light light = lights[i];
@@ -471,13 +468,15 @@ void main()
         else if (light.type == 1) // Point light
         {
             // Calculate shadow
-            float shadow = ShadowCalculationPoint(light.position, far_plane, gridSamplingDisk);
-            lighting += CalculateLightingPBR(light, N, V, FragPos, albedo, metallic, roughness, ao, 0.0);
+            float shadow = ShadowCalculationPoint(light.position, light.far_plane);
+            shadow = shadows_enabled ? shadow : 0.0;
+            lighting += CalculateLightingPBR(light, N, V, FragPos, albedo, metallic, roughness, ao, shadow);
         }
         else if (light.type == 2) // Directional light
         {
             // For directional lights, direction is used instead of position
             float shadow = ShadowCalculation(FragPosLightSpace, light.position);
+            shadow = shadows_enabled ? shadow : 0.0;
             lighting += CalculateLightingPBR(light, N, V, FragPos, albedo, metallic, roughness, ao, shadow);
         }
         else if (light.type == 3) // Spotlight
@@ -490,15 +489,13 @@ void main()
             if (intensity > 0.0)
             {
                 float shadow = ShadowCalculationSpot(FragPosLightSpace, light.position, light.direction, light.cutOff, light.outerCutOff);
+                shadow = shadows_enabled ? shadow : 0.0;
                 vec3 spotlightRadiance = CalculateLightingPBR(light, N, V, FragPos, albedo, metallic, roughness, ao, shadow) * intensity;
                 lighting += spotlightRadiance;
             }
         }
     }
 
-    // Apply brightness and ambient occlusion
-    //lighting *= material.brightness;
-    //lighting = mix(lighting, lighting, material.occlusion);
 
     // Tone mapping (adjust exposure and gamma as needed)
     //vec3 color = tone_mapping_reinhard(lighting);
@@ -506,13 +503,8 @@ void main()
 
     color = pow(color, vec3(1.0 / 2.2)); // Apply gamma correction
 
-    // Output final color
-    //test the normal map texture
     
     FragColor = vec4((color), 1.0);
-    //trie debug with only shadows
     
-    //float depthValue = texture(shadowMap, TexCoords).r;
-    //FragColor = vec4(vec3(depthValue), 1.0);
 
 }

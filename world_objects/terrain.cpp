@@ -248,7 +248,7 @@ void Terrain::draw(Shader& shader, Camera& camera) {
     }
 }
 
-void Terrain::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap, bool pointLight) {
+void Terrain::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) {
     shader.Use();
     glBindVertexArray(VAO);
     // Bind textures before drawing
@@ -335,3 +335,5 @@ int Terrain::getTerrainWidth() const {
 int Terrain::getTerrainHeight() const {
     return height; // Return the stored height
 }
+
+void Terrain::drawTest(Shader& shader, Camera& camera) {}

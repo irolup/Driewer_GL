@@ -34,7 +34,7 @@ void main()
         else if (light.type == 1) // Point light
         {
             //do nothing atm
-            //gl_Position = light.lightSpaceMatrix * model * vec4(aPos, 1.0);
+            gl_Position = light.lightSpaceMatrix * model * vec4(aPos, 1.0);
         }
         else if (light.type == 2) // Directional light
         {

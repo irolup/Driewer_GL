@@ -278,7 +278,7 @@ for (unsigned int i = 0; i < textures_cube.size(); i++) {
     }
 }
 
-void Cube::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap, bool pointLight) {
+void Cube::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) {
     shader.Use();
     
     glm::mat4 model = glm::mat4(1.0f);
@@ -317,15 +317,18 @@ void Cube::drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap,
     shader.SetInteger("texture_roughness", 3);
     shader.SetInteger("texture_occlusion", 4);
     shader.SetInteger("texture_disp", 5);
-    //shader.SetInteger("depthMap", 6);
+    shader.SetInteger("shadowMap", 6);
+    shader.SetInteger("shadowMapCube", 7);
 
 for (unsigned int i = 0; i < textures_cube.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, textures_cube[i]);
     }
     //bind depth map
-    //glActiveTexture(GL_TEXTURE6);
-    //glBindTexture(GL_TEXTURE_2D, depthMap);
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, depthMap);
 
 
     // Set the texture units
@@ -344,8 +347,63 @@ for (unsigned int i = 0; i < textures_cube.size(); i++) {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     // Unbind the depth map
-    //glActiveTexture(GL_TEXTURE6);
-    //glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+    
+}
+
+void Cube::drawTest(Shader& shader, Camera& camera){
+    shader.Use();
+    
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, getPosition());
+    model = glm::scale(model, scale);
+
+    shader.SetMatrix4("model", model);
+    
+    glm::mat4 projection = camera.GetProjectionMatrix();
+    shader.SetMatrix4("projection", projection);
+    
+    glm::mat4 view = camera.GetViewMatrix();
+    shader.SetMatrix4("view", view);
+
+    // Set the view position
+    glm::vec3 viewPos = camera.Position;
+    shader.SetVector3f("viewPos", viewPos);
+
+    //pitch
+    //shader.SetFloat("pitch", camera.getPitch());
+    //shader.SetFloat("yaw", camera.getYaw());
+
+    //material
+    //shader.SetVector3f("material.ambient", material.ambient);
+    //shader.SetVector3f("material.diffuse", material.diffuse);
+    //shader.SetVector3f("material.specular", material.specular);
+    //shader.SetFloat("material.metallic", material.metallic);
+    //shader.SetFloat("material.roughness", material.roughness);
+    //shader.SetFloat("material.occlusion", material.occlusion);
+    //shader.SetFloat("material.brightness", material.brightness);
+    //shader.SetVector3f("material.fresnel_ior", material.fresnel_ior);
+
+    //shader.SetInteger("texture_diffuse", 1);
+    //shader.SetInteger("texture_normal", 1);
+    //shader.SetInteger("texture_metallic", 2);
+    //shader.SetInteger("texture_roughness", 3);
+    //shader.SetInteger("texture_occlusion", 4);
+    //shader.SetInteger("texture_disp", 5);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture_diffuse);
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    // Unbind the textures
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 //set pos

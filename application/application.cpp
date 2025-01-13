@@ -107,6 +107,14 @@ void Game::Init()
     cube->setScale(glm::vec3(1.0f, 1.0f, 1.0f));
     primitives.push_back(cube);
 
+    ////big cube for environment
+    cube = new Cube();
+    cube->collisionEnabled = false;
+    cube->isStatic = true;
+    cube->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+    cube->setScale(glm::vec3(10.0f, 10.0f, 10.0f));
+    primitives.push_back(cube);
+
     plane = new Plane();
     plane->collisionEnabled = true;
     plane->isStatic = true;
@@ -136,9 +144,8 @@ void Game::Init()
     //terrain
     terrain = new Terrain(1.0f);
 
-    //light.addPointLight(glm::vec3(-5.0f, 5.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f);
     ////
-    //light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
+    light.addSpotlight(glm::vec3(5.0f, 5.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
 
     //add another spotlight pointing at the cube
     //light.addSpotlight(glm::vec3(-5.0f, 5.0f, -5.0f), glm::normalize(glm::vec3(1.0f, -1.0f, 0.0f)), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 10.0f, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(25.0f)));
@@ -182,7 +189,7 @@ void Game::Init()
         std::cout << "Failed to load model" << std::endl;
     }
     //set position
-    modelLoader.position = glm::vec3(0.8f, 0.5f, 0.8f);
+    modelLoader.position = glm::vec3(-3.8f, 0.5f, 0.1f);
     //reduce scale
     //modelLoader.scale = glm::vec3(0.1f, 0.1f, 0.1f);
 
@@ -248,32 +255,66 @@ void Game::Render()
     }
     int i = 0;
     //move spot light with ->setPosition
-    if (ImGui::SliderFloat("Move Spot Light", &sliderx, -5.0f, 5.0f)){
-        
-        float posx = light.getPosition(i).x;
-        float posy = light.getPosition(i).y;
-        float posz = light.getPosition(i).z;
+    //if (ImGui::SliderFloat("Move Spot Light", &sliderx, -5.0f, 5.0f)){
+    //    
+    //    float posx = light.getPosition(i).x;
+    //    float posy = light.getPosition(i).y;
+    //    float posz = light.getPosition(i).z;
+//
+    //    light.setPosition(glm::vec3(sliderx, posy, posz), i);
+    //    //text for position of the light x, y, z
+    //}
+    ////move in z
+    //if (ImGui::SliderFloat("Move Spot Light Z", &sliderz, -5.0f, 5.0f)){
+    //    
+    //    float posx = light.getPosition(i).x;
+    //    float posy = light.getPosition(i).y;
+    //    float posz = light.getPosition(i).z;
+//
+    //    light.setPosition(glm::vec3(posx, posy, sliderz), i);
+    //    //text for position of the light x, y, z
+    //}
 
-        light.setPosition(glm::vec3(sliderx, posy, posz), i);
-        //text for position of the light x, y, z
-    }
-    //move in z
-    if (ImGui::SliderFloat("Move Spot Light Z", &sliderz, -5.0f, 5.0f)){
-        
-        float posx = light.getPosition(i).x;
-        float posy = light.getPosition(i).y;
-        float posz = light.getPosition(i).z;
-
-        light.setPosition(glm::vec3(posx, posy, sliderz), i);
-        //text for position of the light x, y, z
-    }
 
 
-
-    ImGui::Text("Position of the light x: %f y: %f z: %f", light.getPosition(i).x, light.getPosition(i).y, light.getPosition(i).z);
+    //ImGui::Text("Position of the light x: %f y: %f z: %f", light.getPosition(i).x, light.getPosition(i).y, light.getPosition(i).z);
 
     //Position of the camera
-    ImGui::Text("Position of the player x: %f y: %f z: %f", myCamera->Position.x, myCamera->Position.y, myCamera->Position.z);
+    //ImGui::Text("Position of the player x: %f y: %f z: %f", myCamera->Position.x, myCamera->Position.y, myCamera->Position.z);
+
+
+    //loop over lights
+    for (int i = 0; i < light.getLights().size(); i++) {
+        // Create a submenu for each light
+    std::string lightLabel = "Light " + std::to_string(i);
+    if (ImGui::CollapsingHeader(lightLabel.c_str())) {
+        glm::vec3 currentPosition = light.getPosition(i);
+
+        // Slider for X position
+        float sliderX = currentPosition.x;
+        if (ImGui::SliderFloat(("Move Light " + std::to_string(i) + " X").c_str(), &sliderX, -5.0f, 5.0f)) {
+            light.setPosition(glm::vec3(sliderX, currentPosition.y, currentPosition.z), i);
+        }
+
+        // Slider for Y position
+        float sliderY = currentPosition.y;
+        if (ImGui::SliderFloat(("Move Light " + std::to_string(i) + " Y").c_str(), &sliderY, -5.0f, 5.0f)) {
+            light.setPosition(glm::vec3(currentPosition.x, sliderY, currentPosition.z), i);
+        }
+
+        // Slider for Z position
+        float sliderZ = currentPosition.z;
+        if (ImGui::SliderFloat(("Move Light " + std::to_string(i) + " Z").c_str(), &sliderZ, -5.0f, 5.0f)) {
+            light.setPosition(glm::vec3(currentPosition.x, currentPosition.y, sliderZ), i);
+        }
+
+        // Display the current position of the light
+        ImGui::Text("Position of Light %d - X: %.2f, Y: %.2f, Z: %.2f", i, currentPosition.x, currentPosition.y, currentPosition.z);
+    }
+    }
+
+    
+
 
     //slider for sample radius
     if (ImGui::SliderFloat("Sample ao", &aoSlider, 0.0f, 1.0f)){
@@ -429,12 +470,12 @@ void Game::Render()
                 }
                 for (int j = 0; j < primitives.size(); j++) {
                     //draw the scene
-                    primitives[j]->draw(simpleDepthShaderPoint, *myCamera);
+                    primitives[j]->drawTest(simpleDepthShaderPoint, *myCamera);
                 }
             } else {
                 for (int j = 0; j < primitives.size(); j++) {
                     //draw the scene
-                    primitives[j]->draw(simpleDepthShader, *myCamera);
+                    primitives[j]->drawTest(simpleDepthShader, *myCamera);
                 }
             }
 
@@ -449,36 +490,23 @@ void Game::Render()
         //render the scene using the shadow map
 
         pbr_shadows.Use();
-        //set projection and view matrix
-        pbr_shadows.SetMatrix4("projection", myCamera->GetProjectionMatrix());
-        pbr_shadows.SetMatrix4("view", myCamera->GetViewMatrix());
-
         pbr_shadows.SetInteger("lightCount", static_cast<int>(light.getLights().size()));
-        //camera near and far plane
-        pbr_shadows.SetFloat("near_plane", myCamera->GetNearPlane());
-        pbr_shadows.SetFloat("far_plane", myCamera->GetFarPlane());
+        if (shadowsActive){
+            pbr_shadows.SetInteger("shadows_enabled", 1);
+        } else {
+            pbr_shadows.SetInteger("shadows_enabled", 0);
+        }
 
-        for (int i = 0; i < light.getLights().size(); i++) {
-            //render one light
+            
+        for (int j = 0; j < primitives.size(); j++) {
+            unsigned int shadowMap = light.getLight(i)->depthMap;
+            //if pointlight
             light.useOneLight(pbr_shadows, *myCamera, i);
-            //render the scene
-            for (int j = 0; j < primitives.size(); j++) {
-                unsigned int shadowMap = light.getLight(i)->depthMap;
-                //if pointlight
-                if(light.getLight(i)->type == Light::LightType::POINT)
-                {
-                    primitives[j]->drawWithShadow(pbr_shadows, *myCamera, shadowMap, true);
-                } else{
-                    primitives[j]->drawWithShadow(pbr_shadows, *myCamera, shadowMap, false);
-                }
-
-                
-                //cout debug
-                std::cout << "Tried to draw with shadow" << std::endl;
-                //cout id of map to see if it is the same
-                std::cout << "Depth map id: " << shadowMap << std::endl;
-                //check fbos
-                std::cout << "Depth map fbo: " << light.getLight(i)->depthMapFBO << std::endl;
+            if(light.getLight(i)->type == Light::LightType::POINT)
+            {
+                primitives[j]->drawWithShadow(pbr_shadows, *myCamera, shadowMap);
+            } else{
+                primitives[j]->drawWithShadow(pbr_shadows, *myCamera, shadowMap);
             }
         }
 
@@ -596,14 +624,11 @@ void Game::ProcessInput(float dt)
             fxaaActive = false;
             std::cout << "FXAA is disabled" << std::endl;
         }
-        //0 for forward rendering and 9 for deferred rendering
         if (this->Keys[GLFW_KEY_0]){
-            Rendermode = FORWARD_RENDERING;
-            std::cout << "Forward Rendering" << std::endl;
+            shadowsActive = false;
         }
         if (this->Keys[GLFW_KEY_9]){
-            Rendermode = DEFERRED_RENDERING;
-            std::cout << "Deferred Rendering" << std::endl;
+            shadowsActive = true;
         }
 
     }

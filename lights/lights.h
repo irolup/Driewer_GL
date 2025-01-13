@@ -77,7 +77,7 @@ public:
     float shadowHeight;
 
     float near_plane = 1.0f;
-    float far_plane = 50.0f;
+    float far_plane = 25.0f;
 
     void setShadowWidth(float width);
     void setShadowHeight(float height);

@@ -27,6 +27,7 @@ struct Light {
     float cutOff;
     float outerCutOff;
     mat4 lightSpaceMatrix;
+    float far_plane;
 };
 uniform Light lights[MAX_LIGHTS];
 
@@ -59,11 +60,6 @@ void main()
             FragPosLightSpace = light.lightSpaceMatrix * model * vec4(aPos, 1.0);
         }
     }
-
-    //for (int i = 0; i < MAX_LIGHTS; i++)
-    //{
-    //    FragPosLightSpace = lightSpaceMatrices[i] * model * vec4(aPos, 1.0);
-    //}
 
     vec4 worldPos = model * vec4(aPos, 1.0);
     FragPos = worldPos.xyz;

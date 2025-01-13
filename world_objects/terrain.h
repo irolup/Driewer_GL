@@ -13,7 +13,8 @@ class Terrain : public Primitives {
 public:
     Terrain(float gridSize);
     void draw(Shader& shader, Camera& camera) override;
-    void drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap, bool pointLight = false) override;
+    void drawWithShadow(Shader& shader, Camera& camera, unsigned int depthMap) override;
+    void drawTest(Shader& shader, Camera& camera) override;
 
     std::vector<glm::vec3> vertices;
 

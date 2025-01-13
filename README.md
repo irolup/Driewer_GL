@@ -11,10 +11,9 @@ Engine developed exclusively with OpenGL
 - Collision detection between player, terrain, and world objects
 - ImGui
 - Forward and Deferred Rendering
-- Shadow Mapping
+- Shadow Mapping / Omnidirectional Shadow Maps
 
 ## Features Currently in Development:
-- Omnidirectional Shadow Maps
 - SSAO
 - Screen Space Global Illumination (SSGI)
 
